@@ -36,4 +36,13 @@ export class User {
   updatedAt: Date;
 }
 
+@ObjectType()
+export class AuthUser {
+  @Field((type) => User)
+  user: User;
+
+  @Field()
+  token: string;
+}
+
 export const UserModel = getModelForClass(User);

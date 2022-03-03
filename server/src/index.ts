@@ -5,10 +5,14 @@ import { buildSchema } from "type-graphql";
 import "reflect-metadata";
 
 import { UserResolver } from "./resolvers/userResolver";
+import { CustomRequest } from "./types";
+import AuthMiddleware from "./middlewares/auth";
 
 async function main() {
   try {
     const app: Express = express();
+
+    app.use(AuthMiddleware);
 
     const schema = await buildSchema({
       resolvers: [UserResolver],
@@ -17,6 +21,14 @@ async function main() {
 
     const server = new ApolloServer({
       schema,
+      context: ({ req }) => {
+        const myReq = req as CustomRequest;
+
+        return {
+          user: myReq.user,
+          isAuth: myReq.isAuth,
+        };
+      },
     });
 
     await server.start();

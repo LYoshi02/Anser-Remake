@@ -9,7 +9,7 @@
     "emitDecoratorMetadata": true,
     "moduleResolution": "node",
     "esModuleInterop": true,                   
-    "strictPropertyInitialization": false,    
+    "strictPropertyInitialization": false,
   },
   "exclude":[
     "./node_modules"

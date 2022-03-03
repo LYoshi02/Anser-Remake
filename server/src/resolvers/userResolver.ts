@@ -1,9 +1,10 @@
-import { Resolver, Mutation, Arg, Query, Args, Ctx } from "type-graphql";
+import { Resolver, Mutation, Arg, Query, Args } from "type-graphql";
 import { ValidationError, UserInputError } from "apollo-server-express";
 import { hash as hashPassword, compare as comparePasswords } from "bcryptjs";
 
-import { UserModel, User } from "../schemas/user";
+import { UserModel, User, AuthUser } from "../schemas/user";
 import { CreateUserInput, LoginUserArgs } from "./types/user";
+import { issueAuthToken } from "../utils/user";
 
 @Resolver((of) => User)
 export class UserResolver {
@@ -37,11 +38,10 @@ export class UserResolver {
     return user;
   }
 
-  @Query((returns) => User)
+  @Query((returns) => AuthUser)
   async loginUser(
-    @Args() { email, password }: LoginUserArgs,
-    @Ctx() ctx: any
-  ): Promise<User> {
+    @Args() { email, password }: LoginUserArgs
+  ): Promise<AuthUser> {
     const foundUser = await UserModel.findOne({ email });
 
     if (!foundUser) {
@@ -56,6 +56,10 @@ export class UserResolver {
       throw new UserInputError("Email or password are not valid");
     }
 
-    return foundUser;
+    const foundUserObj = foundUser.toObject();
+
+    const token = issueAuthToken({ _id: foundUserObj._id });
+
+    return { user: foundUserObj, token };
   }
 }
