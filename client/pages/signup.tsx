@@ -1,4 +1,5 @@
 import type { NextPage } from "next";
+import { useMutation } from "@apollo/client";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Input } from "@chakra-ui/react";
@@ -11,10 +12,12 @@ import {
   PasswordInput,
   signupFormSchema,
   SignupFormValues,
+  CREATE_USER,
 } from "@/features/auth";
 import { FormControl } from "@/components/UI";
 
 const SignupPage: NextPage = () => {
+  const [] = useMutation(CREATE_USER);
   const {
     register,
     handleSubmit,

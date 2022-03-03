@@ -1,6 +1,6 @@
 import { ObjectId } from "mongoose";
 import { getModelForClass, prop as Property } from "@typegoose/typegoose";
-import { Field, ObjectType, InputType, ID } from "type-graphql";
+import { Field, ObjectType, ID } from "type-graphql";
 
 @ObjectType()
 export class User {
@@ -24,22 +24,16 @@ export class User {
   description?: string;
 
   @Field()
+  @Property()
   password: string;
+
+  @Field()
+  @Property({ default: Date.now() })
+  createdAt: Date;
+
+  @Field()
+  @Property({ default: Date.now() })
+  updatedAt: Date;
 }
 
 export const UserModel = getModelForClass(User);
-
-@InputType()
-export class AddUserInput implements Partial<User> {
-  @Field()
-  email: string;
-
-  @Field()
-  username: string;
-
-  @Field()
-  fullname: string;
-
-  @Field()
-  password: string;
-}
