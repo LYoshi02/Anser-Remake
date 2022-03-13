@@ -1,4 +1,5 @@
 import { sign } from "jsonwebtoken";
+
 import { JwtPayload } from "../types";
 
 export const issueAuthToken = (jwtPayload: JwtPayload) => {

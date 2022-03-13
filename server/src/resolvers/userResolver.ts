@@ -1,9 +1,14 @@
-import { Resolver, Mutation, Arg, Query, Args } from "type-graphql";
-import { ValidationError, UserInputError } from "apollo-server-express";
+import { Resolver, Mutation, Arg, Query, Args, Ctx } from "type-graphql";
+import {
+  ValidationError,
+  UserInputError,
+  AuthenticationError,
+} from "apollo-server-express";
 import { hash as hashPassword, compare as comparePasswords } from "bcryptjs";
 
-import { UserModel, User, AuthUser } from "../schemas/user";
+import { UserModel, User, LoggedInUser, AuthUser } from "../schemas/user";
 import { CreateUserInput, LoginUserArgs } from "./types/user";
+import { Context } from "../types";
 import { issueAuthToken } from "../utils/user";
 
 @Resolver((of) => User)
@@ -38,10 +43,10 @@ export class UserResolver {
     return user;
   }
 
-  @Query((returns) => AuthUser)
+  @Query((returns) => LoggedInUser)
   async loginUser(
     @Args() { email, password }: LoginUserArgs
-  ): Promise<AuthUser> {
+  ): Promise<LoggedInUser> {
     const foundUser = await UserModel.findOne({ email });
 
     if (!foundUser) {
@@ -61,5 +66,55 @@ export class UserResolver {
     const token = issueAuthToken({ _id: foundUserObj._id });
 
     return { user: foundUserObj, token };
+  }
+
+  @Query((returns) => [User])
+  async getUsers(@Ctx() ctx: Context): Promise<User[]> {
+    if (!ctx.isAuth || !ctx.user) {
+      throw new AuthenticationError("User is not authenticated");
+    }
+
+    const users = await UserModel.find({
+      _id: { $not: { $eq: ctx.user._id } },
+    });
+
+    return users;
+  }
+
+  @Query((returns) => AuthUser)
+  async getAuthUser(@Ctx() ctx: Context): Promise<AuthUser> {
+    if (!ctx.isAuth || !ctx.user) {
+      return {
+        isAuth: false,
+        user: undefined,
+      };
+    }
+
+    const { _id, description, email, fullname, username } = ctx.user;
+
+    return {
+      isAuth: true,
+      user: { _id, description, email, fullname, username },
+    };
+  }
+
+  @Query((returns) => User)
+  async getUser(
+    @Arg("username") username: string,
+    @Ctx() ctx: Context
+  ): Promise<User> {
+    if (!ctx.isAuth || !ctx.user) {
+      throw new AuthenticationError("User is not authenticated");
+    }
+
+    const user = await UserModel.findOne({
+      username,
+    });
+
+    if (!user) {
+      throw new ValidationError("User not found");
+    }
+
+    return user;
   }
 }

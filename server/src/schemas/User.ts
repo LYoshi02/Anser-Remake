@@ -1,10 +1,10 @@
-import { ObjectId } from "mongoose";
+import { ObjectId } from "mongodb";
 import { getModelForClass, prop as Property } from "@typegoose/typegoose";
-import { Field, ObjectType, ID } from "type-graphql";
+import { Field, ObjectType } from "type-graphql";
 
 @ObjectType()
 export class User {
-  @Field((type) => ID)
+  @Field()
   readonly _id: ObjectId;
 
   @Field()
@@ -21,23 +21,15 @@ export class User {
 
   @Field({ nullable: true })
   @Property({ default: null, trim: true })
-  description?: string;
+  description: string;
 
   @Field()
   @Property()
   password: string;
-
-  @Field()
-  @Property({ default: Date.now() })
-  createdAt: Date;
-
-  @Field()
-  @Property({ default: Date.now() })
-  updatedAt: Date;
 }
 
 @ObjectType()
-export class AuthUser {
+export class LoggedInUser {
   @Field((type) => User)
   user: User;
 
@@ -45,4 +37,33 @@ export class AuthUser {
   token: string;
 }
 
-export const UserModel = getModelForClass(User);
+@ObjectType()
+export class UserWithoutPassword {
+  @Field()
+  readonly _id: ObjectId;
+
+  @Field()
+  email: string;
+
+  @Field()
+  username: string;
+
+  @Field()
+  fullname: string;
+
+  @Field({ nullable: true })
+  description: string;
+}
+
+@ObjectType()
+export class AuthUser {
+  @Field()
+  isAuth: boolean;
+
+  @Field((type) => UserWithoutPassword, { nullable: true })
+  user?: UserWithoutPassword;
+}
+
+export const UserModel = getModelForClass(User, {
+  schemaOptions: { timestamps: true },
+});

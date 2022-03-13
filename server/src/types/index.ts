@@ -1,5 +1,5 @@
 import { Request } from "express";
-import { ObjectId } from "mongoose";
+import { ObjectId } from "mongodb";
 
 import { User } from "../schemas/user";
 
@@ -16,3 +16,5 @@ export type Context = {
 export type JwtPayload = {
   _id: ObjectId;
 };
+
+export type Ref<T> = T | ObjectId;

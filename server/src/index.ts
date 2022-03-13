@@ -1,25 +1,33 @@
-import express, { Express } from "express";
-import { ApolloServer } from "apollo-server-express";
+import express from "express";
 import mongoose from "mongoose";
+import { ObjectId } from "mongodb";
+import { ApolloServer } from "apollo-server-express";
 import { buildSchema } from "type-graphql";
 import "reflect-metadata";
 
+import { AuthMiddleware } from "./middlewares/auth";
 import { UserResolver } from "./resolvers/userResolver";
+import { ChatResolver } from "./resolvers/chatResolver";
 import { CustomRequest } from "./types";
-import AuthMiddleware from "./middlewares/auth";
+import { ObjectIdScalar } from "./utils/objectId.scalar";
+import { TypegooseMiddleware } from "./middlewares/typegoose";
 
-async function main() {
+const port = process.env.PORT || 4000;
+
+async function startApp() {
   try {
-    const app: Express = express();
-
+    const app = express();
     app.use(AuthMiddleware);
 
     const schema = await buildSchema({
-      resolvers: [UserResolver],
+      resolvers: [UserResolver, ChatResolver],
       emitSchemaFile: true,
+      scalarsMap: [{ type: ObjectId, scalar: ObjectIdScalar }],
+      validate: false,
+      globalMiddlewares: [TypegooseMiddleware],
     });
 
-    const server = new ApolloServer({
+    const apolloServer = new ApolloServer({
       schema,
       context: ({ req }) => {
         const myReq = req as CustomRequest;
@@ -31,19 +39,18 @@ async function main() {
       },
     });
 
-    await server.start();
-
-    server.applyMiddleware({ app });
+    await apolloServer.start();
+    apolloServer.applyMiddleware({ app, cors: true });
 
     const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.qyzyf.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
     await mongoose.connect(uri);
 
-    app.listen(4000, () =>
-      console.log("Server is running on http://localhost:4000/graphql")
-    );
-  } catch (error: any) {
+    app.listen(port, () => {
+      console.log(`> Server listening at http://localhost:${port}/graphql`);
+    });
+  } catch (error) {
     console.log(error);
   }
 }
 
-main();
+startApp();

@@ -8,8 +8,7 @@ import { CustomRequest, JwtPayload } from "../types";
  * Custom User Authentication Middleware
  * Which Finds the user from the database using the request token
  */
-
-const AuthMiddleware = async (
+export const AuthMiddleware = async (
   expressReq: Request,
   res: Response,
   next: NextFunction
@@ -17,7 +16,7 @@ const AuthMiddleware = async (
   const req = expressReq as CustomRequest;
 
   // Extract Authorization Header
-  const authHeader = req.get("Authorization");
+  const authHeader = req.header("authorization");
   if (!authHeader) {
     req.isAuth = false;
     return next();
@@ -59,5 +58,3 @@ const AuthMiddleware = async (
   req.user = authUser;
   return next();
 };
-
-export default AuthMiddleware;
