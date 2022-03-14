@@ -1,3 +1,4 @@
+import { ObjectId } from "mongodb";
 import { ArgsType, Field, InputType } from "type-graphql";
 import { User } from "../../schemas/user";
 
@@ -23,4 +24,10 @@ export class LoginUserArgs {
 
   @Field()
   password: string;
+}
+
+export interface NewUserPayload {
+  _id: ObjectId;
+  username: string;
+  fullname: string;
 }

@@ -1,4 +1,16 @@
-import { Resolver, Mutation, Arg, Query, Args, Ctx } from "type-graphql";
+import { PubSubEngine } from "graphql-subscriptions";
+import {
+  Resolver,
+  Mutation,
+  Arg,
+  Query,
+  Args,
+  Ctx,
+  Subscription,
+  Root,
+  PubSub,
+  Publisher,
+} from "type-graphql";
 import {
   ValidationError,
   UserInputError,
@@ -6,8 +18,14 @@ import {
 } from "apollo-server-express";
 import { hash as hashPassword, compare as comparePasswords } from "bcryptjs";
 
-import { UserModel, User, LoggedInUser, AuthUser } from "../schemas/user";
-import { CreateUserInput, LoginUserArgs } from "./types/user";
+import {
+  UserModel,
+  User,
+  LoggedInUser,
+  AuthUser,
+  NewUser,
+} from "../schemas/user";
+import { CreateUserInput, LoginUserArgs, NewUserPayload } from "./types/user";
 import { Context } from "../types";
 import { issueAuthToken } from "../utils/user";
 
@@ -15,6 +33,7 @@ import { issueAuthToken } from "../utils/user";
 export class UserResolver {
   @Mutation((returns) => User)
   async createUser(
+    @PubSub("NEW_USER") publish: Publisher<NewUserPayload>,
     @Arg("newUser") { email, fullname, username, password }: CreateUserInput
   ): Promise<User> {
     const userExists = await UserModel.findOne({
@@ -40,7 +59,21 @@ export class UserResolver {
 
     await user.save();
 
+    await publish({
+      _id: user._id,
+      fullname: user.fullname,
+      username: user.username,
+    });
+
     return user;
+  }
+
+  @Subscription({ topics: "NEW_USER" })
+  newUser(@Root() newUserPayload: NewUserPayload): NewUser {
+    return {
+      ...newUserPayload,
+      isNewUser: true,
+    };
   }
 
   @Query((returns) => LoggedInUser)

@@ -3,6 +3,13 @@ import mongoose from "mongoose";
 import { ObjectId } from "mongodb";
 import { ApolloServer } from "apollo-server-express";
 import { buildSchema } from "type-graphql";
+
+import { createServer } from "http";
+import { ApolloServerPluginDrainHttpServer } from "apollo-server-core";
+import { makeExecutableSchema } from "@graphql-tools/schema";
+import { WebSocketServer } from "ws";
+import { useServer } from "graphql-ws/lib/use/ws";
+
 import "reflect-metadata";
 
 import { AuthMiddleware } from "./middlewares/auth";
@@ -19,6 +26,8 @@ async function startApp() {
     const app = express();
     app.use(AuthMiddleware);
 
+    const httpServer = createServer(app);
+
     const schema = await buildSchema({
       resolvers: [UserResolver, ChatResolver],
       emitSchemaFile: true,
@@ -26,6 +35,14 @@ async function startApp() {
       validate: false,
       globalMiddlewares: [TypegooseMiddleware],
     });
+
+    // Creating the WebSocket server
+    const wsServer = new WebSocketServer({
+      server: httpServer,
+      path: "/graphql",
+    });
+
+    const serverCleanup = useServer({ schema }, wsServer);
 
     const apolloServer = new ApolloServer({
       schema,
@@ -37,6 +54,21 @@ async function startApp() {
           isAuth: myReq.isAuth,
         };
       },
+      plugins: [
+        // Proper shutdown for the HTTP server.
+        ApolloServerPluginDrainHttpServer({ httpServer }),
+
+        // Proper shutdown for the WebSocket server.
+        {
+          async serverWillStart() {
+            return {
+              async drainServer() {
+                await serverCleanup.dispose();
+              },
+            };
+          },
+        },
+      ],
     });
 
     await apolloServer.start();
@@ -45,8 +77,10 @@ async function startApp() {
     const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.qyzyf.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
     await mongoose.connect(uri);
 
-    app.listen(port, () => {
-      console.log(`> Server listening at http://localhost:${port}/graphql`);
+    httpServer.listen(port, () => {
+      console.log(
+        `> Server listening at http://localhost:${port}${apolloServer.graphqlPath}`
+      );
     });
   } catch (error) {
     console.log(error);

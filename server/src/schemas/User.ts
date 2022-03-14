@@ -64,6 +64,21 @@ export class AuthUser {
   user?: UserWithoutPassword;
 }
 
+@ObjectType()
+export class NewUser {
+  @Field()
+  readonly _id: ObjectId;
+
+  @Field()
+  username: string;
+
+  @Field()
+  fullname: string;
+
+  @Field()
+  isNewUser: boolean;
+}
+
 export const UserModel = getModelForClass(User, {
   schemaOptions: { timestamps: true },
 });
