@@ -1,6 +1,3 @@
-export * from "./api/login";
-export * from "./api/signup";
-
 export { default as logoImg } from "./assets/logo.png";
 
 export { default as Container } from "./components/Container";

@@ -4,11 +4,11 @@ import { Avatar, Box, Button, Flex, Stack, Text } from "@chakra-ui/react";
 
 import { AppLayout } from "@/components/Layout";
 import { BackNav, Container, Link } from "@/components/UI";
-import { useGetUser } from "@/features/chat";
+import { useGetFullUserQuery } from "@/graphql/generated";
 
 const UserPage: NextPage = () => {
   const router = useRouter();
-  const { loading, data: userData } = useGetUser({
+  const { loading, data: userData } = useGetFullUserQuery({
     variables: { username: router.query.user as string },
   });
 

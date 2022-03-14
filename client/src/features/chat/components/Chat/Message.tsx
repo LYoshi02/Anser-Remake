@@ -6,14 +6,13 @@ type Props = {
     fullname: string;
   };
   text: string;
-  userId: string;
+  sentByMe: boolean;
 };
 
-const Message = ({ sender, text, userId }: Props) => {
+const Message = ({ sender, text, sentByMe }: Props) => {
   const colorYellow = useColorModeValue("yellow.300", "purple.700");
   const colorGray = useColorModeValue("gray.200", "gray.700");
 
-  const sentByMe = sender._id === userId;
   let messagePosition = sentByMe ? "flex-end" : "flex-start";
 
   return (

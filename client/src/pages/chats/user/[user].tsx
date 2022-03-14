@@ -17,39 +17,46 @@ import { useAuthUser } from "@/hooks/useAuthUser";
 const UserChatPage: NextPage = () => {
   const router = useRouter();
   const [getChat, { data: chatData }] = useGetChatLazyQuery();
+  const [getRecipient, { data: recipientData }] = useGetUserLazyQuery();
   const [addMessage] = useAddMessageMutation();
   const authUser = useAuthUser({ redirectTo: "/login" });
-
   const messagesEndRef = useScrollToBottom<HTMLDivElement>();
 
+  const recipientUsername = router.query.user as string;
+
   useEffect(() => {
-    if (router.query.user) {
+    if (recipientUsername) {
       const getChatData = async () => {
-        await getChat({
-          variables: { recipientUsername: router.query.user as string },
-        });
+        try {
+          await getChat({
+            variables: { recipientUsername },
+          });
+
+          await getRecipient({ variables: { username: recipientUsername } });
+        } catch (error) {
+          console.log(error);
+        }
       };
 
       getChatData();
     }
-  }, [router.query, getChat]);
+  }, [recipientUsername, getChat, getRecipient]);
 
-  console.log(chatData);
-
-  const sendMessageHandler = async (msg: string) => {
+  const sendMessageHandler = async (text: string) => {
     try {
-      if (!chatData) {
-        throw new Error("No chat found");
+      if (!recipientData) {
+        throw new Error("Cannot send the message");
       }
 
-      const recipientsId = chatData.getChat.users.map((u) => u._id);
+      const chatId = chatData?.getChat._id;
+      const recipients = [recipientData.getUser._id];
 
       await addMessage({
         variables: {
           chatData: {
-            recipients: recipientsId,
-            text: msg,
-            chatId: chatData.getChat._id,
+            recipients,
+            text,
+            chatId,
           },
         },
       });
@@ -59,18 +66,16 @@ const UserChatPage: NextPage = () => {
   };
 
   let messages;
-  if (chatData && authUser) {
+  if (chatData && authUser && recipientData) {
     messages = chatData.getChat.messages.map((msg) => {
-      const senderData = chatData.getChat.users.find(
-        (u) => u._id === msg.sender._id
-      );
+      const isSentByAuthUser = msg.sender._id === authUser._id;
 
       return (
         <Message
           key={msg._id}
-          sender={senderData!}
+          sender={isSentByAuthUser ? authUser : recipientData.getUser}
           text={msg.text}
-          userId={authUser._id}
+          sentByMe={isSentByAuthUser}
         />
       );
     });
@@ -79,7 +84,7 @@ const UserChatPage: NextPage = () => {
   return (
     <AppLayout>
       <BackNav>
-        <ChatInfo name="Other User" />
+        <ChatInfo name={recipientData?.getUser.fullname || ""} />
       </BackNav>
       <Flex
         direction="column"

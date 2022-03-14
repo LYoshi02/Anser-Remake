@@ -65,23 +65,31 @@ export class ChatResolver {
       throw new AuthenticationError("User is not authenticated");
     }
 
+    const authUserId = ctx.user._id;
+
+    const chatUsers = [...recipients];
+    const authUserExists = chatUsers.some((id) => authUserId === id);
+    if (!authUserExists) {
+      chatUsers.push(authUserId);
+    }
+
     let chat = await ChatModel.findOne({
       _id: chatId,
       users: {
-        $in: [ctx.user._id],
+        $in: [authUserId],
       },
     });
 
     if (!chat) {
       chat = new ChatModel({
-        users: recipients,
+        users: chatUsers,
       });
     }
 
     const newMessage: Message = {
       _id: new ObjectId(),
       text,
-      sender: ctx.user._id,
+      sender: authUserId,
     };
 
     chat.messages.push(newMessage);

@@ -120,6 +120,11 @@ export type UserWithoutPassword = {
   username: Scalars['String'];
 };
 
+export type GetAuthUserQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetAuthUserQuery = { __typename?: 'Query', getAuthUser: { __typename?: 'AuthUser', isAuth: boolean, user?: { __typename?: 'UserWithoutPassword', _id: any, email: string, username: string, fullname: string, description?: string | null } | null } };
+
 export type LoginUserQueryVariables = Exact<{
   email: Scalars['String'];
   password: Scalars['String'];
@@ -154,24 +159,67 @@ export type GetChatsQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type GetChatsQuery = { __typename?: 'Query', getChats: Array<{ __typename?: 'Chat', _id: any, users: Array<{ __typename?: 'User', _id: any, username: string, fullname: string }>, messages: Array<{ __typename?: 'Message', text: string }> }> };
 
+export type GetFullUserQueryVariables = Exact<{
+  username: Scalars['String'];
+}>;
+
+
+export type GetFullUserQuery = { __typename?: 'Query', getUser: { __typename?: 'User', _id: any, username: string, fullname: string, description?: string | null } };
+
 export type GetUserQueryVariables = Exact<{
   username: Scalars['String'];
 }>;
 
 
-export type GetUserQuery = { __typename?: 'Query', getUser: { __typename?: 'User', _id: any, username: string, fullname: string, description?: string | null } };
+export type GetUserQuery = { __typename?: 'Query', getUser: { __typename?: 'User', _id: any, fullname: string } };
 
 export type GetUsersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type GetUsersQuery = { __typename?: 'Query', getUsers: Array<{ __typename?: 'User', _id: any, username: string, fullname: string }> };
 
-export type GetAuthUserQueryVariables = Exact<{ [key: string]: never; }>;
 
+export const GetAuthUserDocument = gql`
+    query GetAuthUser {
+  getAuthUser {
+    isAuth
+    user {
+      _id
+      email
+      username
+      fullname
+      description
+    }
+  }
+}
+    `;
 
-export type GetAuthUserQuery = { __typename?: 'Query', getAuthUser: { __typename?: 'AuthUser', isAuth: boolean, user?: { __typename?: 'UserWithoutPassword', _id: any, email: string, username: string, fullname: string, description?: string | null } | null } };
-
-
+/**
+ * __useGetAuthUserQuery__
+ *
+ * To run a query within a React component, call `useGetAuthUserQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAuthUserQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAuthUserQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetAuthUserQuery(baseOptions?: Apollo.QueryHookOptions<GetAuthUserQuery, GetAuthUserQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAuthUserQuery, GetAuthUserQueryVariables>(GetAuthUserDocument, options);
+      }
+export function useGetAuthUserLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAuthUserQuery, GetAuthUserQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAuthUserQuery, GetAuthUserQueryVariables>(GetAuthUserDocument, options);
+        }
+export type GetAuthUserQueryHookResult = ReturnType<typeof useGetAuthUserQuery>;
+export type GetAuthUserLazyQueryHookResult = ReturnType<typeof useGetAuthUserLazyQuery>;
+export type GetAuthUserQueryResult = Apollo.QueryResult<GetAuthUserQuery, GetAuthUserQueryVariables>;
 export const LoginUserDocument = gql`
     query LoginUser($email: String!, $password: String!) {
   loginUser(email: $email, password: $password) {
@@ -365,13 +413,49 @@ export function useGetChatsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<G
 export type GetChatsQueryHookResult = ReturnType<typeof useGetChatsQuery>;
 export type GetChatsLazyQueryHookResult = ReturnType<typeof useGetChatsLazyQuery>;
 export type GetChatsQueryResult = Apollo.QueryResult<GetChatsQuery, GetChatsQueryVariables>;
-export const GetUserDocument = gql`
-    query GetUser($username: String!) {
+export const GetFullUserDocument = gql`
+    query GetFullUser($username: String!) {
   getUser(username: $username) {
     _id
     username
     fullname
     description
+  }
+}
+    `;
+
+/**
+ * __useGetFullUserQuery__
+ *
+ * To run a query within a React component, call `useGetFullUserQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFullUserQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFullUserQuery({
+ *   variables: {
+ *      username: // value for 'username'
+ *   },
+ * });
+ */
+export function useGetFullUserQuery(baseOptions: Apollo.QueryHookOptions<GetFullUserQuery, GetFullUserQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetFullUserQuery, GetFullUserQueryVariables>(GetFullUserDocument, options);
+      }
+export function useGetFullUserLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetFullUserQuery, GetFullUserQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetFullUserQuery, GetFullUserQueryVariables>(GetFullUserDocument, options);
+        }
+export type GetFullUserQueryHookResult = ReturnType<typeof useGetFullUserQuery>;
+export type GetFullUserLazyQueryHookResult = ReturnType<typeof useGetFullUserLazyQuery>;
+export type GetFullUserQueryResult = Apollo.QueryResult<GetFullUserQuery, GetFullUserQueryVariables>;
+export const GetUserDocument = gql`
+    query GetUser($username: String!) {
+  getUser(username: $username) {
+    _id
+    fullname
   }
 }
     `;
@@ -439,44 +523,3 @@ export function useGetUsersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<G
 export type GetUsersQueryHookResult = ReturnType<typeof useGetUsersQuery>;
 export type GetUsersLazyQueryHookResult = ReturnType<typeof useGetUsersLazyQuery>;
 export type GetUsersQueryResult = Apollo.QueryResult<GetUsersQuery, GetUsersQueryVariables>;
-export const GetAuthUserDocument = gql`
-    query GetAuthUser {
-  getAuthUser {
-    isAuth
-    user {
-      _id
-      email
-      username
-      fullname
-      description
-    }
-  }
-}
-    `;
-
-/**
- * __useGetAuthUserQuery__
- *
- * To run a query within a React component, call `useGetAuthUserQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetAuthUserQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetAuthUserQuery({
- *   variables: {
- *   },
- * });
- */
-export function useGetAuthUserQuery(baseOptions?: Apollo.QueryHookOptions<GetAuthUserQuery, GetAuthUserQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetAuthUserQuery, GetAuthUserQueryVariables>(GetAuthUserDocument, options);
-      }
-export function useGetAuthUserLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAuthUserQuery, GetAuthUserQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetAuthUserQuery, GetAuthUserQueryVariables>(GetAuthUserDocument, options);
-        }
-export type GetAuthUserQueryHookResult = ReturnType<typeof useGetAuthUserQuery>;
-export type GetAuthUserLazyQueryHookResult = ReturnType<typeof useGetAuthUserLazyQuery>;
-export type GetAuthUserQueryResult = Apollo.QueryResult<GetAuthUserQuery, GetAuthUserQueryVariables>;

@@ -1,7 +1,3 @@
-export * from "./api/getChat";
-export * from "./api/getUser";
-export * from "./api/addMessage";
-
 export { default as welcomeImg } from "./assets/welcome.png";
 
 export { default as ChatInfo } from "./components/Chat/ChatInfo";
