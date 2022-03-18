@@ -1,4 +1,3 @@
-import { PubSubEngine } from "graphql-subscriptions";
 import {
   Resolver,
   Mutation,
@@ -72,7 +71,6 @@ export class UserResolver {
   newUser(@Root() newUserPayload: NewUserPayload): NewUser {
     return {
       ...newUserPayload,
-      isNewUser: true,
     };
   }
 

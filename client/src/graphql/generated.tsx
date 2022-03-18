@@ -75,6 +75,13 @@ export type MutationCreateUserArgs = {
   newUser: CreateUserInput;
 };
 
+export type NewUser = {
+  __typename?: 'NewUser';
+  _id: Scalars['ObjectId'];
+  fullname: Scalars['String'];
+  username: Scalars['String'];
+};
+
 export type Query = {
   __typename?: 'Query';
   getAuthUser: AuthUser;
@@ -99,6 +106,11 @@ export type QueryGetUserArgs = {
 export type QueryLoginUserArgs = {
   email: Scalars['String'];
   password: Scalars['String'];
+};
+
+export type Subscription = {
+  __typename?: 'Subscription';
+  newUser: NewUser;
 };
 
 export type User = {
@@ -177,6 +189,11 @@ export type GetUsersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type GetUsersQuery = { __typename?: 'Query', getUsers: Array<{ __typename?: 'User', _id: any, username: string, fullname: string }> };
+
+export type OnNewUserAddedSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type OnNewUserAddedSubscription = { __typename?: 'Subscription', newUser: { __typename?: 'NewUser', _id: any, fullname: string, username: string } };
 
 
 export const GetAuthUserDocument = gql`
@@ -523,3 +540,34 @@ export function useGetUsersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<G
 export type GetUsersQueryHookResult = ReturnType<typeof useGetUsersQuery>;
 export type GetUsersLazyQueryHookResult = ReturnType<typeof useGetUsersLazyQuery>;
 export type GetUsersQueryResult = Apollo.QueryResult<GetUsersQuery, GetUsersQueryVariables>;
+export const OnNewUserAddedDocument = gql`
+    subscription OnNewUserAdded {
+  newUser {
+    _id
+    fullname
+    username
+  }
+}
+    `;
+
+/**
+ * __useOnNewUserAddedSubscription__
+ *
+ * To run a query within a React component, call `useOnNewUserAddedSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useOnNewUserAddedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useOnNewUserAddedSubscription({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useOnNewUserAddedSubscription(baseOptions?: Apollo.SubscriptionHookOptions<OnNewUserAddedSubscription, OnNewUserAddedSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<OnNewUserAddedSubscription, OnNewUserAddedSubscriptionVariables>(OnNewUserAddedDocument, options);
+      }
+export type OnNewUserAddedSubscriptionHookResult = ReturnType<typeof useOnNewUserAddedSubscription>;
+export type OnNewUserAddedSubscriptionResult = Apollo.SubscriptionResult<OnNewUserAddedSubscription>;

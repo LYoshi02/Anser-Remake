@@ -74,9 +74,6 @@ export class NewUser {
 
   @Field()
   fullname: string;
-
-  @Field()
-  isNewUser: boolean;
 }
 
 export const UserModel = getModelForClass(User, {
