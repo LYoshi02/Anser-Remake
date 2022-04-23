@@ -11,12 +11,14 @@ import {
   useGetChatLazyQuery,
   useAddMessageMutation,
   useGetUserLazyQuery,
+  OnNewChatAddedSubscription,
+  OnNewChatAddedDocument,
 } from "@/graphql/generated";
 import { useAuthUser } from "@/hooks/useAuthUser";
 
 const UserChatPage: NextPage = () => {
   const router = useRouter();
-  const [getChat, { data: chatData }] = useGetChatLazyQuery();
+  const [getChat, { data: chatData, subscribeToMore }] = useGetChatLazyQuery();
   const [getRecipient, { data: recipientData }] = useGetUserLazyQuery();
   const [addMessage] = useAddMessageMutation();
   const authUser = useAuthUser({ redirectTo: "/login" });
@@ -41,6 +43,20 @@ const UserChatPage: NextPage = () => {
       getChatData();
     }
   }, [recipientUsername, getChat, getRecipient]);
+
+  useEffect(() => {
+    subscribeToMore<OnNewChatAddedSubscription>({
+      document: OnNewChatAddedDocument,
+      updateQuery: (prev, { subscriptionData }) => {
+        if (!subscriptionData.data) return prev;
+        const newChat = subscriptionData.data.newChat;
+
+        return Object.assign({}, prev, {
+          getChat: newChat,
+        });
+      },
+    });
+  }, [subscribeToMore]);
 
   const sendMessageHandler = async (text: string) => {
     try {

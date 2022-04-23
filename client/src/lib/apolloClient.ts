@@ -11,6 +11,7 @@ const httpLink = new HttpLink({
 const authLink = setContext((_, { headers }) => {
   // get the authentication token from local storage if it exists
   const token = localStorage.getItem("token");
+
   // return the headers to the context so httpLink can read them
   return {
     headers: {
@@ -21,20 +22,23 @@ const authLink = setContext((_, { headers }) => {
 });
 
 const wsLink =
-  typeof window === "undefined"
-    ? null
-    : new GraphQLWsLink(
+  typeof window !== "undefined"
+    ? new GraphQLWsLink(
         createClient({
           url: "ws://localhost:4000/graphql",
+          connectionParams: () => ({
+            authToken: localStorage.getItem("token"),
+          }),
         })
-      );
+      )
+    : null;
 
 const splitLink =
-  typeof window === "undefined"
-    ? httpLink
-    : split(
+  typeof window !== "undefined"
+    ? split(
         ({ query }) => {
           const definition = getMainDefinition(query);
+
           return (
             definition.kind === "OperationDefinition" &&
             definition.operation === "subscription"
@@ -42,7 +46,8 @@ const splitLink =
         },
         wsLink!,
         authLink.concat(httpLink)
-      );
+      )
+    : httpLink;
 
 export const client = new ApolloClient({
   link: splitLink,

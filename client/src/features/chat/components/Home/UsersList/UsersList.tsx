@@ -12,11 +12,9 @@ const UsersList = () => {
   const { data: usersData, loading, subscribeToMore } = useGetUsersQuery();
 
   useEffect(() => {
-    console.log("montado");
     subscribeToMore<OnNewUserAddedSubscription>({
       document: OnNewUserAddedDocument,
       updateQuery: (prev, { subscriptionData }) => {
-        console.log(prev, subscriptionData);
         if (!subscriptionData.data) return prev;
         const newUser = subscriptionData.data.newUser;
 

@@ -1,4 +1,5 @@
 import { useRouter } from "next/router";
+import { useApolloClient } from "@apollo/client";
 import {
   Box,
   Flex,
@@ -21,10 +22,17 @@ import { Link, Menu } from "@/components/UI";
 
 const ChatNavigation = () => {
   const router = useRouter();
+  const client = useApolloClient();
   const { colorMode, toggleColorMode } = useColorMode();
 
   const colorRed = useColorModeValue("red.700", "red.400");
   const colorMainNavbar = useColorModeValue("purple.700", "");
+
+  const onLogout = () => {
+    localStorage.removeItem("token");
+    client.clearStore();
+    router.push("/");
+  };
 
   return (
     <Flex
@@ -68,7 +76,7 @@ const ChatNavigation = () => {
           <MenuItem
             color={colorRed}
             icon={<Icon as={HiLogout} w="5" h="5" d="block" />}
-            onClick={() => router.push("/")}
+            onClick={onLogout}
           >
             Log Out
           </MenuItem>

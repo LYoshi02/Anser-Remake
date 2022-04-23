@@ -1,8 +1,8 @@
 import { NextFunction, Response, Request } from "express";
-import { verify } from "jsonwebtoken";
 
 import { UserModel } from "../schemas/user";
-import { CustomRequest, JwtPayload } from "../types";
+import { CustomRequest } from "../types";
+import { getDecodedToken, extractBearerToken } from "../utils/user";
 
 /**
  * Custom User Authentication Middleware
@@ -23,25 +23,14 @@ export const AuthMiddleware = async (
   }
 
   // Extract the token and check for token
-  const token = authHeader.split(" ")[1];
-  if (!token || token === "") {
-    req.isAuth = false;
-    return next();
-  }
-
-  // Verify the extracted token
-  let decodedToken;
-  try {
-    decodedToken = verify(
-      token,
-      process.env.JWT_SECRET as string
-    ) as JwtPayload;
-  } catch (err) {
+  const token = extractBearerToken(authHeader);
+  if (!token) {
     req.isAuth = false;
     return next();
   }
 
   // If decoded token is null then set authentication of the request false
+  let decodedToken = getDecodedToken(token);
   if (!decodedToken) {
     req.isAuth = false;
     return next();

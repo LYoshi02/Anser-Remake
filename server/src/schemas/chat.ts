@@ -20,6 +20,15 @@ export class Chat {
   messages: Message[];
 }
 
+@ObjectType()
+export class NewMessage {
+  @Field()
+  readonly chatId: ObjectId;
+
+  @Field((type) => Message)
+  message: Message;
+}
+
 export const ChatModel = getModelForClass(Chat, {
   schemaOptions: { timestamps: true },
 });

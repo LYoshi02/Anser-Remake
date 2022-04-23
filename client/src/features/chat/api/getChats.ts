@@ -10,6 +10,7 @@ export const GET_CHATS = gql`
         fullname
       }
       messages {
+        _id
         text
       }
     }

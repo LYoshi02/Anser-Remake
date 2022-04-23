@@ -17,6 +17,11 @@ import { ChatResolver } from "./resolvers/chatResolver";
 import { CustomRequest } from "./types";
 import { ObjectIdScalar } from "./utils/objectId.scalar";
 import { TypegooseMiddleware } from "./middlewares/typegoose";
+import {
+  getUserIdWithToken,
+  getDecodedToken,
+  extractBearerToken,
+} from "./utils/user";
 
 const port = process.env.PORT || 4000;
 
@@ -40,6 +45,37 @@ async function startApp() {
       server: httpServer,
       path: "/graphql",
     });
+
+    useServer(
+      {
+        schema,
+        onConnect: (ctx) => {
+          if (!ctx.connectionParams || !ctx.connectionParams.authToken) {
+            throw new Error("Auth token missing");
+          }
+
+          const token = extractBearerToken(
+            ctx.connectionParams.authToken as string
+          );
+          if (!token) {
+            throw new Error("Auth token missing");
+          }
+
+          const decodedToken = getDecodedToken(token);
+          if (!decodedToken) {
+            throw new Error("Invalid auth token");
+          }
+        },
+        context: async (ctx, msg, args) => {
+          const userId = await getUserIdWithToken(
+            ctx.connectionParams?.authToken
+          );
+
+          return { userId };
+        },
+      },
+      wsServer
+    );
 
     const serverCleanup = useServer({ schema }, wsServer);
 

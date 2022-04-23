@@ -75,6 +75,12 @@ export type MutationCreateUserArgs = {
   newUser: CreateUserInput;
 };
 
+export type NewMessage = {
+  __typename?: 'NewMessage';
+  chatId: Scalars['ObjectId'];
+  message: Message;
+};
+
 export type NewUser = {
   __typename?: 'NewUser';
   _id: Scalars['ObjectId'];
@@ -110,6 +116,8 @@ export type QueryLoginUserArgs = {
 
 export type Subscription = {
   __typename?: 'Subscription';
+  newChat: Chat;
+  newMessage: NewMessage;
   newUser: NewUser;
 };
 
@@ -169,7 +177,7 @@ export type GetChatQuery = { __typename?: 'Query', getChat: { __typename?: 'Chat
 export type GetChatsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetChatsQuery = { __typename?: 'Query', getChats: Array<{ __typename?: 'Chat', _id: any, users: Array<{ __typename?: 'User', _id: any, username: string, fullname: string }>, messages: Array<{ __typename?: 'Message', text: string }> }> };
+export type GetChatsQuery = { __typename?: 'Query', getChats: Array<{ __typename?: 'Chat', _id: any, users: Array<{ __typename?: 'User', _id: any, username: string, fullname: string }>, messages: Array<{ __typename?: 'Message', _id: any, text: string }> }> };
 
 export type GetFullUserQueryVariables = Exact<{
   username: Scalars['String'];
@@ -189,6 +197,16 @@ export type GetUsersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type GetUsersQuery = { __typename?: 'Query', getUsers: Array<{ __typename?: 'User', _id: any, username: string, fullname: string }> };
+
+export type OnNewChatAddedSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type OnNewChatAddedSubscription = { __typename?: 'Subscription', newChat: { __typename?: 'Chat', _id: any, users: Array<{ __typename?: 'User', _id: any, username: string, fullname: string }>, messages: Array<{ __typename?: 'Message', _id: any, text: string, sender: { __typename?: 'User', _id: any } }> } };
+
+export type OnNewMessageAddedSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type OnNewMessageAddedSubscription = { __typename?: 'Subscription', newMessage: { __typename?: 'NewMessage', chatId: any, message: { __typename?: 'Message', text: string, _id: any, sender: { __typename?: 'User', _id: any } } } };
 
 export type OnNewUserAddedSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
@@ -398,6 +416,7 @@ export const GetChatsDocument = gql`
       fullname
     }
     messages {
+      _id
       text
     }
   }
@@ -540,6 +559,83 @@ export function useGetUsersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<G
 export type GetUsersQueryHookResult = ReturnType<typeof useGetUsersQuery>;
 export type GetUsersLazyQueryHookResult = ReturnType<typeof useGetUsersLazyQuery>;
 export type GetUsersQueryResult = Apollo.QueryResult<GetUsersQuery, GetUsersQueryVariables>;
+export const OnNewChatAddedDocument = gql`
+    subscription OnNewChatAdded {
+  newChat {
+    _id
+    users {
+      _id
+      username
+      fullname
+    }
+    messages {
+      _id
+      text
+      sender {
+        _id
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useOnNewChatAddedSubscription__
+ *
+ * To run a query within a React component, call `useOnNewChatAddedSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useOnNewChatAddedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useOnNewChatAddedSubscription({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useOnNewChatAddedSubscription(baseOptions?: Apollo.SubscriptionHookOptions<OnNewChatAddedSubscription, OnNewChatAddedSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<OnNewChatAddedSubscription, OnNewChatAddedSubscriptionVariables>(OnNewChatAddedDocument, options);
+      }
+export type OnNewChatAddedSubscriptionHookResult = ReturnType<typeof useOnNewChatAddedSubscription>;
+export type OnNewChatAddedSubscriptionResult = Apollo.SubscriptionResult<OnNewChatAddedSubscription>;
+export const OnNewMessageAddedDocument = gql`
+    subscription OnNewMessageAdded {
+  newMessage {
+    chatId
+    message {
+      text
+      _id
+      sender {
+        _id
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useOnNewMessageAddedSubscription__
+ *
+ * To run a query within a React component, call `useOnNewMessageAddedSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useOnNewMessageAddedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useOnNewMessageAddedSubscription({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useOnNewMessageAddedSubscription(baseOptions?: Apollo.SubscriptionHookOptions<OnNewMessageAddedSubscription, OnNewMessageAddedSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<OnNewMessageAddedSubscription, OnNewMessageAddedSubscriptionVariables>(OnNewMessageAddedDocument, options);
+      }
+export type OnNewMessageAddedSubscriptionHookResult = ReturnType<typeof useOnNewMessageAddedSubscription>;
+export type OnNewMessageAddedSubscriptionResult = Apollo.SubscriptionResult<OnNewMessageAddedSubscription>;
 export const OnNewUserAddedDocument = gql`
     subscription OnNewUserAdded {
   newUser {
