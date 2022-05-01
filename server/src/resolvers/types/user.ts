@@ -26,6 +26,15 @@ export class LoginUserArgs {
   password: string;
 }
 
+@ArgsType()
+export class UpdateUserArgs {
+  @Field()
+  fullname: string;
+
+  @Field()
+  description: string;
+}
+
 export interface NewUserPayload {
   _id: ObjectId;
   username: string;

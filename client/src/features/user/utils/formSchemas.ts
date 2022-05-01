@@ -9,5 +9,7 @@ export const profileFormSchema = yup.object({
     .max(30, "The name must be at most 30 characters long"),
   description: yup
     .string()
+    .trim()
+    .default("")
     .max(200, "The description must be at most 200 characters long"),
 });

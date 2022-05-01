@@ -19,8 +19,8 @@ export class User {
   @Property({ minLength: 3, maxLength: 30, trim: true })
   fullname: string;
 
-  @Field({ nullable: true })
-  @Property({ default: null, trim: true })
+  @Field()
+  @Property({ default: "", trim: true })
   description: string;
 
   @Field()
@@ -51,7 +51,7 @@ export class UserWithoutPassword {
   @Field()
   fullname: string;
 
-  @Field({ nullable: true })
+  @Field()
   description: string;
 }
 
@@ -60,8 +60,8 @@ export class AuthUser {
   @Field()
   isAuth: boolean;
 
-  @Field((type) => UserWithoutPassword, { nullable: true })
-  user?: UserWithoutPassword;
+  @Field((type) => User, { nullable: true })
+  user?: User;
 }
 
 @ObjectType()

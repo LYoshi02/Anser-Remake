@@ -14,6 +14,7 @@ import {
   ValidationError,
   UserInputError,
   AuthenticationError,
+  ApolloError,
 } from "apollo-server-express";
 import { hash as hashPassword, compare as comparePasswords } from "bcryptjs";
 
@@ -24,7 +25,12 @@ import {
   AuthUser,
   NewUser,
 } from "../schemas/user";
-import { CreateUserInput, LoginUserArgs, NewUserPayload } from "./types/user";
+import {
+  CreateUserInput,
+  LoginUserArgs,
+  NewUserPayload,
+  UpdateUserArgs,
+} from "./types/user";
 import { Context } from "../types";
 import { issueAuthToken } from "../utils/user";
 
@@ -74,6 +80,30 @@ export class UserResolver {
     };
   }
 
+  @Mutation((returns) => User)
+  async updateUser(
+    @Ctx() ctx: Context,
+    @Args() { fullname, description }: UpdateUserArgs
+  ): Promise<User> {
+    if (!ctx.isAuth || !ctx.user) {
+      throw new AuthenticationError("User is not authenticated");
+    }
+
+    const updatedUser = await UserModel.findByIdAndUpdate(
+      ctx.user._id,
+      {
+        $set: { fullname, description },
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedUser) {
+      throw new ApolloError("Couldn't update user");
+    }
+
+    return updatedUser;
+  }
+
   @Query((returns) => LoggedInUser)
   async loginUser(
     @Args() { email, password }: LoginUserArgs
@@ -114,6 +144,7 @@ export class UserResolver {
 
   @Query((returns) => AuthUser)
   async getAuthUser(@Ctx() ctx: Context): Promise<AuthUser> {
+    console.log(ctx.user);
     if (!ctx.isAuth || !ctx.user) {
       return {
         isAuth: false,
@@ -121,11 +152,11 @@ export class UserResolver {
       };
     }
 
-    const { _id, description, email, fullname, username } = ctx.user;
+    ctx.user.password = "";
 
     return {
       isAuth: true,
-      user: { _id, description, email, fullname, username },
+      user: ctx.user,
     };
   }
 

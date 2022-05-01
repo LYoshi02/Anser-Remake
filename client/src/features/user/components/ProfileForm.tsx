@@ -5,23 +5,46 @@ import { profileFormSchema } from "../utils/formSchemas";
 import { ProfileFormValues } from "../types";
 import { FormControl } from "@/components/UI";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { mainSampleUser } from "@/sampleData";
+import { useUpdateUserMutation } from "@/graphql/generated";
 
-const ProfileForm = () => {
+type Props = {
+  fullname: string;
+  description: string;
+};
+
+const ProfileForm = (props: Props) => {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isDirty },
+    resetField,
   } = useForm<ProfileFormValues>({
     resolver: yupResolver(profileFormSchema),
     defaultValues: {
-      fullname: mainSampleUser.fullname,
-      description: mainSampleUser.description,
+      fullname: props.fullname,
+      description: props.description,
     },
   });
+  const [updateUser, { loading }] = useUpdateUserMutation();
 
-  const submitHandler = (values: ProfileFormValues) => {
-    console.log(values);
+  const submitHandler = async (values: ProfileFormValues) => {
+    try {
+      const res = await updateUser({
+        variables: {
+          fullname: values.fullname,
+          description: values.description,
+        },
+      });
+
+      if (res.data) {
+        resetField("fullname", { defaultValue: res.data.updateUser.fullname });
+        resetField("description", {
+          defaultValue: res.data.updateUser.description,
+        });
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
@@ -34,7 +57,9 @@ const ProfileForm = () => {
             <Input
               type="text"
               placeholder="Your Name"
-              {...register("fullname")}
+              {...register("fullname", {
+                setValueAs: (v) => v.trim(),
+              })}
             />
           }
           error={errors.fullname?.message}
@@ -47,14 +72,21 @@ const ProfileForm = () => {
             <Textarea
               placeholder="Your Description"
               rows={4}
-              {...register("description")}
+              {...register("description", {
+                setValueAs: (v) => v.trim(),
+              })}
             />
           }
           error={errors.description?.message}
         />
 
-        <Button type="submit" colorScheme="yellow">
-          Guardar
+        <Button
+          type="submit"
+          colorScheme="yellow"
+          disabled={!isDirty}
+          isLoading={loading}
+        >
+          Save
         </Button>
       </Stack>
     </form>

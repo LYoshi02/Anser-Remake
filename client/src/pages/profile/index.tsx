@@ -3,18 +3,21 @@ import type { NextPage } from "next";
 import { AppLayout } from "@/components/Layout";
 import { BackNav, Container } from "@/components/UI";
 import { ProfilePreview, ProfileForm } from "@/features/user";
-import { mainSampleUser } from "@/sampleData";
+import { useAuthUser } from "@/hooks/useAuthUser";
 
 const ProfilePage: NextPage = () => {
+  const user = useAuthUser({ redirectTo: "/login" });
+
+  if (!user) {
+    return <p>Loading...</p>;
+  }
+
   return (
     <AppLayout>
       <BackNav />
       <Container>
-        <ProfilePreview
-          fullname={mainSampleUser.fullname}
-          username={mainSampleUser.username}
-        />
-        <ProfileForm />
+        <ProfilePreview fullname={user.fullname} username={user.username} />
+        <ProfileForm fullname={user.fullname} description={user.description} />
       </Container>
     </AppLayout>
   );

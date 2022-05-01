@@ -6,6 +6,7 @@ import { Link } from "@/components/UI";
 type Props = {
   fullname: string;
   username: string;
+  profileImageUrl?: string;
 };
 
 const ProfilePreview = (props: Props) => {
