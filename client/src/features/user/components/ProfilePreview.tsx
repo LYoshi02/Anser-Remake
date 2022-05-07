@@ -13,7 +13,11 @@ const ProfilePreview = (props: Props) => {
   return (
     <Center flexDir="column">
       <Box position="relative">
-        <Avatar name={props.fullname} size="2xl"></Avatar>
+        <Avatar
+          src={props.profileImageUrl}
+          name={props.fullname}
+          size="2xl"
+        ></Avatar>
         <Link href="/profile/image">
           <IconButton
             aria-label="Add Profile Image"

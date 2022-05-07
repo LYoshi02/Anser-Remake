@@ -1,29 +1,42 @@
 import type { NextPage } from "next";
 import { useRouter } from "next/router";
-import { useToast } from "@chakra-ui/react";
 
 import { AppLayout } from "@/components/Layout";
 import { BackNav, Container } from "@/components/UI";
 import { ImageUploader } from "@/components/ImageUploader";
+import {
+  useUploadProfileImageMutation,
+  useDeleteProfileImageMutation,
+} from "@/graphql/generated";
+import { useAuthUser } from "@/hooks/useAuthUser";
 
 const ProfileImagePage: NextPage = () => {
-  const toast = useToast();
+  const user = useAuthUser({ redirectTo: "/login" });
   const router = useRouter();
+  const [uploadProfileImage] = useUploadProfileImageMutation();
+  const [deleteProfileImage] = useDeleteProfileImageMutation();
 
-  const deleteImageHandler = () => {
-    toast({
-      title: "Image Deleted",
-      description: "Your image was deleted successfully.",
-      status: "success",
-      isClosable: true,
-    });
+  const deleteImageHandler = async () => {
+    try {
+      await deleteProfileImage();
+      router.replace("/profile");
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const uploadImageHandler = async (image: Blob) => {
-    const formData = new FormData();
-    formData.append("image", image);
-    router.replace("/profile");
+    try {
+      await uploadProfileImage({ variables: { file: image } });
+      router.replace("/profile");
+    } catch (error) {
+      console.log(error);
+    }
   };
+
+  if (!user) {
+    return <p>Loading...</p>;
+  }
 
   return (
     <AppLayout>
@@ -32,6 +45,7 @@ const ProfileImagePage: NextPage = () => {
         <ImageUploader
           onDelete={deleteImageHandler}
           onUpload={uploadImageHandler}
+          currentImage={user.profileImg?.url}
         />
       </Container>
     </AppLayout>

@@ -17,6 +17,8 @@ export type Scalars = {
   DateTime: any;
   /** Mongo object id scalar type */
   ObjectId: any;
+  /** The `Upload` scalar type represents a file upload. */
+  Upload: any;
 };
 
 export type AddMessageInput = {
@@ -45,6 +47,13 @@ export type CreateUserInput = {
   username: Scalars['String'];
 };
 
+export type Image = {
+  __typename?: 'Image';
+  _id: Scalars['ObjectId'];
+  publicId: Scalars['String'];
+  url: Scalars['String'];
+};
+
 export type LoggedInUser = {
   __typename?: 'LoggedInUser';
   token: Scalars['String'];
@@ -63,7 +72,9 @@ export type Mutation = {
   __typename?: 'Mutation';
   addMessage: Chat;
   createUser: User;
+  deleteProfileImage: User;
   updateUser: User;
+  uploadProfileImage: User;
 };
 
 
@@ -80,6 +91,11 @@ export type MutationCreateUserArgs = {
 export type MutationUpdateUserArgs = {
   description: Scalars['String'];
   fullname: Scalars['String'];
+};
+
+
+export type MutationUploadProfileImageArgs = {
+  file: Scalars['Upload'];
 };
 
 export type NewMessage = {
@@ -135,13 +151,14 @@ export type User = {
   email: Scalars['String'];
   fullname: Scalars['String'];
   password: Scalars['String'];
+  profileImg?: Maybe<Image>;
   username: Scalars['String'];
 };
 
 export type GetAuthUserQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetAuthUserQuery = { __typename?: 'Query', getAuthUser: { __typename?: 'AuthUser', isAuth: boolean, user?: { __typename?: 'User', _id: any, email: string, username: string, fullname: string, description: string } | null } };
+export type GetAuthUserQuery = { __typename?: 'Query', getAuthUser: { __typename?: 'AuthUser', isAuth: boolean, user?: { __typename?: 'User', _id: any, email: string, username: string, fullname: string, description: string, profileImg?: { __typename?: 'Image', url: string } | null } | null } };
 
 export type LoginUserQueryVariables = Exact<{
   email: Scalars['String'];
@@ -211,6 +228,11 @@ export type OnNewUserAddedSubscriptionVariables = Exact<{ [key: string]: never; 
 
 export type OnNewUserAddedSubscription = { __typename?: 'Subscription', newUser: { __typename?: 'NewUser', _id: any, fullname: string, username: string } };
 
+export type DeleteProfileImageMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type DeleteProfileImageMutation = { __typename?: 'Mutation', deleteProfileImage: { __typename?: 'User', _id: any, profileImg?: { __typename?: 'Image', _id: any } | null } };
+
 export type UpdateUserMutationVariables = Exact<{
   fullname: Scalars['String'];
   description: Scalars['String'];
@@ -218,6 +240,13 @@ export type UpdateUserMutationVariables = Exact<{
 
 
 export type UpdateUserMutation = { __typename?: 'Mutation', updateUser: { __typename?: 'User', _id: any, fullname: string, description: string } };
+
+export type UploadProfileImageMutationVariables = Exact<{
+  file: Scalars['Upload'];
+}>;
+
+
+export type UploadProfileImageMutation = { __typename?: 'Mutation', uploadProfileImage: { __typename?: 'User', _id: any, profileImg?: { __typename?: 'Image', url: string } | null } };
 
 
 export const GetAuthUserDocument = gql`
@@ -230,6 +259,9 @@ export const GetAuthUserDocument = gql`
       username
       fullname
       description
+      profileImg {
+        url
+      }
     }
   }
 }
@@ -673,6 +705,41 @@ export function useOnNewUserAddedSubscription(baseOptions?: Apollo.SubscriptionH
       }
 export type OnNewUserAddedSubscriptionHookResult = ReturnType<typeof useOnNewUserAddedSubscription>;
 export type OnNewUserAddedSubscriptionResult = Apollo.SubscriptionResult<OnNewUserAddedSubscription>;
+export const DeleteProfileImageDocument = gql`
+    mutation DeleteProfileImage {
+  deleteProfileImage {
+    _id
+    profileImg {
+      _id
+    }
+  }
+}
+    `;
+export type DeleteProfileImageMutationFn = Apollo.MutationFunction<DeleteProfileImageMutation, DeleteProfileImageMutationVariables>;
+
+/**
+ * __useDeleteProfileImageMutation__
+ *
+ * To run a mutation, you first call `useDeleteProfileImageMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteProfileImageMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteProfileImageMutation, { data, loading, error }] = useDeleteProfileImageMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useDeleteProfileImageMutation(baseOptions?: Apollo.MutationHookOptions<DeleteProfileImageMutation, DeleteProfileImageMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteProfileImageMutation, DeleteProfileImageMutationVariables>(DeleteProfileImageDocument, options);
+      }
+export type DeleteProfileImageMutationHookResult = ReturnType<typeof useDeleteProfileImageMutation>;
+export type DeleteProfileImageMutationResult = Apollo.MutationResult<DeleteProfileImageMutation>;
+export type DeleteProfileImageMutationOptions = Apollo.BaseMutationOptions<DeleteProfileImageMutation, DeleteProfileImageMutationVariables>;
 export const UpdateUserDocument = gql`
     mutation UpdateUser($fullname: String!, $description: String!) {
   updateUser(fullname: $fullname, description: $description) {
@@ -709,3 +776,39 @@ export function useUpdateUserMutation(baseOptions?: Apollo.MutationHookOptions<U
 export type UpdateUserMutationHookResult = ReturnType<typeof useUpdateUserMutation>;
 export type UpdateUserMutationResult = Apollo.MutationResult<UpdateUserMutation>;
 export type UpdateUserMutationOptions = Apollo.BaseMutationOptions<UpdateUserMutation, UpdateUserMutationVariables>;
+export const UploadProfileImageDocument = gql`
+    mutation UploadProfileImage($file: Upload!) {
+  uploadProfileImage(file: $file) {
+    _id
+    profileImg {
+      url
+    }
+  }
+}
+    `;
+export type UploadProfileImageMutationFn = Apollo.MutationFunction<UploadProfileImageMutation, UploadProfileImageMutationVariables>;
+
+/**
+ * __useUploadProfileImageMutation__
+ *
+ * To run a mutation, you first call `useUploadProfileImageMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUploadProfileImageMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [uploadProfileImageMutation, { data, loading, error }] = useUploadProfileImageMutation({
+ *   variables: {
+ *      file: // value for 'file'
+ *   },
+ * });
+ */
+export function useUploadProfileImageMutation(baseOptions?: Apollo.MutationHookOptions<UploadProfileImageMutation, UploadProfileImageMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UploadProfileImageMutation, UploadProfileImageMutationVariables>(UploadProfileImageDocument, options);
+      }
+export type UploadProfileImageMutationHookResult = ReturnType<typeof useUploadProfileImageMutation>;
+export type UploadProfileImageMutationResult = Apollo.MutationResult<UploadProfileImageMutation>;
+export type UploadProfileImageMutationOptions = Apollo.BaseMutationOptions<UploadProfileImageMutation, UploadProfileImageMutationVariables>;

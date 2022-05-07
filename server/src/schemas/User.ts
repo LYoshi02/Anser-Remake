@@ -1,6 +1,7 @@
 import { ObjectId } from "mongodb";
 import { getModelForClass, prop as Property } from "@typegoose/typegoose";
 import { Field, ObjectType } from "type-graphql";
+import { Image } from "./image";
 
 @ObjectType()
 export class User {
@@ -26,6 +27,10 @@ export class User {
   @Field()
   @Property()
   password: string;
+
+  @Field((type) => Image, { nullable: true })
+  @Property()
+  profileImg?: Image;
 }
 
 @ObjectType()

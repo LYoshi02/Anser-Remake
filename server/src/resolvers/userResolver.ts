@@ -1,3 +1,4 @@
+import { ObjectId } from "mongodb";
 import {
   Resolver,
   Mutation,
@@ -17,6 +18,7 @@ import {
   ApolloError,
 } from "apollo-server-express";
 import { hash as hashPassword, compare as comparePasswords } from "bcryptjs";
+import { FileUpload, GraphQLUpload } from "graphql-upload";
 
 import {
   UserModel,
@@ -33,6 +35,7 @@ import {
 } from "./types/user";
 import { Context } from "../types";
 import { issueAuthToken } from "../utils/user";
+import { deleteFromCloudinary, uploadToCloudinary } from "../utils/upload";
 
 @Resolver((of) => User)
 export class UserResolver {
@@ -104,6 +107,65 @@ export class UserResolver {
     return updatedUser;
   }
 
+  @Mutation((returns) => User)
+  async uploadProfileImage(
+    @Ctx() ctx: Context,
+    @Arg("file", () => GraphQLUpload)
+    file: FileUpload
+  ): Promise<User> {
+    if (!ctx.isAuth || !ctx.user) {
+      throw new AuthenticationError("User is not authenticated");
+    }
+
+    const user = await UserModel.findById(ctx.user._id);
+
+    if (!user) {
+      throw new ApolloError("Couldn't upload profile image");
+    }
+
+    const uploadedFile = await uploadToCloudinary(file, { folder: "profile" });
+    if (!uploadedFile) {
+      throw new ApolloError("Couldn't upload profile image");
+    }
+
+    const olderImagePublicId = user.profileImg
+      ? user.profileImg.publicId
+      : null;
+
+    user.profileImg = {
+      _id: new ObjectId(),
+      publicId: uploadedFile.public_id,
+      url: uploadedFile.secure_url,
+    };
+    await user.save();
+
+    if (olderImagePublicId) {
+      await deleteFromCloudinary(olderImagePublicId);
+    }
+
+    return user;
+  }
+
+  @Mutation((returns) => User)
+  async deleteProfileImage(@Ctx() ctx: Context): Promise<User> {
+    if (!ctx.isAuth || !ctx.user) {
+      throw new AuthenticationError("User is not authenticated");
+    }
+
+    const user = await UserModel.findById(ctx.user._id);
+
+    if (!user || !user.profileImg) {
+      throw new ApolloError("Couldn't delete profile image");
+    }
+
+    await deleteFromCloudinary(user.profileImg.publicId);
+
+    user.profileImg = undefined;
+    await user.save();
+
+    return user;
+  }
+
   @Query((returns) => LoggedInUser)
   async loginUser(
     @Args() { email, password }: LoginUserArgs
@@ -144,20 +206,11 @@ export class UserResolver {
 
   @Query((returns) => AuthUser)
   async getAuthUser(@Ctx() ctx: Context): Promise<AuthUser> {
-    console.log(ctx.user);
-    if (!ctx.isAuth || !ctx.user) {
-      return {
-        isAuth: false,
-        user: undefined,
-      };
+    if (ctx.user) {
+      ctx.user.password = "";
     }
 
-    ctx.user.password = "";
-
-    return {
-      isAuth: true,
-      user: ctx.user,
-    };
+    return ctx;
   }
 
   @Query((returns) => User)

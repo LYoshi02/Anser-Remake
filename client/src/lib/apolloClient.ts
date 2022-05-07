@@ -1,10 +1,11 @@
-import { ApolloClient, HttpLink, InMemoryCache, split } from "@apollo/client";
+import { ApolloClient, InMemoryCache, split } from "@apollo/client";
 import { getMainDefinition } from "@apollo/client/utilities";
 import { setContext } from "@apollo/client/link/context";
 import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
 import { createClient } from "graphql-ws";
+import { createUploadLink } from "apollo-upload-client";
 
-const httpLink = new HttpLink({
+const uploadLink = createUploadLink({
   uri: process.env.NEXT_PUBLIC_SERVER_URL,
 });
 
@@ -45,9 +46,9 @@ const splitLink =
           );
         },
         wsLink!,
-        authLink.concat(httpLink)
+        authLink.concat(uploadLink)
       )
-    : httpLink;
+    : uploadLink;
 
 export const client = new ApolloClient({
   link: splitLink,

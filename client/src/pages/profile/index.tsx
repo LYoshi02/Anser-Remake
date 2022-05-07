@@ -16,7 +16,11 @@ const ProfilePage: NextPage = () => {
     <AppLayout>
       <BackNav />
       <Container>
-        <ProfilePreview fullname={user.fullname} username={user.username} />
+        <ProfilePreview
+          fullname={user.fullname}
+          username={user.username}
+          profileImageUrl={user.profileImg?.url}
+        />
         <ProfileForm fullname={user.fullname} description={user.description} />
       </Container>
     </AppLayout>

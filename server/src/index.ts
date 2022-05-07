@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 import { ObjectId } from "mongodb";
 import { ApolloServer } from "apollo-server-express";
 import { buildSchema } from "type-graphql";
+import { graphqlUploadExpress } from "graphql-upload";
+import { v2 as cloudinary } from "cloudinary";
 
 import { createServer } from "http";
 import { ApolloServerPluginDrainHttpServer } from "apollo-server-core";
@@ -29,6 +31,7 @@ async function startApp() {
   try {
     const app = express();
     app.use(AuthMiddleware);
+    app.use(graphqlUploadExpress({ maxFileSize: 10000000 }));
 
     const httpServer = createServer(app);
 
@@ -108,6 +111,13 @@ async function startApp() {
 
     await apolloServer.start();
     apolloServer.applyMiddleware({ app, cors: true });
+
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+      secure: true,
+    });
 
     const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.qyzyf.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
     await mongoose.connect(uri);

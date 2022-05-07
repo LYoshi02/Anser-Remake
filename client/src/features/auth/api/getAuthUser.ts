@@ -10,6 +10,9 @@ export const GET_AUTH_USER = gql`
         username
         fullname
         description
+        profileImg {
+          url
+        }
       }
     }
   }

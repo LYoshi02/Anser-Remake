@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client";
 
-export const NEW_CHAT_SUBSCRIPTION = gql`
+export const NEW_CHAT = gql`
   subscription OnNewChatAdded {
     newChat {
       _id

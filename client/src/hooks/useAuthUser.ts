@@ -12,7 +12,7 @@ export const useAuthUser = ({
   redirectTo = "",
   redirectIfFound = false,
 }: Props) => {
-  const { data: userData } = useGetAuthUserQuery();
+  const { data: userData, loading, error } = useGetAuthUserQuery();
   const router = useRouter();
 
   useEffect(() => {
