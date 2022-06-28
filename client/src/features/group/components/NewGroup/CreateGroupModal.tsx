@@ -8,6 +8,7 @@ import { CreateGroupFormValues, createGroupFormSchema } from "@/features/chat";
 type Props = {
   isOpen: boolean;
   onClose: () => void;
+  onCreateGroup: (groupName: string) => void;
 };
 
 const CreateGroupModal = (props: Props) => {
@@ -20,8 +21,7 @@ const CreateGroupModal = (props: Props) => {
   });
 
   const submitHandler = (values: CreateGroupFormValues) => {
-    console.log(values);
-    props.onClose();
+    props.onCreateGroup(values.name);
   };
 
   return (

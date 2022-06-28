@@ -1,13 +1,13 @@
 import { ReactNode } from "react";
 import { Badge, Box, Text, Wrap, WrapItem } from "@chakra-ui/react";
 
-import { User } from "@/types";
+import { User } from "../../types";
 
 type Props = {
   selectedUsers: User[];
 };
 
-const SelectedUsers = ({ selectedUsers }: Props) => {
+const SelectedUsersList = ({ selectedUsers }: Props) => {
   let wrapItems: ReactNode = (
     <WrapItem opacity="0">
       <Badge>placeholder</Badge>
@@ -16,8 +16,8 @@ const SelectedUsers = ({ selectedUsers }: Props) => {
 
   if (selectedUsers.length > 0) {
     wrapItems = selectedUsers.map((user) => (
-      <WrapItem key={user.id}>
-        <Badge key={user.id} variant="subtle" colorScheme="purple">
+      <WrapItem key={user._id}>
+        <Badge key={user._id} variant="subtle" colorScheme="purple">
           {user.fullname}
         </Badge>
       </WrapItem>
@@ -34,4 +34,4 @@ const SelectedUsers = ({ selectedUsers }: Props) => {
   );
 };
 
-export default SelectedUsers;
+export default SelectedUsersList;
