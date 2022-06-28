@@ -36,14 +36,11 @@ const UsersList = () => {
   return (
     <Box>
       {usersData.getUsers.map((user, index) => (
-        <div key={user._id}>
-          #{index + 1}
-          <UserItem
-            key={user._id}
-            username={user.username}
-            fullname={user.fullname}
-          />
-        </div>
+        <UserItem
+          key={user._id}
+          username={user.username}
+          fullname={user.fullname}
+        />
       ))}
     </Box>
   );

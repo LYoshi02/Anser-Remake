@@ -5,6 +5,7 @@ import { Field, ObjectType } from "type-graphql";
 import { User } from "./user";
 import { Message } from "./message";
 import { Ref } from "../types";
+import { Group } from "./group";
 
 @ObjectType()
 export class Chat {
@@ -18,6 +19,10 @@ export class Chat {
   @Field((type) => [Message])
   @Property({ default: [], type: () => Message })
   messages: Message[];
+
+  @Field((type) => Group)
+  @Property({ default: null, type: () => Group })
+  group?: Group;
 }
 
 @ObjectType()

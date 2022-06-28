@@ -1,8 +1,8 @@
 import { prop as Property } from "@typegoose/typegoose";
 import { ObjectId } from "mongodb";
 import { Field, ObjectType } from "type-graphql";
-import { Ref } from "../types";
 
+import { Ref } from "../types";
 import { User } from "./user";
 
 @ObjectType()

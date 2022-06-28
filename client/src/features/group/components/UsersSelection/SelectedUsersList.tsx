@@ -29,7 +29,7 @@ const SelectedUsersList = ({ selectedUsers }: Props) => {
       <Text fontSize="lg" mb="1">
         Integrantes {`(${selectedUsers.length})`}:
       </Text>
-      <Wrap>{wrapItems}</Wrap>
+      <Wrap overflow="auto">{wrapItems}</Wrap>
     </Box>
   );
 };

@@ -33,7 +33,7 @@ const AppLayout = ({ children, keepChatsVisible }: Props) => {
           borderRight={{ base: "none", lg: "1px solid" }}
           borderColor={{ base: "none", lg: borderColor }}
           overflow="auto"
-          flexBasis={{ base: "100%", lg: "25rem", xl: "30rem" }}
+          minWidth={{ base: "100%", lg: "25rem", xl: "30rem" }}
           d={keepChatsVisible ? "block" : { base: "none", lg: "block" }}
         >
           <Home />
