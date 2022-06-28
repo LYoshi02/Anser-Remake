@@ -1,4 +1,5 @@
 import { ObjectId } from "mongodb";
+import { FilterQuery } from "mongoose";
 import {
   Resolver,
   Mutation,
@@ -29,6 +30,7 @@ import {
 } from "../schemas/user";
 import {
   CreateUserInput,
+  GetUsersArgs,
   LoginUserArgs,
   NewUserPayload,
   UpdateUserArgs,
@@ -197,14 +199,28 @@ export class UserResolver {
   }
 
   @Query((returns) => [User])
-  async getUsers(@Ctx() ctx: Context): Promise<User[]> {
+  async getUsers(
+    @Ctx() ctx: Context,
+    @Args() { searchText, limit, offset }: GetUsersArgs
+  ): Promise<User[]> {
     if (!ctx.isAuth || !ctx.user) {
       throw new AuthenticationError("User is not authenticated");
     }
 
-    const users = await UserModel.find({
+    let filterQuery: FilterQuery<User> = {
       _id: { $not: { $eq: ctx.user._id } },
-    });
+    };
+
+    const trimmedSearchText = searchText.trim();
+    if (trimmedSearchText.length > 0) {
+      const searchRegex = new RegExp(trimmedSearchText, "i");
+      filterQuery = {
+        ...filterQuery,
+        $or: [{ fullname: searchRegex }, { username: searchRegex }],
+      };
+    }
+
+    const users = await UserModel.find(filterQuery).skip(offset).limit(limit);
 
     return users;
   }

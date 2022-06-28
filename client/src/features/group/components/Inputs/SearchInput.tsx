@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { HiSearch, HiX } from "react-icons/hi";
 import {
   Box,
@@ -9,8 +9,23 @@ import {
   InputRightElement,
 } from "@chakra-ui/react";
 
-const SearchInput = () => {
+type Props = {
+  onSearchUser: (searchText: string) => void;
+};
+
+const SearchInput = ({ onSearchUser }: Props) => {
   const [search, setSearch] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (search === inputRef.current!.value) {
+        onSearchUser(search.trim());
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [search, inputRef, onSearchUser]);
 
   const cleanSearch = () => {
     setSearch("");
@@ -27,8 +42,9 @@ const SearchInput = () => {
           placeholder="Buscar usuario"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
+          ref={inputRef}
         />
-        {search.trim().length > 0 && (
+        {search.length > 0 && (
           <InputRightElement cursor="pointer" onClick={cleanSearch}>
             <Icon as={HiX} />
           </InputRightElement>

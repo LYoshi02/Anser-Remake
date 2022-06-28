@@ -6,10 +6,10 @@ import { BackNav } from "@/components/UI";
 import {
   CreateGroupBtn,
   CreateGroupModal,
+  SelectedUsersList,
   UsersSelection,
+  useUsersSelection,
 } from "@/features/group";
-import { useUsersSelection } from "@/features/group";
-import { useGetUsersQuery } from "@/graphql/generated";
 
 const NewGroupPage: NextPage = () => {
   const {
@@ -17,19 +17,10 @@ const NewGroupPage: NextPage = () => {
     onOpen: onOpenModal,
     onClose: onCloseModal,
   } = useDisclosure();
-  const { data: usersData, loading } = useGetUsersQuery();
   const { selectedUsers, onSelectUser } = useUsersSelection();
 
-  if (loading) {
-    return <p>Loading...</p>;
-  }
-
-  if (!usersData) {
-    return <p>Users not found</p>;
-  }
-
-  const onCreateNewGroup = (groupName: string) => {
-    console.log(groupName);
+  const createNewGroupHandler = (groupName: string) => {
+    console.log(groupName, selectedUsers);
     onCloseModal();
   };
 
@@ -38,8 +29,8 @@ const NewGroupPage: NextPage = () => {
       <Box width="100%" flexGrow="1">
         <BackNav />
         <Box p="2">
+          <SelectedUsersList selectedUsers={selectedUsers} />
           <UsersSelection
-            users={usersData.getUsers}
             selectedUsers={selectedUsers}
             onUserSelected={onSelectUser}
           />
@@ -48,7 +39,7 @@ const NewGroupPage: NextPage = () => {
             <CreateGroupModal
               isOpen={isModalOpen}
               onClose={onCloseModal}
-              onCreateGroup={onCreateNewGroup}
+              onCreateGroup={createNewGroupHandler}
             />
           )}
         </Box>

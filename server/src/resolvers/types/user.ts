@@ -1,5 +1,6 @@
+import { Min } from "class-validator";
 import { ObjectId } from "mongodb";
-import { ArgsType, Field, InputType } from "type-graphql";
+import { ArgsType, Field, InputType, Int } from "type-graphql";
 import { User } from "../../schemas/user";
 
 @InputType()
@@ -39,4 +40,18 @@ export interface NewUserPayload {
   _id: ObjectId;
   username: string;
   fullname: string;
+}
+
+@ArgsType()
+export class GetUsersArgs {
+  @Field()
+  searchText: string;
+
+  @Field((type) => Int)
+  @Min(0)
+  offset: number;
+
+  @Field((type) => Int)
+  @Min(0)
+  limit: number;
 }

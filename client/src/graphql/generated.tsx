@@ -36,6 +36,7 @@ export type AuthUser = {
 export type Chat = {
   __typename?: 'Chat';
   _id: Scalars['ObjectId'];
+  group: Group;
   messages: Array<Message>;
   users: Array<User>;
 };
@@ -45,6 +46,13 @@ export type CreateUserInput = {
   fullname: Scalars['String'];
   password: Scalars['String'];
   username: Scalars['String'];
+};
+
+export type Group = {
+  __typename?: 'Group';
+  admins: Array<User>;
+  image?: Maybe<Image>;
+  name: Scalars['String'];
 };
 
 export type Image = {
@@ -132,6 +140,13 @@ export type QueryGetUserArgs = {
 };
 
 
+export type QueryGetUsersArgs = {
+  limit: Scalars['Int'];
+  offset: Scalars['Int'];
+  searchText: Scalars['String'];
+};
+
+
 export type QueryLoginUserArgs = {
   email: Scalars['String'];
   password: Scalars['String'];
@@ -208,7 +223,11 @@ export type GetUserQueryVariables = Exact<{
 
 export type GetUserQuery = { __typename?: 'Query', getUser: { __typename?: 'User', _id: any, fullname: string } };
 
-export type GetUsersQueryVariables = Exact<{ [key: string]: never; }>;
+export type GetUsersQueryVariables = Exact<{
+  searchText: Scalars['String'];
+  offset: Scalars['Int'];
+  limit: Scalars['Int'];
+}>;
 
 
 export type GetUsersQuery = { __typename?: 'Query', getUsers: Array<{ __typename?: 'User', _id: any, username: string, fullname: string }> };
@@ -562,8 +581,8 @@ export type GetUserQueryHookResult = ReturnType<typeof useGetUserQuery>;
 export type GetUserLazyQueryHookResult = ReturnType<typeof useGetUserLazyQuery>;
 export type GetUserQueryResult = Apollo.QueryResult<GetUserQuery, GetUserQueryVariables>;
 export const GetUsersDocument = gql`
-    query GetUsers {
-  getUsers {
+    query GetUsers($searchText: String!, $offset: Int!, $limit: Int!) {
+  getUsers(searchText: $searchText, offset: $offset, limit: $limit) {
     _id
     username
     fullname
@@ -583,10 +602,13 @@ export const GetUsersDocument = gql`
  * @example
  * const { data, loading, error } = useGetUsersQuery({
  *   variables: {
+ *      searchText: // value for 'searchText'
+ *      offset: // value for 'offset'
+ *      limit: // value for 'limit'
  *   },
  * });
  */
-export function useGetUsersQuery(baseOptions?: Apollo.QueryHookOptions<GetUsersQuery, GetUsersQueryVariables>) {
+export function useGetUsersQuery(baseOptions: Apollo.QueryHookOptions<GetUsersQuery, GetUsersQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<GetUsersQuery, GetUsersQueryVariables>(GetUsersDocument, options);
       }
