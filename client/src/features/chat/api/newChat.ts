@@ -16,6 +16,12 @@ export const NEW_CHAT = gql`
           _id
         }
       }
+      group {
+        name
+        image {
+          url
+        }
+      }
     }
   }
 `;

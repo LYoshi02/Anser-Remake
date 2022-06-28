@@ -20,8 +20,8 @@ export class Chat {
   @Property({ default: [], type: () => Message })
   messages: Message[];
 
-  @Field((type) => Group)
-  @Property({ default: null, type: () => Group })
+  @Field((type) => Group, { nullable: true })
+  @Property({ type: () => Group })
   group?: Group;
 }
 

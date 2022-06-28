@@ -1,4 +1,4 @@
-import { AvatarProps, Box, Icon, useColorModeValue } from "@chakra-ui/react";
+import { AvatarProps, Icon, useColorModeValue } from "@chakra-ui/react";
 import { HiUserGroup } from "react-icons/hi";
 
 import { Link, ListItem } from "@/components/UI";
@@ -14,7 +14,10 @@ type Props = {
     messages: {
       text: string;
     }[];
-    group?: any;
+    group?: {
+      name: string;
+      image?: { url: string } | null;
+    } | null;
     newMessage?: boolean;
   };
   userId: string;
@@ -31,7 +34,6 @@ const ChatItem = ({ chat, userId }: Props) => {
   if (chat.group) {
     avatarProps = {
       bg: groupBgColor,
-      name: chat.group.name,
       icon: <Icon as={HiUserGroup} w={8} h={8} color={groupIconColor} />,
       src: "",
     };
@@ -47,12 +49,8 @@ const ChatItem = ({ chat, userId }: Props) => {
     chatUrl = `/chats/user/${receiver?.username}`;
   }
 
+  // TODO: add the sender's name when the chat is from a group
   const lastMessage = chat.messages[chat.messages.length - 1].text;
-
-  let newMessage;
-  if (chat.newMessage) {
-    newMessage = <Box w="3" h="3" bgColor="purple.600" rounded="full"></Box>;
-  }
 
   return (
     <Link href={chatUrl}>
@@ -60,7 +58,6 @@ const ChatItem = ({ chat, userId }: Props) => {
         avatar={avatarProps}
         title={chatName}
         description={lastMessage}
-        detail={newMessage}
       />
     </Link>
   );

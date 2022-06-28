@@ -13,6 +13,12 @@ export const GET_CHATS = gql`
         _id
         text
       }
+      group {
+        name
+        image {
+          url
+        }
+      }
     }
   }
 `;

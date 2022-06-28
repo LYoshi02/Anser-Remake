@@ -1,4 +1,5 @@
 import type { NextPage } from "next";
+import { useRouter } from "next/router";
 import { Box, useDisclosure } from "@chakra-ui/react";
 
 import { AppLayout } from "@/components/Layout";
@@ -10,6 +11,7 @@ import {
   UsersSelection,
   useUsersSelection,
 } from "@/features/group";
+import { useCreateNewGroupMutation } from "@/graphql/generated";
 
 const NewGroupPage: NextPage = () => {
   const {
@@ -18,10 +20,22 @@ const NewGroupPage: NextPage = () => {
     onClose: onCloseModal,
   } = useDisclosure();
   const { selectedUsers, onSelectUser } = useUsersSelection();
+  const [createNewGroup] = useCreateNewGroupMutation();
+  const router = useRouter();
 
-  const createNewGroupHandler = (groupName: string) => {
-    console.log(groupName, selectedUsers);
-    onCloseModal();
+  const createNewGroupHandler = async (groupName: string) => {
+    const groupMembersIds = selectedUsers.map((u) => u._id);
+
+    await createNewGroup({
+      variables: {
+        groupData: {
+          groupName,
+          groupMembers: groupMembersIds,
+        },
+      },
+    });
+
+    await router.replace("/chats");
   };
 
   return (

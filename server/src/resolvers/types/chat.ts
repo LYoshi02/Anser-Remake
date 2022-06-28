@@ -5,6 +5,7 @@ import { Ref } from "../../types";
 import { ObjectIdScalar } from "../../utils/objectId.scalar";
 import { User } from "../../schemas/user";
 import { Message } from "../../schemas/message";
+import { Group } from "../../schemas/group";
 
 @InputType()
 export class AddMessageInput {
@@ -18,6 +19,15 @@ export class AddMessageInput {
   chatId?: ObjectId;
 }
 
+@InputType()
+export class NewGroupInput {
+  @Field()
+  groupName: string;
+
+  @Field((type) => [ObjectIdScalar])
+  groupMembers: ObjectId[];
+}
+
 export interface NewMessagePayload {
   chatId: ObjectId;
   message: Message;
@@ -29,4 +39,5 @@ export interface NewChatPayload {
   users: Ref<User>[];
   messages: Message[];
   recipients: ObjectId[];
+  group?: Group;
 }

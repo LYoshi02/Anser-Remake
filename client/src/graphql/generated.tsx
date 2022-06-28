@@ -36,7 +36,7 @@ export type AuthUser = {
 export type Chat = {
   __typename?: 'Chat';
   _id: Scalars['ObjectId'];
-  group: Group;
+  group?: Maybe<Group>;
   messages: Array<Message>;
   users: Array<User>;
 };
@@ -79,6 +79,7 @@ export type Message = {
 export type Mutation = {
   __typename?: 'Mutation';
   addMessage: Chat;
+  createNewGroup: Chat;
   createUser: User;
   deleteProfileImage: User;
   updateUser: User;
@@ -88,6 +89,11 @@ export type Mutation = {
 
 export type MutationAddMessageArgs = {
   chatData: AddMessageInput;
+};
+
+
+export type MutationCreateNewGroupArgs = {
+  groupData: NewGroupInput;
 };
 
 
@@ -104,6 +110,11 @@ export type MutationUpdateUserArgs = {
 
 export type MutationUploadProfileImageArgs = {
   file: Scalars['Upload'];
+};
+
+export type NewGroupInput = {
+  groupMembers: Array<Scalars['ObjectId']>;
+  groupName: Scalars['String'];
 };
 
 export type NewMessage = {
@@ -207,7 +218,7 @@ export type GetChatQuery = { __typename?: 'Query', getChat: { __typename?: 'Chat
 export type GetChatsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetChatsQuery = { __typename?: 'Query', getChats: Array<{ __typename?: 'Chat', _id: any, users: Array<{ __typename?: 'User', _id: any, username: string, fullname: string }>, messages: Array<{ __typename?: 'Message', _id: any, text: string }> }> };
+export type GetChatsQuery = { __typename?: 'Query', getChats: Array<{ __typename?: 'Chat', _id: any, users: Array<{ __typename?: 'User', _id: any, username: string, fullname: string }>, messages: Array<{ __typename?: 'Message', _id: any, text: string }>, group?: { __typename?: 'Group', name: string, image?: { __typename?: 'Image', url: string } | null } | null }> };
 
 export type GetFullUserQueryVariables = Exact<{
   username: Scalars['String'];
@@ -235,7 +246,7 @@ export type GetUsersQuery = { __typename?: 'Query', getUsers: Array<{ __typename
 export type OnNewChatAddedSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type OnNewChatAddedSubscription = { __typename?: 'Subscription', newChat: { __typename?: 'Chat', _id: any, users: Array<{ __typename?: 'User', _id: any, username: string, fullname: string }>, messages: Array<{ __typename?: 'Message', _id: any, text: string, sender: { __typename?: 'User', _id: any } }> } };
+export type OnNewChatAddedSubscription = { __typename?: 'Subscription', newChat: { __typename?: 'Chat', _id: any, users: Array<{ __typename?: 'User', _id: any, username: string, fullname: string }>, messages: Array<{ __typename?: 'Message', _id: any, text: string, sender: { __typename?: 'User', _id: any } }>, group?: { __typename?: 'Group', name: string, image?: { __typename?: 'Image', url: string } | null } | null } };
 
 export type OnNewMessageAddedSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
@@ -246,6 +257,13 @@ export type OnNewUserAddedSubscriptionVariables = Exact<{ [key: string]: never; 
 
 
 export type OnNewUserAddedSubscription = { __typename?: 'Subscription', newUser: { __typename?: 'NewUser', _id: any, fullname: string, username: string } };
+
+export type CreateNewGroupMutationVariables = Exact<{
+  groupData: NewGroupInput;
+}>;
+
+
+export type CreateNewGroupMutation = { __typename?: 'Mutation', createNewGroup: { __typename?: 'Chat', _id: any } };
 
 export type DeleteProfileImageMutationVariables = Exact<{ [key: string]: never; }>;
 
@@ -476,6 +494,12 @@ export const GetChatsDocument = gql`
       _id
       text
     }
+    group {
+      name
+      image {
+        url
+      }
+    }
   }
 }
     `;
@@ -635,6 +659,12 @@ export const OnNewChatAddedDocument = gql`
         _id
       }
     }
+    group {
+      name
+      image {
+        url
+      }
+    }
   }
 }
     `;
@@ -727,6 +757,39 @@ export function useOnNewUserAddedSubscription(baseOptions?: Apollo.SubscriptionH
       }
 export type OnNewUserAddedSubscriptionHookResult = ReturnType<typeof useOnNewUserAddedSubscription>;
 export type OnNewUserAddedSubscriptionResult = Apollo.SubscriptionResult<OnNewUserAddedSubscription>;
+export const CreateNewGroupDocument = gql`
+    mutation CreateNewGroup($groupData: NewGroupInput!) {
+  createNewGroup(groupData: $groupData) {
+    _id
+  }
+}
+    `;
+export type CreateNewGroupMutationFn = Apollo.MutationFunction<CreateNewGroupMutation, CreateNewGroupMutationVariables>;
+
+/**
+ * __useCreateNewGroupMutation__
+ *
+ * To run a mutation, you first call `useCreateNewGroupMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateNewGroupMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createNewGroupMutation, { data, loading, error }] = useCreateNewGroupMutation({
+ *   variables: {
+ *      groupData: // value for 'groupData'
+ *   },
+ * });
+ */
+export function useCreateNewGroupMutation(baseOptions?: Apollo.MutationHookOptions<CreateNewGroupMutation, CreateNewGroupMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateNewGroupMutation, CreateNewGroupMutationVariables>(CreateNewGroupDocument, options);
+      }
+export type CreateNewGroupMutationHookResult = ReturnType<typeof useCreateNewGroupMutation>;
+export type CreateNewGroupMutationResult = Apollo.MutationResult<CreateNewGroupMutation>;
+export type CreateNewGroupMutationOptions = Apollo.BaseMutationOptions<CreateNewGroupMutation, CreateNewGroupMutationVariables>;
 export const DeleteProfileImageDocument = gql`
     mutation DeleteProfileImage {
   deleteProfileImage {

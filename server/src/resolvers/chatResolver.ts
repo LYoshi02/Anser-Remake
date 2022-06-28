@@ -16,6 +16,7 @@ import { Context } from "../types";
 import {
   AddMessageInput,
   NewChatPayload,
+  NewGroupInput,
   NewMessagePayload,
 } from "./types/chat";
 import { Chat, ChatModel, NewMessage } from "../schemas/chat";
@@ -163,7 +164,7 @@ export class ChatResolver {
       // console.log(context);
 
       const customPayload = payload as NewMessagePayload;
-      const contextUserId = context.userId.toString();
+      const contextUserId = context.userId.toString() as string;
 
       return customPayload.recipients.some((r) => {
         const recipientId = r.toString();
@@ -176,5 +177,53 @@ export class ChatResolver {
       chatId,
       message,
     };
+  }
+
+  @Mutation((returns) => Chat)
+  async createNewGroup(
+    @PubSub("NEW_CHAT") publishNewChat: Publisher<NewChatPayload>,
+    @Arg("groupData") { groupName, groupMembers }: NewGroupInput,
+    @Ctx() ctx: Context
+  ): Promise<Chat> {
+    if (!ctx.isAuth || !ctx.user) {
+      throw new AuthenticationError("User is not authenticated");
+    }
+
+    const authUserId = ctx.user._id;
+
+    const chatUsers = [...groupMembers];
+    const authUserExists = chatUsers.some((id) => authUserId === id);
+    if (!authUserExists) {
+      chatUsers.push(authUserId);
+    }
+
+    const chat = new ChatModel({
+      users: chatUsers,
+      group: {
+        admins: [authUserId],
+        name: groupName,
+        image: null,
+      },
+    });
+    await chat.populate("users");
+
+    const newMessage: Message = {
+      _id: new ObjectId(),
+      text: `@${ctx.user.username} created the group "${groupName}"`,
+      sender: authUserId,
+    };
+
+    chat.messages.push(newMessage);
+    await chat.save();
+
+    await publishNewChat({
+      _id: chat._id,
+      users: chat.users,
+      messages: chat.messages,
+      recipients: chatUsers,
+      group: chat.group,
+    });
+
+    return chat;
   }
 }
