@@ -19,7 +19,7 @@ const UsersList = () => {
         const newUser = subscriptionData.data.newUser;
 
         return Object.assign({}, prev, {
-          getUsers: [{ ...newUser }, ...prev.getUsers],
+          getUsers: [newUser, ...prev.getUsers],
         });
       },
     });
@@ -35,12 +35,15 @@ const UsersList = () => {
 
   return (
     <Box>
-      {usersData.getUsers.map((user) => (
-        <UserItem
-          key={user._id}
-          username={user.username}
-          fullname={user.fullname}
-        />
+      {usersData.getUsers.map((user, index) => (
+        <div key={user._id}>
+          #{index + 1}
+          <UserItem
+            key={user._id}
+            username={user.username}
+            fullname={user.fullname}
+          />
+        </div>
       ))}
     </Box>
   );

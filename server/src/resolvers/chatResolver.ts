@@ -115,14 +115,14 @@ export class ChatResolver {
     await chat.save();
 
     if (isNewChat) {
-      publishNewChat({
+      await publishNewChat({
         _id: chat._id,
         users: chat.users,
         messages: chat.messages,
         recipients: chatUsers,
       });
     } else {
-      publishNewMessage({
+      await publishNewMessage({
         chatId: chat._id,
         message: newMessage,
         recipients: chatUsers,

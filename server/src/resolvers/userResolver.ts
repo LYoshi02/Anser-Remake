@@ -76,11 +76,16 @@ export class UserResolver {
     return user;
   }
 
-  @Subscription({ topics: "NEW_USER" })
+  @Subscription({
+    topics: "NEW_USER",
+    filter: async ({ payload, args, context }) => {
+      if (!context || !context.userId) return false;
+      return true;
+    },
+  })
   newUser(@Root() newUserPayload: NewUserPayload): NewUser {
-    return {
-      ...newUserPayload,
-    };
+    console.log("Sending new user data.");
+    return newUserPayload;
   }
 
   @Mutation((returns) => User)
