@@ -39,6 +39,7 @@ const GroupChatPage: NextPage = () => {
     }
   }, [chatId, getGroupChat]);
 
+  // ! BUG: these returns don't let the AppLayout loading and overwrite the chat cache
   if (loading) {
     return <p>Loading...</p>;
   }
@@ -75,20 +76,16 @@ const GroupChatPage: NextPage = () => {
     }
   };
 
-  const getSenderData = (senderId: string) => {
-    return chatData.getGroupChat.users.find((u) => u._id === senderId);
-  };
-
   let messages;
   if (chatData && authUser) {
+    console.log(chatData.getGroupChat);
     messages = chatData.getGroupChat.messages.map((msg) => {
-      const senderData = getSenderData(msg.sender._id);
-      const isSentByMe = msg.sender._id === authUser._id;
+      const isSentByMe = Boolean(msg.sender && msg.sender._id === authUser._id);
 
       return (
         <Message
           key={msg._id}
-          sender={senderData!}
+          sender={msg.sender}
           text={msg.text}
           sentByMe={isSentByMe}
         />

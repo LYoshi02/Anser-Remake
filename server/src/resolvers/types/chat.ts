@@ -32,6 +32,7 @@ export interface NewMessagePayload {
   chatId: ObjectId;
   message: Message;
   recipients: ObjectId[];
+  users?: Ref<User>[];
 }
 
 export interface NewChatPayload {

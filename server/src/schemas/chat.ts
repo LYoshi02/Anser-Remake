@@ -32,6 +32,9 @@ export class NewMessage {
 
   @Field((type) => Message)
   message: Message;
+
+  @Field((type) => [User])
+  users?: Ref<User>[];
 }
 
 export const ChatModel = getModelForClass(Chat, {

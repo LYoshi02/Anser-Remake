@@ -72,8 +72,9 @@ export type Message = {
   __typename?: 'Message';
   _id: Scalars['ObjectId'];
   createdAt: Scalars['DateTime'];
-  sender: User;
+  sender?: Maybe<User>;
   text: Scalars['String'];
+  users: Array<User>;
 };
 
 export type Mutation = {
@@ -82,6 +83,7 @@ export type Mutation = {
   createNewGroup: Chat;
   createUser: User;
   deleteProfileImage: User;
+  leaveGroup: Chat;
   updateUser: User;
   uploadProfileImage: User;
 };
@@ -99,6 +101,11 @@ export type MutationCreateNewGroupArgs = {
 
 export type MutationCreateUserArgs = {
   newUser: CreateUserInput;
+};
+
+
+export type MutationLeaveGroupArgs = {
+  chatId: Scalars['String'];
 };
 
 
@@ -121,6 +128,7 @@ export type NewMessage = {
   __typename?: 'NewMessage';
   chatId: Scalars['ObjectId'];
   message: Message;
+  users: Array<User>;
 };
 
 export type NewUser = {
@@ -219,7 +227,7 @@ export type GetChatQueryVariables = Exact<{
 }>;
 
 
-export type GetChatQuery = { __typename?: 'Query', getChat: { __typename?: 'Chat', _id: any, users: Array<{ __typename?: 'User', _id: any, fullname: string }>, messages: Array<{ __typename?: 'Message', _id: any, text: string, sender: { __typename?: 'User', _id: any } }> } };
+export type GetChatQuery = { __typename?: 'Query', getChat: { __typename?: 'Chat', _id: any, users: Array<{ __typename?: 'User', _id: any, fullname: string }>, messages: Array<{ __typename?: 'Message', _id: any, text: string, sender?: { __typename?: 'User', _id: any } | null }> } };
 
 export type GetChatsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -238,7 +246,7 @@ export type GetGroupChatQueryVariables = Exact<{
 }>;
 
 
-export type GetGroupChatQuery = { __typename?: 'Query', getGroupChat: { __typename?: 'Chat', _id: any, users: Array<{ __typename?: 'User', _id: any, fullname: string, profileImg?: { __typename?: 'Image', url: string } | null }>, messages: Array<{ __typename?: 'Message', _id: any, text: string, sender: { __typename?: 'User', _id: any } }>, group?: { __typename?: 'Group', name: string, image?: { __typename?: 'Image', url: string } | null } | null } };
+export type GetGroupChatQuery = { __typename?: 'Query', getGroupChat: { __typename?: 'Chat', _id: any, users: Array<{ __typename?: 'User', _id: any }>, messages: Array<{ __typename?: 'Message', _id: any, text: string, sender?: { __typename?: 'User', _id: any, fullname: string, profileImg?: { __typename?: 'Image', url: string } | null } | null }>, group?: { __typename?: 'Group', name: string, image?: { __typename?: 'Image', url: string } | null } | null } };
 
 export type GetUserQueryVariables = Exact<{
   username: Scalars['String'];
@@ -259,12 +267,12 @@ export type GetUsersQuery = { __typename?: 'Query', getUsers: Array<{ __typename
 export type OnNewChatAddedSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type OnNewChatAddedSubscription = { __typename?: 'Subscription', newChat: { __typename?: 'Chat', _id: any, users: Array<{ __typename?: 'User', _id: any, username: string, fullname: string }>, messages: Array<{ __typename?: 'Message', _id: any, text: string, sender: { __typename?: 'User', _id: any } }>, group?: { __typename?: 'Group', name: string, image?: { __typename?: 'Image', url: string } | null } | null } };
+export type OnNewChatAddedSubscription = { __typename?: 'Subscription', newChat: { __typename?: 'Chat', _id: any, users: Array<{ __typename?: 'User', _id: any, username: string, fullname: string }>, messages: Array<{ __typename?: 'Message', _id: any, text: string, sender?: { __typename?: 'User', _id: any } | null }>, group?: { __typename?: 'Group', name: string, image?: { __typename?: 'Image', url: string } | null } | null } };
 
 export type OnNewMessageAddedSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type OnNewMessageAddedSubscription = { __typename?: 'Subscription', newMessage: { __typename?: 'NewMessage', chatId: any, message: { __typename?: 'Message', text: string, _id: any, sender: { __typename?: 'User', _id: any } } } };
+export type OnNewMessageAddedSubscription = { __typename?: 'Subscription', newMessage: { __typename?: 'NewMessage', chatId: any, message: { __typename?: 'Message', text: string, _id: any, sender?: { __typename?: 'User', _id: any } | null } } };
 
 export type OnNewUserAddedSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
@@ -587,15 +595,15 @@ export const GetGroupChatDocument = gql`
     _id
     users {
       _id
-      fullname
-      profileImg {
-        url
-      }
     }
     messages {
       _id
       sender {
         _id
+        fullname
+        profileImg {
+          url
+        }
       }
       text
     }

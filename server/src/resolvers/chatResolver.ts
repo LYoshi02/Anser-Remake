@@ -25,6 +25,7 @@ import { UserModel } from "../schemas/user";
 
 @Resolver((of) => Chat)
 export class ChatResolver {
+  // TODO: the last message needs to include the user doing the request withing the "users" property
   @Query((returns) => [Chat])
   async getChats(@Ctx() ctx: Context): Promise<Chat[]> {
     if (!ctx.isAuth || !ctx.user) {
@@ -80,13 +81,46 @@ export class ChatResolver {
       throw new AuthenticationError("User is not authenticated");
     }
 
-    const chat = await ChatModel.findById(chatId).populate("users").exec();
+    const chat = await ChatModel.aggregate([
+      { $match: { _id: new ObjectId(chatId) } },
+      {
+        $project: {
+          messages: {
+            $filter: {
+              input: "$messages",
+              as: "message",
+              cond: { $in: [ctx.user._id, "$$message.users"] },
+            },
+          },
+          users: 1,
+          group: 1,
+        },
+      },
+      // {
+      //   $lookup: {
+      //     from: "users",
+      //     localField: "messages.sender",
+      //     foreignField: "_id",
+      //     as: "sender",
+      //   },
+      // },
+    ]);
+
+    console.log(chat[0].messages);
+
+    const populatedChat = await ChatModel.populate(chat, {
+      path: "messages.sender",
+    });
+
+    // const chat = await ChatModel.findById(chatId)
+    //   .populate("messages.sender")
+    //   .exec();
 
     if (!chat) {
       throw new ValidationError("Chat not found");
     }
 
-    return chat;
+    return populatedChat[0];
   }
 
   @Mutation((returns) => Chat)
@@ -128,6 +162,7 @@ export class ChatResolver {
       _id: new ObjectId(),
       text,
       sender: authUserId,
+      users: chatUsers,
     };
 
     chat.messages.push(newMessage);
@@ -190,10 +225,13 @@ export class ChatResolver {
       });
     },
   })
-  newMessage(@Root() { chatId, message }: NewMessagePayload): NewMessage {
+  newMessage(
+    @Root() { chatId, message, users }: NewMessagePayload
+  ): NewMessage {
     return {
       chatId,
       message,
+      // users,
     };
   }
 
@@ -228,7 +266,8 @@ export class ChatResolver {
     const newMessage: Message = {
       _id: new ObjectId(),
       text: `@${ctx.user.username} created the group "${groupName}"`,
-      sender: authUserId,
+      sender: null,
+      users: chatUsers,
     };
 
     chat.messages.push(newMessage);
@@ -240,6 +279,55 @@ export class ChatResolver {
       messages: chat.messages,
       recipients: chatUsers,
       group: chat.group,
+    });
+
+    return chat;
+  }
+
+  @Mutation((returns) => Chat)
+  async leaveGroup(
+    @PubSub("NEW_MESSAGE") publishNewMessage: Publisher<NewMessagePayload>,
+    @Arg("chatId") chatId: string,
+    @Ctx() ctx: Context
+  ): Promise<Chat> {
+    if (!ctx.isAuth || !ctx.user) {
+      throw new AuthenticationError("User is not authenticated");
+    }
+
+    const authUserId = ctx.user._id;
+
+    const chat = await ChatModel.findOne({
+      _id: chatId,
+      users: {
+        $in: [authUserId],
+      },
+    });
+
+    if (!chat) {
+      throw new ValidationError("Chat not found");
+    }
+
+    const previousChatUsers = [...chat.users];
+    const updatedChatUsers = previousChatUsers.filter(
+      (u) => u.toString() !== authUserId.toString()
+    );
+
+    const newMessage: Message = {
+      _id: new ObjectId(),
+      text: `@${ctx.user.username} left the group`,
+      sender: null,
+      users: previousChatUsers,
+    };
+
+    chat.users = updatedChatUsers;
+    chat.messages.push(newMessage);
+    await chat.save();
+
+    await publishNewMessage({
+      chatId: chat._id,
+      message: newMessage,
+      recipients: previousChatUsers as ObjectId[],
+      users: updatedChatUsers,
     });
 
     return chat;

@@ -84,14 +84,14 @@ const UserChatPage: NextPage = () => {
   let messages;
   if (chatData && authUser && recipientData) {
     messages = chatData.getChat.messages.map((msg) => {
-      const isSentByAuthUser = msg.sender._id === authUser._id;
+      const isSentByMe = Boolean(msg.sender && msg.sender._id === authUser._id);
 
       return (
         <Message
           key={msg._id}
-          sender={isSentByAuthUser ? authUser : recipientData.getUser}
+          sender={isSentByMe ? authUser : recipientData.getUser}
           text={msg.text}
-          sentByMe={isSentByAuthUser}
+          sentByMe={isSentByMe}
         />
       );
     });

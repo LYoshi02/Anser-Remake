@@ -10,9 +10,13 @@ export class Message {
   @Field()
   readonly _id: ObjectId;
 
-  @Field((type) => User)
+  @Field((type) => User, { nullable: true })
+  @Property({ ref: User })
+  sender: Ref<User> | null;
+
+  @Field((type) => [User])
   @Property({ ref: User, required: true })
-  sender: Ref<User>;
+  users: Ref<User>[];
 
   @Field()
   @Property({ required: true, minLength: 1, trim: true })
