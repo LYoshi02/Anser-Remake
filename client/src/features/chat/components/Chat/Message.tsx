@@ -4,6 +4,9 @@ type Props = {
   sender: {
     _id: string;
     fullname: string;
+    profileImg?: {
+      url: string;
+    } | null;
   };
   text: string;
   sentByMe: boolean;
@@ -17,7 +20,14 @@ const Message = ({ sender, text, sentByMe }: Props) => {
 
   return (
     <Flex my="2" direction="row" justify={messagePosition} align="center">
-      {!sentByMe && <Avatar size="sm" mr="2" name={sender.fullname} />}
+      {!sentByMe && (
+        <Avatar
+          size="sm"
+          mr="2"
+          name={sender.fullname}
+          src={sender.profileImg?.url}
+        />
+      )}
       <Box>
         {!sentByMe && <Text fontSize="sm">{sender.fullname}</Text>}
         <Box

@@ -12,6 +12,7 @@ import { HiUserGroup } from "react-icons/hi";
 type Props = {
   name: string;
   isGroup?: boolean;
+  imageUrl?: string;
 };
 
 const ChatInfo = (props: Props) => {
@@ -23,10 +24,12 @@ const ChatInfo = (props: Props) => {
     avatarProps = {
       bg: groupBgColor,
       icon: <Icon as={HiUserGroup} w={5} h={5} color={groupIconColor} />,
+      src: props.imageUrl,
     };
   } else {
     avatarProps = {
       name: props.name,
+      src: props.imageUrl,
     };
   }
 

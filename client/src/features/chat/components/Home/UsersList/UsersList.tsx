@@ -8,6 +8,7 @@ import {
   OnNewUserAddedSubscription,
 } from "@/graphql/generated";
 
+// TODO: add variables to the query
 const UsersList = () => {
   const { data: usersData, loading, subscribeToMore } = useGetUsersQuery();
 

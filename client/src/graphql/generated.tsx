@@ -135,6 +135,7 @@ export type Query = {
   getAuthUser: AuthUser;
   getChat: Chat;
   getChats: Array<Chat>;
+  getGroupChat: Chat;
   getUser: User;
   getUsers: Array<User>;
   loginUser: LoggedInUser;
@@ -143,6 +144,11 @@ export type Query = {
 
 export type QueryGetChatArgs = {
   recipientUsername: Scalars['String'];
+};
+
+
+export type QueryGetGroupChatArgs = {
+  chatId: Scalars['String'];
 };
 
 
@@ -226,6 +232,13 @@ export type GetFullUserQueryVariables = Exact<{
 
 
 export type GetFullUserQuery = { __typename?: 'Query', getUser: { __typename?: 'User', _id: any, username: string, fullname: string, description: string } };
+
+export type GetGroupChatQueryVariables = Exact<{
+  chatId: Scalars['String'];
+}>;
+
+
+export type GetGroupChatQuery = { __typename?: 'Query', getGroupChat: { __typename?: 'Chat', _id: any, users: Array<{ __typename?: 'User', _id: any, fullname: string, profileImg?: { __typename?: 'Image', url: string } | null }>, messages: Array<{ __typename?: 'Message', _id: any, text: string, sender: { __typename?: 'User', _id: any } }>, group?: { __typename?: 'Group', name: string, image?: { __typename?: 'Image', url: string } | null } | null } };
 
 export type GetUserQueryVariables = Exact<{
   username: Scalars['String'];
@@ -568,6 +581,61 @@ export function useGetFullUserLazyQuery(baseOptions?: Apollo.LazyQueryHookOption
 export type GetFullUserQueryHookResult = ReturnType<typeof useGetFullUserQuery>;
 export type GetFullUserLazyQueryHookResult = ReturnType<typeof useGetFullUserLazyQuery>;
 export type GetFullUserQueryResult = Apollo.QueryResult<GetFullUserQuery, GetFullUserQueryVariables>;
+export const GetGroupChatDocument = gql`
+    query GetGroupChat($chatId: String!) {
+  getGroupChat(chatId: $chatId) {
+    _id
+    users {
+      _id
+      fullname
+      profileImg {
+        url
+      }
+    }
+    messages {
+      _id
+      sender {
+        _id
+      }
+      text
+    }
+    group {
+      name
+      image {
+        url
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetGroupChatQuery__
+ *
+ * To run a query within a React component, call `useGetGroupChatQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetGroupChatQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetGroupChatQuery({
+ *   variables: {
+ *      chatId: // value for 'chatId'
+ *   },
+ * });
+ */
+export function useGetGroupChatQuery(baseOptions: Apollo.QueryHookOptions<GetGroupChatQuery, GetGroupChatQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetGroupChatQuery, GetGroupChatQueryVariables>(GetGroupChatDocument, options);
+      }
+export function useGetGroupChatLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetGroupChatQuery, GetGroupChatQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetGroupChatQuery, GetGroupChatQueryVariables>(GetGroupChatDocument, options);
+        }
+export type GetGroupChatQueryHookResult = ReturnType<typeof useGetGroupChatQuery>;
+export type GetGroupChatLazyQueryHookResult = ReturnType<typeof useGetGroupChatLazyQuery>;
+export type GetGroupChatQueryResult = Apollo.QueryResult<GetGroupChatQuery, GetGroupChatQueryVariables>;
 export const GetUserDocument = gql`
     query GetUser($username: String!) {
   getUser(username: $username) {
