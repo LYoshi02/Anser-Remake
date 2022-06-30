@@ -1,7 +1,9 @@
 import { Min } from "class-validator";
 import { ObjectId } from "mongodb";
 import { ArgsType, Field, InputType, Int } from "type-graphql";
+
 import { User } from "../../schemas/user";
+import { ObjectIdScalar } from "../../utils/objectId.scalar";
 
 @InputType()
 export class CreateUserInput implements Partial<User> {
@@ -54,4 +56,7 @@ export class GetUsersInput {
   @Field((type) => Int)
   @Min(0)
   limit: number;
+
+  @Field((type) => [ObjectIdScalar], { nullable: true })
+  excludedUsers?: ObjectId[];
 }

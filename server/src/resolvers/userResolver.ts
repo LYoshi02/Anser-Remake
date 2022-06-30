@@ -205,14 +205,16 @@ export class UserResolver {
       nullable: true,
       defaultValue: { searchText: "", limit: 0, offset: 0 },
     })
-    { searchText, limit, offset }: GetUsersInput
+    { searchText, limit, offset, excludedUsers }: GetUsersInput
   ): Promise<User[]> {
     if (!ctx.isAuth || !ctx.user) {
       throw new AuthenticationError("User is not authenticated");
     }
 
+    const authUserId = ctx.user._id;
+
     let filterQuery: FilterQuery<User> = {
-      _id: { $not: { $eq: ctx.user._id } },
+      _id: { $not: { $eq: authUserId } },
     };
 
     const trimmedSearchText = searchText.trim();
@@ -221,6 +223,13 @@ export class UserResolver {
       filterQuery = {
         ...filterQuery,
         $or: [{ fullname: searchRegex }, { username: searchRegex }],
+      };
+    }
+
+    if (excludedUsers) {
+      filterQuery = {
+        ...filterQuery,
+        _id: { $nin: [authUserId, ...excludedUsers] },
       };
     }
 

@@ -1,4 +1,4 @@
-import { Button } from "@chakra-ui/react";
+import { Box, Button } from "@chakra-ui/react";
 
 import { useGroupContext } from "../../../stores/GroupContext";
 import useUsersSelection from "../../../hooks/useUsersSelection";
@@ -20,7 +20,7 @@ const MembersModal = (props: Props) => {
     getSelectedUsersId: getSelectedMembersId,
   } = useUsersSelection();
 
-  const groupUsers = getGroupData.users;
+  const groupUsersIds = getGroupData.users.map((u) => u._id);
 
   const addMembersHandler = () => {
     const membersIds = getSelectedMembersId();
@@ -33,11 +33,11 @@ const MembersModal = (props: Props) => {
       isOpen={props.isOpen}
       onClose={props.onClose}
       modalProps={{ isCentered: true }}
-      modalBodyProps={{ overflow: "auto" }}
+      modalBodyProps={{ overflow: "auto", maxHeight: "50vh" }}
       title="Add New Members"
       body={
         <UsersSelection
-          // excludedUsers={groupUsers}
+          excludedUsers={groupUsersIds}
           selectedUsers={selectedMembers}
           onUserSelected={onSelectMember}
         />

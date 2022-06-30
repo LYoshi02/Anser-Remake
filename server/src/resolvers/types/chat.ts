@@ -12,7 +12,7 @@ export class AddMessageInput {
   @Field()
   text: string;
 
-  @Field({ nullable: true })
+  @Field()
   chatId: ObjectId;
 }
 

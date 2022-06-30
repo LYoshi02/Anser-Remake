@@ -10,12 +10,17 @@ import { useGetUsersQuery } from "@/graphql/generated";
 type Props = {
   selectedUsers: User[];
   onUserSelected: (user: User) => void;
+  excludedUsers?: string[];
 };
 
 const FETCH_LIMIT = 20;
 
 // TODO: improve loading and error messages
-const UsersSelection = ({ selectedUsers, onUserSelected }: Props) => {
+const UsersSelection = ({
+  selectedUsers,
+  onUserSelected,
+  excludedUsers,
+}: Props) => {
   const checkIconColor = useColorModeValue("yellow.500", "yellow.300");
   const ButtonColor = useColorModeValue("yellow.700", "yellow.500");
   const [lastSearch, setLastSearch] = useState("");
@@ -30,6 +35,7 @@ const UsersSelection = ({ selectedUsers, onUserSelected }: Props) => {
         searchText: "",
         limit: FETCH_LIMIT,
         offset: 0,
+        excludedUsers,
       },
     },
   });
@@ -54,6 +60,7 @@ const UsersSelection = ({ selectedUsers, onUserSelected }: Props) => {
           searchText: lastSearch,
           limit: FETCH_LIMIT,
           offset: usersData.getUsers.length,
+          excludedUsers,
         },
       },
     });
@@ -75,6 +82,7 @@ const UsersSelection = ({ selectedUsers, onUserSelected }: Props) => {
         searchText,
         limit: FETCH_LIMIT,
         offset: 0,
+        excludedUsers,
       },
     });
   };

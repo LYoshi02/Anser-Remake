@@ -22,7 +22,7 @@ export type Scalars = {
 };
 
 export type AddMessageInput = {
-  chatId?: InputMaybe<Scalars['ObjectId']>;
+  chatId: Scalars['ObjectId'];
   text: Scalars['String'];
 };
 
@@ -48,6 +48,7 @@ export type CreateUserInput = {
 };
 
 export type GetUsersInput = {
+  excludedUsers?: InputMaybe<Array<Scalars['ObjectId']>>;
   limit: Scalars['Int'];
   offset: Scalars['Int'];
   searchText: Scalars['String'];
