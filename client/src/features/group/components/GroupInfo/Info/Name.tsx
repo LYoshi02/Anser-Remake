@@ -11,9 +11,14 @@ import { useGroupContext } from "../../../stores/GroupContext";
 
 const Name = () => {
   const {
-    state: { name },
-    dispatch,
+    data: { getGroupData },
   } = useGroupContext();
+
+  const groupName = getGroupData.group!.name;
+
+  const updateGroupNameHandler = (newName: string) => {
+    console.log(newName);
+  };
 
   return (
     <Box mt="4">
@@ -21,15 +26,13 @@ const Name = () => {
         Group Name
       </Text>
       <Editable
-        defaultValue={name}
+        defaultValue={groupName}
         isPreviewFocusable={false}
         submitOnBlur={false}
         display="flex"
         justifyContent="space-between"
         alignItems="center"
-        onSubmit={(value) =>
-          dispatch({ type: "UPDATE_NAME", payload: { newName: value } })
-        }
+        onSubmit={updateGroupNameHandler}
       >
         {(props) => (
           <>

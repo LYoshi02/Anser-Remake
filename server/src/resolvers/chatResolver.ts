@@ -161,6 +161,32 @@ export class ChatResolver {
     return populatedChat[0];
   }
 
+  @Query((returns) => Chat)
+  async getGroupData(
+    @Arg("chatId") chatId: string,
+    @Ctx() ctx: Context
+  ): Promise<Chat> {
+    if (!ctx.isAuth || !ctx.user) {
+      throw new AuthenticationError("User is not authenticated");
+    }
+
+    const authUserId = ctx.user._id;
+
+    const chat = await ChatModel.findOne({
+      _id: chatId,
+      users: { $in: [authUserId] },
+      group: { $ne: null },
+    }).populate("users");
+
+    if (!chat) {
+      throw new ValidationError("Chat not found");
+    }
+
+    console.log(chat);
+
+    return chat;
+  }
+
   @Mutation((returns) => Chat)
   async createNewChat(
     @PubSub("NEW_CHAT") publishNewChat: Publisher<NewChatPayload>,

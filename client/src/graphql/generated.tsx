@@ -160,6 +160,7 @@ export type Query = {
   getChat: Chat;
   getChats: Array<Chat>;
   getGroupChat: Chat;
+  getGroupData: Chat;
   getUser: User;
   getUsers: Array<User>;
   loginUser: LoggedInUser;
@@ -172,6 +173,11 @@ export type QueryGetChatArgs = {
 
 
 export type QueryGetGroupChatArgs = {
+  chatId: Scalars['String'];
+};
+
+
+export type QueryGetGroupDataArgs = {
   chatId: Scalars['String'];
 };
 
@@ -297,6 +303,13 @@ export type OnNewUserAddedSubscriptionVariables = Exact<{ [key: string]: never; 
 
 
 export type OnNewUserAddedSubscription = { __typename?: 'Subscription', newUser: { __typename?: 'NewUser', _id: any, fullname: string, username: string } };
+
+export type GetGroupDataQueryVariables = Exact<{
+  chatId: Scalars['String'];
+}>;
+
+
+export type GetGroupDataQuery = { __typename?: 'Query', getGroupData: { __typename?: 'Chat', _id: any, users: Array<{ __typename?: 'User', _id: any, fullname: string, username: string, profileImg?: { __typename?: 'Image', url: string } | null }>, group?: { __typename?: 'Group', name: string, admins: Array<{ __typename?: 'User', _id: any }>, image?: { __typename?: 'Image', url: string } | null } | null } };
 
 export type LeaveGroupMutationVariables = Exact<{
   chatId: Scalars['String'];
@@ -916,6 +929,58 @@ export function useOnNewUserAddedSubscription(baseOptions?: Apollo.SubscriptionH
       }
 export type OnNewUserAddedSubscriptionHookResult = ReturnType<typeof useOnNewUserAddedSubscription>;
 export type OnNewUserAddedSubscriptionResult = Apollo.SubscriptionResult<OnNewUserAddedSubscription>;
+export const GetGroupDataDocument = gql`
+    query GetGroupData($chatId: String!) {
+  getGroupData(chatId: $chatId) {
+    _id
+    users {
+      _id
+      fullname
+      username
+      profileImg {
+        url
+      }
+    }
+    group {
+      name
+      admins {
+        _id
+      }
+      image {
+        url
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetGroupDataQuery__
+ *
+ * To run a query within a React component, call `useGetGroupDataQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetGroupDataQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetGroupDataQuery({
+ *   variables: {
+ *      chatId: // value for 'chatId'
+ *   },
+ * });
+ */
+export function useGetGroupDataQuery(baseOptions: Apollo.QueryHookOptions<GetGroupDataQuery, GetGroupDataQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetGroupDataQuery, GetGroupDataQueryVariables>(GetGroupDataDocument, options);
+      }
+export function useGetGroupDataLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetGroupDataQuery, GetGroupDataQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetGroupDataQuery, GetGroupDataQueryVariables>(GetGroupDataDocument, options);
+        }
+export type GetGroupDataQueryHookResult = ReturnType<typeof useGetGroupDataQuery>;
+export type GetGroupDataLazyQueryHookResult = ReturnType<typeof useGetGroupDataLazyQuery>;
+export type GetGroupDataQueryResult = Apollo.QueryResult<GetGroupDataQuery, GetGroupDataQueryVariables>;
 export const LeaveGroupDocument = gql`
     mutation LeaveGroup($chatId: String!) {
   leaveGroup(chatId: $chatId) {

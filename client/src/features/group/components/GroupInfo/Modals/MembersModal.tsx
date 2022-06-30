@@ -4,7 +4,6 @@ import { useGroupContext } from "../../../stores/GroupContext";
 import useUsersSelection from "../../../hooks/useUsersSelection";
 import UsersSelection from "../../UsersSelection/UsersSelection";
 import { Modal } from "@/components/UI";
-import { sampleUsers } from "@/sampleData";
 
 type Props = {
   isOpen: boolean;
@@ -13,8 +12,7 @@ type Props = {
 
 const MembersModal = (props: Props) => {
   const {
-    state: { members },
-    dispatch,
+    data: { getGroupData },
   } = useGroupContext();
   const {
     selectedUsers: selectedMembers,
@@ -22,13 +20,11 @@ const MembersModal = (props: Props) => {
     getSelectedUsersId: getSelectedMembersId,
   } = useUsersSelection();
 
-  const nonMembersUsers = sampleUsers.filter(
-    (user) => !members.some((member) => member.id === user.id)
-  );
+  const groupUsers = getGroupData.users;
 
   const addMembersHandler = () => {
-    const membersId = getSelectedMembersId();
-    dispatch({ type: "ADD_MEMBERS", payload: { usersId: membersId } });
+    const membersIds = getSelectedMembersId();
+    console.log(membersIds);
     props.onClose();
   };
 
@@ -41,7 +37,7 @@ const MembersModal = (props: Props) => {
       title="Add New Members"
       body={
         <UsersSelection
-          users={nonMembersUsers}
+          // excludedUsers={groupUsers}
           selectedUsers={selectedMembers}
           onUserSelected={onSelectMember}
         />

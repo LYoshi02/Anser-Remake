@@ -1,37 +1,50 @@
 import { Badge, Box, Flex, MenuItem } from "@chakra-ui/react";
 
-import { ListItem, Menu } from "@/components/UI";
-import { User } from "@/types";
+import { Link, ListItem, Menu } from "@/components/UI";
 import { useGroupContext } from "../../../stores/GroupContext";
 
 type Props = {
-  user: User;
+  user: {
+    _id: string;
+    username: string;
+    fullname: string;
+    profileImg?: {
+      url: string;
+    } | null;
+  };
+  isAdmin: boolean;
 };
 
-const Member = ({ user }: Props) => {
+const Member = ({ user, isAdmin }: Props) => {
   const {
-    state: { admins, isAdmin },
-    dispatch,
+    data: { getGroupData },
+    authUserId,
   } = useGroupContext();
-  const isMemberAdmin = admins.some((admin) => admin.id === user.id);
-  const isYourUser = user.id === "1";
+  const isMemberAdmin = getGroupData.group!.admins.some(
+    (admin) => admin._id === user._id
+  );
+  const isAuthUser = user._id === authUserId;
+
+  const removeAdminHandler = (userId: string) => {
+    console.log(userId);
+  };
+
+  const addAdminHandler = (userId: string) => {
+    console.log(userId);
+  };
+
+  const removeMemberHandler = (userId: string) => {
+    console.log(userId);
+  };
 
   let adminMenu = null;
-  if (!isYourUser && isAdmin) {
+  if (!isAuthUser && isAdmin) {
     const adminMenuItem = isMemberAdmin ? (
-      <MenuItem
-        onClick={() =>
-          dispatch({ type: "REMOVE_ADMIN", payload: { userId: user.id } })
-        }
-      >
+      <MenuItem onClick={removeAdminHandler.bind(this, user._id)}>
         Remove as Admin
       </MenuItem>
     ) : (
-      <MenuItem
-        onClick={() =>
-          dispatch({ type: "ADD_ADMIN", payload: { userId: user.id } })
-        }
-      >
+      <MenuItem onClick={addAdminHandler.bind(this, user._id)}>
         Make Admin
       </MenuItem>
     );
@@ -40,11 +53,7 @@ const Member = ({ user }: Props) => {
       <Box ml="2">
         <Menu menuColor="gray">
           {adminMenuItem}
-          <MenuItem
-            onClick={() =>
-              dispatch({ type: "REMOVE_MEMBER", payload: { userId: user.id } })
-            }
-          >
+          <MenuItem onClick={removeMemberHandler.bind(this, user._id)}>
             Remove From the Group
           </MenuItem>
         </Menu>
@@ -62,17 +71,19 @@ const Member = ({ user }: Props) => {
   }
 
   return (
-    <ListItem
-      avatar={{ name: user.fullname }}
-      title={user.fullname}
-      description={user.username}
-      detail={
-        <Flex align="center">
-          {adminBadge}
-          {adminMenu}
-        </Flex>
-      }
-    />
+    <Link href={isAuthUser ? `/profile` : `/users/${user.username}`}>
+      <ListItem
+        avatar={{ name: user.fullname }}
+        title={user.fullname}
+        description={`@${user.username}`}
+        detail={
+          <Flex align="center">
+            {adminBadge}
+            {adminMenu}
+          </Flex>
+        }
+      />
+    </Link>
   );
 };
 

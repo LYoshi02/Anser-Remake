@@ -9,14 +9,18 @@ type Props = {
 
 const Members = (props: Props) => {
   const {
-    state: { isAdmin, members },
+    data: { getGroupData },
+    authUserId,
   } = useGroupContext();
+
+  const groupUsers = getGroupData.users;
+  const isAdmin = getGroupData.group!.admins.some((a) => a._id === authUserId);
 
   return (
     <Box>
       <Flex justify="space-between" align="center">
         <Text fontWeight="bold" fontSize="lg">
-          Members {`(${members.length})`}
+          Members {`(${groupUsers.length})`}
         </Text>
         {isAdmin && (
           <Button
@@ -29,8 +33,8 @@ const Members = (props: Props) => {
         )}
       </Flex>
       <Box my="2">
-        {members.map((member) => (
-          <Member key={member.id} user={member} />
+        {groupUsers.map((user) => (
+          <Member key={user._id} user={user} isAdmin={isAdmin} />
         ))}
       </Box>
     </Box>

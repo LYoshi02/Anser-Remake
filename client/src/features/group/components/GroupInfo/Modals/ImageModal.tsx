@@ -1,4 +1,3 @@
-import { useGroupContext } from "../../../stores/GroupContext";
 import { ImageUploader } from "@/components/ImageUploader";
 import { Modal } from "@/components/UI";
 
@@ -8,15 +7,13 @@ type Props = {
 };
 
 const ImageModal = (props: Props) => {
-  const { dispatch } = useGroupContext();
-
   const uploadImageHandler = (image: Blob) => {
-    dispatch({ type: "UPLOAD_IMAGE", payload: { image } });
+    console.log("Uploading image...");
     props.onClose();
   };
 
   const deleteImageHandler = () => {
-    dispatch({ type: "DELETE_IMAGE" });
+    console.log("Deleting image...");
     props.onClose();
   };
 

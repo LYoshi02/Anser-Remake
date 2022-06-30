@@ -19,12 +19,13 @@ const NewGroupPage: NextPage = () => {
     onOpen: onOpenModal,
     onClose: onCloseModal,
   } = useDisclosure();
-  const { selectedUsers, onSelectUser } = useUsersSelection();
+  const { selectedUsers, onSelectUser, getSelectedUsersId } =
+    useUsersSelection();
   const [createNewGroup] = useCreateNewGroupMutation();
   const router = useRouter();
 
   const createNewGroupHandler = async (groupName: string) => {
-    const groupMembersIds = selectedUsers.map((u) => u._id);
+    const groupMembersIds = getSelectedUsersId();
 
     await createNewGroup({
       variables: {
