@@ -5,6 +5,9 @@ export const GET_USER = gql`
     getUser(username: $username) {
       _id
       fullname
+      profileImg {
+        url
+      }
     }
   }
 `;

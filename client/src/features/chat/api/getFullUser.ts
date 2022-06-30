@@ -7,6 +7,9 @@ export const GET_FULL_USER = gql`
       username
       fullname
       description
+      profileImg {
+        url
+      }
     }
   }
 `;

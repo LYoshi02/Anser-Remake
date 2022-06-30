@@ -36,11 +36,12 @@ const UsersList = () => {
 
   return (
     <Box>
-      {usersData.getUsers.map((user, index) => (
+      {usersData.getUsers.map((user) => (
         <UserItem
           key={user._id}
           username={user.username}
           fullname={user.fullname}
+          imageUrl={user.profileImg?.url}
         />
       ))}
     </Box>

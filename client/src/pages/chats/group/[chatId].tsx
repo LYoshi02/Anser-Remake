@@ -53,19 +53,16 @@ const GroupChatPage: NextPage = () => {
   };
 
   const sendMessageHandler = async (text: string) => {
-    const { _id: chatId, users: chatUsers } = chatData.getGroupChat;
+    const { _id: chatId } = chatData.getGroupChat;
 
     try {
-      if (!chatId || !chatUsers) {
+      if (!chatId) {
         throw new Error("Cannot send the message");
       }
-
-      const chatUsersIds = chatUsers.map((u) => u._id);
 
       await addMessage({
         variables: {
           chatData: {
-            recipients: chatUsersIds,
             text,
             chatId,
           },

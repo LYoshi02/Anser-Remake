@@ -15,6 +15,7 @@ import { ObjectId } from "mongodb";
 import { Context } from "../types";
 import {
   AddMessageInput,
+  NewChatInput,
   NewChatPayload,
   NewGroupInput,
   NewMessagePayload,
@@ -22,6 +23,7 @@ import {
 import { Chat, ChatModel, NewMessage } from "../schemas/chat";
 import { Message } from "../schemas/message";
 import { UserModel } from "../schemas/user";
+import { generateChatUsersArr } from "../utils/chat";
 
 @Resolver((of) => Chat)
 export class ChatResolver {
@@ -124,10 +126,9 @@ export class ChatResolver {
   }
 
   @Mutation((returns) => Chat)
-  async addMessage(
-    @PubSub("NEW_MESSAGE") publishNewMessage: Publisher<NewMessagePayload>,
+  async createNewChat(
     @PubSub("NEW_CHAT") publishNewChat: Publisher<NewChatPayload>,
-    @Arg("chatData") { recipients, text, chatId }: AddMessageInput,
+    @Arg("chatData") { recipients, text }: NewChatInput,
     @Ctx() ctx: Context
   ): Promise<Chat> {
     if (!ctx.isAuth || !ctx.user) {
@@ -135,27 +136,18 @@ export class ChatResolver {
     }
 
     const authUserId = ctx.user._id;
+    const chatUsers = generateChatUsersArr(recipients, authUserId);
 
-    const chatUsers = [...recipients];
-    const authUserExists = chatUsers.some((id) => authUserId === id);
-    if (!authUserExists) {
-      chatUsers.push(authUserId);
-    }
-
-    let chat = await ChatModel.findOne({
-      _id: chatId,
+    const existingChat = await ChatModel.findOne({
       users: {
-        $in: [authUserId],
+        $all: chatUsers,
+        $size: chatUsers.length,
       },
+      group: null,
     });
 
-    let isNewChat = false;
-    if (!chat) {
-      chat = new ChatModel({
-        users: chatUsers,
-      });
-      await chat.populate("users");
-      isNewChat = true;
+    if (existingChat) {
+      throw new AuthenticationError("Chat already exists");
     }
 
     const newMessage: Message = {
@@ -165,25 +157,21 @@ export class ChatResolver {
       users: chatUsers,
     };
 
-    chat.messages.push(newMessage);
-    await chat.save();
+    const newChat = new ChatModel({
+      users: chatUsers,
+      messages: [newMessage],
+    });
+    await newChat.populate("users");
+    await newChat.save();
 
-    if (isNewChat) {
-      await publishNewChat({
-        _id: chat._id,
-        users: chat.users,
-        messages: chat.messages,
-        recipients: chatUsers,
-      });
-    } else {
-      await publishNewMessage({
-        chatId: chat._id,
-        message: newMessage,
-        recipients: chatUsers,
-      });
-    }
+    await publishNewChat({
+      _id: newChat._id,
+      users: newChat.users,
+      messages: newChat.messages,
+      recipients: chatUsers,
+    });
 
-    return chat;
+    return newChat;
   }
 
   @Subscription({
@@ -201,6 +189,47 @@ export class ChatResolver {
     return {
       ...newChatPayload,
     };
+  }
+
+  @Mutation((returns) => Chat)
+  async addMessage(
+    @PubSub("NEW_MESSAGE") publishNewMessage: Publisher<NewMessagePayload>,
+    @Arg("chatData") { text, chatId }: AddMessageInput,
+    @Ctx() ctx: Context
+  ): Promise<Chat> {
+    if (!ctx.isAuth || !ctx.user) {
+      throw new AuthenticationError("User is not authenticated");
+    }
+
+    const authUserId = ctx.user._id;
+
+    const chat = await ChatModel.findOne({
+      _id: chatId,
+      users: {
+        $in: [authUserId],
+      },
+    });
+
+    if (!chat) {
+      throw new AuthenticationError("Chat not found");
+    }
+
+    const newMessage: Message = {
+      _id: new ObjectId(),
+      text,
+      sender: authUserId,
+      users: chat.users,
+    };
+    chat.messages.push(newMessage);
+    await chat.save();
+
+    await publishNewMessage({
+      chatId: chat._id,
+      message: newMessage,
+      recipients: chat.users as ObjectId[],
+    });
+
+    return chat;
   }
 
   @Subscription({
@@ -246,22 +275,7 @@ export class ChatResolver {
     }
 
     const authUserId = ctx.user._id;
-
-    const chatUsers = [...groupMembers];
-    const authUserExists = chatUsers.some((id) => authUserId === id);
-    if (!authUserExists) {
-      chatUsers.push(authUserId);
-    }
-
-    const chat = new ChatModel({
-      users: chatUsers,
-      group: {
-        admins: [authUserId],
-        name: groupName,
-        image: null,
-      },
-    });
-    await chat.populate("users");
+    const chatUsers = generateChatUsersArr(groupMembers, authUserId);
 
     const newMessage: Message = {
       _id: new ObjectId(),
@@ -270,7 +284,16 @@ export class ChatResolver {
       users: chatUsers,
     };
 
-    chat.messages.push(newMessage);
+    const chat = new ChatModel({
+      users: chatUsers,
+      messages: [newMessage],
+      group: {
+        admins: [authUserId],
+        name: groupName,
+        image: null,
+      },
+    });
+    await chat.populate("users");
     await chat.save();
 
     await publishNewChat({

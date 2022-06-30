@@ -12,11 +12,17 @@ export class AddMessageInput {
   @Field()
   text: string;
 
+  @Field({ nullable: true })
+  chatId: ObjectId;
+}
+
+@InputType()
+export class NewChatInput {
+  @Field()
+  text: string;
+
   @Field((type) => [ObjectIdScalar])
   recipients: ObjectId[];
-
-  @Field({ nullable: true })
-  chatId?: ObjectId;
 }
 
 @InputType()

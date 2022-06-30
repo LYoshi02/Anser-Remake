@@ -8,6 +8,9 @@ export const GET_CHATS = gql`
         _id
         username
         fullname
+        profileImg {
+          url
+        }
       }
       messages {
         _id

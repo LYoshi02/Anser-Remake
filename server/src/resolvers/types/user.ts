@@ -42,8 +42,8 @@ export interface NewUserPayload {
   fullname: string;
 }
 
-@ArgsType()
-export class GetUsersArgs {
+@InputType()
+export class GetUsersInput {
   @Field()
   searchText: string;
 

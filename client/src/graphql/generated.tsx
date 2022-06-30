@@ -23,7 +23,6 @@ export type Scalars = {
 
 export type AddMessageInput = {
   chatId?: InputMaybe<Scalars['ObjectId']>;
-  recipients: Array<Scalars['ObjectId']>;
   text: Scalars['String'];
 };
 
@@ -46,6 +45,12 @@ export type CreateUserInput = {
   fullname: Scalars['String'];
   password: Scalars['String'];
   username: Scalars['String'];
+};
+
+export type GetUsersInput = {
+  limit: Scalars['Int'];
+  offset: Scalars['Int'];
+  searchText: Scalars['String'];
 };
 
 export type Group = {
@@ -80,6 +85,7 @@ export type Message = {
 export type Mutation = {
   __typename?: 'Mutation';
   addMessage: Chat;
+  createNewChat: Chat;
   createNewGroup: Chat;
   createUser: User;
   deleteProfileImage: User;
@@ -91,6 +97,11 @@ export type Mutation = {
 
 export type MutationAddMessageArgs = {
   chatData: AddMessageInput;
+};
+
+
+export type MutationCreateNewChatArgs = {
+  chatData: NewChatInput;
 };
 
 
@@ -117,6 +128,11 @@ export type MutationUpdateUserArgs = {
 
 export type MutationUploadProfileImageArgs = {
   file: Scalars['Upload'];
+};
+
+export type NewChatInput = {
+  recipients: Array<Scalars['ObjectId']>;
+  text: Scalars['String'];
 };
 
 export type NewGroupInput = {
@@ -166,9 +182,7 @@ export type QueryGetUserArgs = {
 
 
 export type QueryGetUsersArgs = {
-  limit: Scalars['Int'];
-  offset: Scalars['Int'];
-  searchText: Scalars['String'];
+  searchOptions?: InputMaybe<GetUsersInput>;
 };
 
 
@@ -222,24 +236,31 @@ export type AddMessageMutationVariables = Exact<{
 
 export type AddMessageMutation = { __typename?: 'Mutation', addMessage: { __typename?: 'Chat', _id: any } };
 
+export type CreateNewChatMutationVariables = Exact<{
+  chatData: NewChatInput;
+}>;
+
+
+export type CreateNewChatMutation = { __typename?: 'Mutation', createNewChat: { __typename?: 'Chat', _id: any } };
+
 export type GetChatQueryVariables = Exact<{
   recipientUsername: Scalars['String'];
 }>;
 
 
-export type GetChatQuery = { __typename?: 'Query', getChat: { __typename?: 'Chat', _id: any, users: Array<{ __typename?: 'User', _id: any, fullname: string }>, messages: Array<{ __typename?: 'Message', _id: any, text: string, sender?: { __typename?: 'User', _id: any } | null }> } };
+export type GetChatQuery = { __typename?: 'Query', getChat: { __typename?: 'Chat', _id: any, users: Array<{ __typename?: 'User', _id: any, fullname: string, profileImg?: { __typename?: 'Image', url: string } | null }>, messages: Array<{ __typename?: 'Message', _id: any, text: string, sender?: { __typename?: 'User', _id: any } | null }> } };
 
 export type GetChatsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetChatsQuery = { __typename?: 'Query', getChats: Array<{ __typename?: 'Chat', _id: any, users: Array<{ __typename?: 'User', _id: any, username: string, fullname: string }>, messages: Array<{ __typename?: 'Message', _id: any, text: string }>, group?: { __typename?: 'Group', name: string, image?: { __typename?: 'Image', url: string } | null } | null }> };
+export type GetChatsQuery = { __typename?: 'Query', getChats: Array<{ __typename?: 'Chat', _id: any, users: Array<{ __typename?: 'User', _id: any, username: string, fullname: string, profileImg?: { __typename?: 'Image', url: string } | null }>, messages: Array<{ __typename?: 'Message', _id: any, text: string }>, group?: { __typename?: 'Group', name: string, image?: { __typename?: 'Image', url: string } | null } | null }> };
 
 export type GetFullUserQueryVariables = Exact<{
   username: Scalars['String'];
 }>;
 
 
-export type GetFullUserQuery = { __typename?: 'Query', getUser: { __typename?: 'User', _id: any, username: string, fullname: string, description: string } };
+export type GetFullUserQuery = { __typename?: 'Query', getUser: { __typename?: 'User', _id: any, username: string, fullname: string, description: string, profileImg?: { __typename?: 'Image', url: string } | null } };
 
 export type GetGroupChatQueryVariables = Exact<{
   chatId: Scalars['String'];
@@ -253,16 +274,14 @@ export type GetUserQueryVariables = Exact<{
 }>;
 
 
-export type GetUserQuery = { __typename?: 'Query', getUser: { __typename?: 'User', _id: any, fullname: string } };
+export type GetUserQuery = { __typename?: 'Query', getUser: { __typename?: 'User', _id: any, fullname: string, profileImg?: { __typename?: 'Image', url: string } | null } };
 
 export type GetUsersQueryVariables = Exact<{
-  searchText: Scalars['String'];
-  offset: Scalars['Int'];
-  limit: Scalars['Int'];
+  searchOptions?: InputMaybe<GetUsersInput>;
 }>;
 
 
-export type GetUsersQuery = { __typename?: 'Query', getUsers: Array<{ __typename?: 'User', _id: any, username: string, fullname: string }> };
+export type GetUsersQuery = { __typename?: 'Query', getUsers: Array<{ __typename?: 'User', _id: any, username: string, fullname: string, profileImg?: { __typename?: 'Image', url: string } | null }> };
 
 export type OnNewChatAddedSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
@@ -456,6 +475,39 @@ export function useAddMessageMutation(baseOptions?: Apollo.MutationHookOptions<A
 export type AddMessageMutationHookResult = ReturnType<typeof useAddMessageMutation>;
 export type AddMessageMutationResult = Apollo.MutationResult<AddMessageMutation>;
 export type AddMessageMutationOptions = Apollo.BaseMutationOptions<AddMessageMutation, AddMessageMutationVariables>;
+export const CreateNewChatDocument = gql`
+    mutation CreateNewChat($chatData: NewChatInput!) {
+  createNewChat(chatData: $chatData) {
+    _id
+  }
+}
+    `;
+export type CreateNewChatMutationFn = Apollo.MutationFunction<CreateNewChatMutation, CreateNewChatMutationVariables>;
+
+/**
+ * __useCreateNewChatMutation__
+ *
+ * To run a mutation, you first call `useCreateNewChatMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateNewChatMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createNewChatMutation, { data, loading, error }] = useCreateNewChatMutation({
+ *   variables: {
+ *      chatData: // value for 'chatData'
+ *   },
+ * });
+ */
+export function useCreateNewChatMutation(baseOptions?: Apollo.MutationHookOptions<CreateNewChatMutation, CreateNewChatMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateNewChatMutation, CreateNewChatMutationVariables>(CreateNewChatDocument, options);
+      }
+export type CreateNewChatMutationHookResult = ReturnType<typeof useCreateNewChatMutation>;
+export type CreateNewChatMutationResult = Apollo.MutationResult<CreateNewChatMutation>;
+export type CreateNewChatMutationOptions = Apollo.BaseMutationOptions<CreateNewChatMutation, CreateNewChatMutationVariables>;
 export const GetChatDocument = gql`
     query GetChat($recipientUsername: String!) {
   getChat(recipientUsername: $recipientUsername) {
@@ -463,6 +515,9 @@ export const GetChatDocument = gql`
     users {
       _id
       fullname
+      profileImg {
+        url
+      }
     }
     messages {
       _id
@@ -510,6 +565,9 @@ export const GetChatsDocument = gql`
       _id
       username
       fullname
+      profileImg {
+        url
+      }
     }
     messages {
       _id
@@ -558,6 +616,9 @@ export const GetFullUserDocument = gql`
     username
     fullname
     description
+    profileImg {
+      url
+    }
   }
 }
     `;
@@ -649,6 +710,9 @@ export const GetUserDocument = gql`
   getUser(username: $username) {
     _id
     fullname
+    profileImg {
+      url
+    }
   }
 }
     `;
@@ -681,11 +745,14 @@ export type GetUserQueryHookResult = ReturnType<typeof useGetUserQuery>;
 export type GetUserLazyQueryHookResult = ReturnType<typeof useGetUserLazyQuery>;
 export type GetUserQueryResult = Apollo.QueryResult<GetUserQuery, GetUserQueryVariables>;
 export const GetUsersDocument = gql`
-    query GetUsers($searchText: String!, $offset: Int!, $limit: Int!) {
-  getUsers(searchText: $searchText, offset: $offset, limit: $limit) {
+    query GetUsers($searchOptions: GetUsersInput) {
+  getUsers(searchOptions: $searchOptions) {
     _id
     username
     fullname
+    profileImg {
+      url
+    }
   }
 }
     `;
@@ -702,13 +769,11 @@ export const GetUsersDocument = gql`
  * @example
  * const { data, loading, error } = useGetUsersQuery({
  *   variables: {
- *      searchText: // value for 'searchText'
- *      offset: // value for 'offset'
- *      limit: // value for 'limit'
+ *      searchOptions: // value for 'searchOptions'
  *   },
  * });
  */
-export function useGetUsersQuery(baseOptions: Apollo.QueryHookOptions<GetUsersQuery, GetUsersQueryVariables>) {
+export function useGetUsersQuery(baseOptions?: Apollo.QueryHookOptions<GetUsersQuery, GetUsersQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<GetUsersQuery, GetUsersQueryVariables>(GetUsersDocument, options);
       }

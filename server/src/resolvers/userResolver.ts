@@ -30,7 +30,7 @@ import {
 } from "../schemas/user";
 import {
   CreateUserInput,
-  GetUsersArgs,
+  GetUsersInput,
   LoginUserArgs,
   NewUserPayload,
   UpdateUserArgs,
@@ -201,7 +201,11 @@ export class UserResolver {
   @Query((returns) => [User])
   async getUsers(
     @Ctx() ctx: Context,
-    @Args() { searchText, limit, offset }: GetUsersArgs
+    @Arg("searchOptions", {
+      nullable: true,
+      defaultValue: { searchText: "", limit: 0, offset: 0 },
+    })
+    { searchText, limit, offset }: GetUsersInput
   ): Promise<User[]> {
     if (!ctx.isAuth || !ctx.user) {
       throw new AuthenticationError("User is not authenticated");

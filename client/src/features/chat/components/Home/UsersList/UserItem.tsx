@@ -5,10 +5,11 @@ import { Link, ListItem } from "@/components/UI";
 type Props = {
   username: string;
   fullname: string;
+  imageUrl?: string;
   isNewUser?: boolean;
 };
 
-const UserItem = ({ username, fullname, isNewUser }: Props) => {
+const UserItem = ({ username, fullname, imageUrl, isNewUser }: Props) => {
   let newUserBadge;
   if (isNewUser) {
     newUserBadge = <Badge colorScheme="purple">New</Badge>;
@@ -17,7 +18,7 @@ const UserItem = ({ username, fullname, isNewUser }: Props) => {
   return (
     <Link href={`/users/${username}`}>
       <ListItem
-        avatar={{ name: fullname }}
+        avatar={{ name: fullname, src: imageUrl }}
         title={fullname}
         description={`@${username}`}
         detail={newUserBadge}

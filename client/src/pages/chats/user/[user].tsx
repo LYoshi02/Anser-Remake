@@ -13,6 +13,7 @@ import {
   useGetUserLazyQuery,
   OnNewChatAddedSubscription,
   OnNewChatAddedDocument,
+  useCreateNewChatMutation,
 } from "@/graphql/generated";
 import { useAuthUser } from "@/hooks/useAuthUser";
 
@@ -20,6 +21,7 @@ const UserChatPage: NextPage = () => {
   const router = useRouter();
   const [getChat, { data: chatData, subscribeToMore }] = useGetChatLazyQuery();
   const [getRecipient, { data: recipientData }] = useGetUserLazyQuery();
+  const [createNewChat] = useCreateNewChatMutation();
   const [addMessage] = useAddMessageMutation();
   const authUser = useAuthUser({ redirectTo: "/login" });
   const messagesEndRef = useScrollToBottom<HTMLDivElement>();
@@ -65,17 +67,27 @@ const UserChatPage: NextPage = () => {
       }
 
       const chatId = chatData?.getChat._id;
-      const recipients = [recipientData.getUser._id];
 
-      await addMessage({
-        variables: {
-          chatData: {
-            recipients,
-            text,
-            chatId,
+      if (chatId) {
+        await addMessage({
+          variables: {
+            chatData: {
+              text,
+              chatId,
+            },
           },
-        },
-      });
+        });
+      } else {
+        const recipients = [recipientData.getUser._id];
+        await createNewChat({
+          variables: {
+            chatData: {
+              recipients,
+              text,
+            },
+          },
+        });
+      }
     } catch (error) {
       console.log(error);
     }
@@ -100,7 +112,10 @@ const UserChatPage: NextPage = () => {
   return (
     <AppLayout>
       <BackNav>
-        <ChatInfo name={recipientData?.getUser.fullname || ""} />
+        <ChatInfo
+          name={recipientData?.getUser.fullname || ""}
+          imageUrl={recipientData?.getUser.profileImg?.url}
+        />
       </BackNav>
       <Flex
         direction="column"

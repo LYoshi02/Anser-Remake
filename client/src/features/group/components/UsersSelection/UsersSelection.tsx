@@ -26,9 +26,11 @@ const UsersSelection = ({ selectedUsers, onUserSelected }: Props) => {
     refetch,
   } = useGetUsersQuery({
     variables: {
-      searchText: "",
-      limit: FETCH_LIMIT,
-      offset: 0,
+      searchOptions: {
+        searchText: "",
+        limit: FETCH_LIMIT,
+        offset: 0,
+      },
     },
   });
 
@@ -48,9 +50,11 @@ const UsersSelection = ({ selectedUsers, onUserSelected }: Props) => {
     console.log("Fetching more users: ", lastSearch);
     const res = await fetchMore({
       variables: {
-        limit: FETCH_LIMIT,
-        offset: usersData.getUsers.length,
-        searchText: lastSearch,
+        searchOptions: {
+          searchText: lastSearch,
+          limit: FETCH_LIMIT,
+          offset: usersData.getUsers.length,
+        },
       },
     });
     console.log(res);
@@ -67,9 +71,11 @@ const UsersSelection = ({ selectedUsers, onUserSelected }: Props) => {
 
     setLastSearch(searchText);
     await refetch({
-      limit: FETCH_LIMIT,
-      offset: 0,
-      searchText,
+      searchOptions: {
+        searchText,
+        limit: FETCH_LIMIT,
+        offset: 0,
+      },
     });
   };
 

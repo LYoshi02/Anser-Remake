@@ -10,6 +10,7 @@ type Props = {
       _id: string;
       fullname: string;
       username: string;
+      profileImg?: { url: string } | null;
     }[];
     messages: {
       text: string;
@@ -35,15 +36,15 @@ const ChatItem = ({ chat, userId }: Props) => {
     avatarProps = {
       bg: groupBgColor,
       icon: <Icon as={HiUserGroup} w={8} h={8} color={groupIconColor} />,
-      src: "",
+      src: chat.group.image?.url,
     };
     chatName = chat.group.name;
     chatUrl = `/chats/group/${chat._id}`;
   } else {
     const receiver = chat.users.find((user) => user._id !== userId);
     avatarProps = {
-      name: receiver?.fullname,
-      src: "",
+      name: receiver?.fullname || "",
+      src: receiver?.profileImg?.url,
     };
     chatName = receiver?.fullname || "";
     chatUrl = `/chats/user/${receiver?.username}`;

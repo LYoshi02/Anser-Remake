@@ -27,7 +27,11 @@ const UserPage: NextPage = () => {
       <BackNav />
       <Container>
         <Flex direction="column" align="center">
-          <Avatar size="2xl" name={userData.getUser.fullname}></Avatar>
+          <Avatar
+            size="2xl"
+            name={userData.getUser.fullname}
+            src={userData.getUser.profileImg?.url}
+          ></Avatar>
           <Box w="full" textAlign="center">
             <Stack spacing="2">
               <Text fontSize="3xl" mt="2" fontWeight="bold">
