@@ -14,7 +14,14 @@ import {
 // TODO: add an alert when there are messages that haven't been read
 const ChatsList = () => {
   const user = useAuthUser({ redirectTo: "/login" });
-  const { data: chatsData, loading, subscribeToMore } = useGetChatsQuery();
+  const {
+    data: chatsData,
+    loading,
+    subscribeToMore,
+    error,
+  } = useGetChatsQuery();
+
+  console.log(error);
 
   useEffect(() => {
     subscribeToMore<OnNewChatAddedSubscription>({
@@ -32,10 +39,14 @@ const ChatsList = () => {
     subscribeToMore<OnNewMessageAddedSubscription>({
       document: OnNewMessageAddedDocument,
       updateQuery: (prev, { subscriptionData }) => {
+        console.log(subscriptionData);
         if (!subscriptionData.data) return prev;
 
-        const { chatId, message: newMessage } =
-          subscriptionData.data.newMessage;
+        const {
+          chatId,
+          message: newMessage,
+          users: updatedUsers,
+        } = subscriptionData.data.newMessage;
         const changedChatIndex = prev.getChats.findIndex(
           (c) => c._id === chatId
         );
@@ -45,6 +56,7 @@ const ChatsList = () => {
         const updatedChat = {
           ...prev.getChats[changedChatIndex],
           messages: [...prev.getChats[changedChatIndex].messages, newMessage],
+          users: updatedUsers || prev.getChats[changedChatIndex].users,
         };
 
         const updatedChats = [...prev.getChats];

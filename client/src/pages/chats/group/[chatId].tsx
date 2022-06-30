@@ -10,6 +10,7 @@ import useScrollToBottom from "@/features/chat/hooks/useScrollToBottom";
 import {
   useAddMessageMutation,
   useGetGroupChatLazyQuery,
+  useLeaveGroupMutation,
 } from "@/graphql/generated";
 import { useAuthUser } from "@/hooks/useAuthUser";
 
@@ -20,6 +21,7 @@ const GroupChatPage: NextPage = () => {
   const [getGroupChat, { data: chatData, loading }] =
     useGetGroupChatLazyQuery();
   const [addMessage] = useAddMessageMutation();
+  const [leaveGroup] = useLeaveGroupMutation();
 
   const chatId = router.query.chatId as string;
 
@@ -48,13 +50,19 @@ const GroupChatPage: NextPage = () => {
     return <p>Chat not found</p>;
   }
 
-  const leaveGroupHandler = () => {
-    console.log("Leaving...");
+  const leaveGroupHandler = async () => {
+    try {
+      await leaveGroup({
+        variables: {
+          chatId,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const sendMessageHandler = async (text: string) => {
-    const { _id: chatId } = chatData.getGroupChat;
-
     try {
       if (!chatId) {
         throw new Error("Cannot send the message");
@@ -73,9 +81,9 @@ const GroupChatPage: NextPage = () => {
     }
   };
 
-  let messages;
+  let messages, isMember;
   if (chatData && authUser) {
-    console.log(chatData.getGroupChat);
+    isMember = chatData.getGroupChat.users.some((u) => u._id === authUser._id);
     messages = chatData.getGroupChat.messages.map((msg) => {
       const isSentByMe = Boolean(msg.sender && msg.sender._id === authUser._id);
 
@@ -98,7 +106,9 @@ const GroupChatPage: NextPage = () => {
           imageUrl={chatData.getGroupChat.group?.image?.url}
           isGroup
         />
-        <GroupMenu chatId={chatId} onLeaveGroup={leaveGroupHandler} />
+        {isMember && (
+          <GroupMenu chatId={chatId} onLeaveGroup={leaveGroupHandler} />
+        )}
       </BackNav>
       <Flex
         direction="column"
@@ -110,7 +120,12 @@ const GroupChatPage: NextPage = () => {
           {messages}
           <div ref={messagesEndRef} />
         </Box>
-        <MessageInput onSendMessage={sendMessageHandler} />
+        {isMember != null && (
+          <MessageInput
+            isMember={isMember}
+            onSendMessage={sendMessageHandler}
+          />
+        )}
       </Flex>
     </AppLayout>
   );

@@ -8,6 +8,9 @@ export const NEW_CHAT = gql`
         _id
         username
         fullname
+        profileImg {
+          url
+        }
       }
       messages {
         _id

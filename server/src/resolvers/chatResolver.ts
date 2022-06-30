@@ -1,4 +1,8 @@
-import { AuthenticationError, ValidationError } from "apollo-server-express";
+import {
+  ApolloError,
+  AuthenticationError,
+  ValidationError,
+} from "apollo-server-express";
 import {
   Query,
   Resolver,
@@ -34,13 +38,55 @@ export class ChatResolver {
       throw new AuthenticationError("User is not authenticated");
     }
 
-    const chats = await ChatModel.find({ users: { $in: [ctx.user._id] } })
-      .populate("users")
-      .sort({ updatedAt: "desc" })
-      .slice("messages", -1)
-      .exec();
+    /*
+      GOALS: 
+      1. Filter user’s chats including those whose “users” property contains the id 
+      of the authenticated user or those that contain a message sent by him.
+      2. The property "messages" of each chat must contain the last message the 
+      authenticated user received in that chat (important for the group chats).
+      3. The chats must be sorted from the most recent to the oldest
+    */
+    const chats = await ChatModel.aggregate([
+      {
+        $match: {
+          $or: [
+            { users: { $in: [ctx.user._id] } },
+            { "messages.users": { $in: [ctx.user._id] } },
+          ],
+        },
+      },
+      {
+        $addFields: {
+          messages: {
+            $filter: {
+              input: "$messages",
+              as: "message",
+              cond: { $in: [ctx.user._id, "$$message.users"] },
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          messages: [
+            {
+              $last: "$messages",
+            },
+          ],
+        },
+      },
+      {
+        $sort: {
+          updatedAt: -1,
+        },
+      },
+    ]);
 
-    return chats;
+    const populatedChats = await ChatModel.populate(chats, {
+      path: "users",
+    });
+
+    return populatedChats;
   }
 
   @Query((returns) => Chat)
@@ -83,6 +129,10 @@ export class ChatResolver {
       throw new AuthenticationError("User is not authenticated");
     }
 
+    /*
+      GOAL: the property "messages" of the chat must contain only the messages the 
+      authenticated user received.
+    */
     const chat = await ChatModel.aggregate([
       { $match: { _id: new ObjectId(chatId) } },
       {
@@ -98,27 +148,13 @@ export class ChatResolver {
           group: 1,
         },
       },
-      // {
-      //   $lookup: {
-      //     from: "users",
-      //     localField: "messages.sender",
-      //     foreignField: "_id",
-      //     as: "sender",
-      //   },
-      // },
     ]);
-
-    console.log(chat[0].messages);
 
     const populatedChat = await ChatModel.populate(chat, {
       path: "messages.sender",
     });
 
-    // const chat = await ChatModel.findById(chatId)
-    //   .populate("messages.sender")
-    //   .exec();
-
-    if (!chat) {
+    if (populatedChat.length === 0) {
       throw new ValidationError("Chat not found");
     }
 
@@ -260,7 +296,7 @@ export class ChatResolver {
     return {
       chatId,
       message,
-      // users,
+      users,
     };
   }
 
@@ -318,11 +354,15 @@ export class ChatResolver {
     }
 
     const authUserId = ctx.user._id;
+    const authUserIdString = authUserId.toString();
 
     const chat = await ChatModel.findOne({
       _id: chatId,
       users: {
         $in: [authUserId],
+      },
+      group: {
+        $ne: null,
       },
     });
 
@@ -330,8 +370,31 @@ export class ChatResolver {
       throw new ValidationError("Chat not found");
     }
 
-    const previousChatUsers = [...chat.users];
-    const updatedChatUsers = previousChatUsers.filter(
+    const groupUsers = [...chat.users];
+    const groupAdmins = [...chat.group!.admins];
+    const isAdmin = groupAdmins.some((u) => u.toString() === authUserIdString);
+
+    if (isAdmin) {
+      const updatedAdmins = groupAdmins.filter(
+        (a) => a.toString() !== authUserIdString
+      );
+
+      if (updatedAdmins.length === 0 && groupUsers.length > 1) {
+        const newAdmin = groupUsers.find(
+          (u) => u.toString() !== authUserIdString
+        );
+
+        if (!newAdmin) {
+          throw new ApolloError("There was an error");
+        }
+
+        updatedAdmins.push(newAdmin);
+      }
+
+      chat.group!.admins = updatedAdmins;
+    }
+
+    const updatedGroupUsers = groupUsers.filter(
       (u) => u.toString() !== authUserId.toString()
     );
 
@@ -339,18 +402,19 @@ export class ChatResolver {
       _id: new ObjectId(),
       text: `@${ctx.user.username} left the group`,
       sender: null,
-      users: previousChatUsers,
+      users: groupUsers,
     };
 
-    chat.users = updatedChatUsers;
+    chat.users = updatedGroupUsers;
     chat.messages.push(newMessage);
     await chat.save();
+    await chat.populate("users");
 
     await publishNewMessage({
       chatId: chat._id,
       message: newMessage,
-      recipients: previousChatUsers as ObjectId[],
-      users: updatedChatUsers,
+      recipients: groupUsers as ObjectId[],
+      users: chat.users,
     });
 
     return chat;

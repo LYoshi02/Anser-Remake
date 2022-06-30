@@ -1,19 +1,36 @@
 import { useState } from "react";
-import { Flex, IconButton, Input, useColorModeValue } from "@chakra-ui/react";
+import {
+  Box,
+  Flex,
+  IconButton,
+  Input,
+  Text,
+  useColorModeValue,
+} from "@chakra-ui/react";
 import { HiPaperAirplane } from "react-icons/hi";
 
 type Props = {
+  isMember?: boolean;
   onSendMessage: (msg: string) => void;
 };
 
-const MessageInput = (props: Props) => {
+const MessageInput = ({ onSendMessage, isMember = true }: Props) => {
   const [text, setText] = useState("");
   const inputBgColor = useColorModeValue("gray.100", "gray.900");
+  const colorGray = useColorModeValue("gray.300", "gray.700");
 
   const sendMessageHandler = () => {
-    props.onSendMessage(text);
+    onSendMessage(text);
     setText("");
   };
+
+  if (!isMember) {
+    return (
+      <Box textAlign="center" bgColor={colorGray} p="2">
+        <Text>Ya no perteneces a este grupo</Text>
+      </Box>
+    );
+  }
 
   return (
     <Flex p="2">

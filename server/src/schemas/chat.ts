@@ -33,7 +33,7 @@ export class NewMessage {
   @Field((type) => Message)
   message: Message;
 
-  @Field((type) => [User])
+  @Field((type) => [User], { nullable: true })
   users?: Ref<User>[];
 }
 

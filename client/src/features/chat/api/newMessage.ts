@@ -11,6 +11,14 @@ export const NEW_MESSAGE = gql`
           _id
         }
       }
+      users {
+        _id
+        username
+        fullname
+        profileImg {
+          url
+        }
+      }
     }
   }
 `;

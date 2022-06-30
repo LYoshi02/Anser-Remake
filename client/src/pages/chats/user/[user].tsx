@@ -46,6 +46,7 @@ const UserChatPage: NextPage = () => {
     }
   }, [recipientUsername, getChat, getRecipient]);
 
+  // ! BUG: when creating a group the chat is replaced with the incoming group chat
   useEffect(() => {
     subscribeToMore<OnNewChatAddedSubscription>({
       document: OnNewChatAddedDocument,
