@@ -1,5 +1,5 @@
 import { ObjectId } from "mongodb";
-import { Field, InputType } from "type-graphql";
+import { ArgsType, Field, InputType } from "type-graphql";
 
 import { Ref } from "../../types";
 import { ObjectIdScalar } from "../../utils/objectId.scalar";
@@ -34,11 +34,21 @@ export class NewGroupInput {
   groupMembers: ObjectId[];
 }
 
+@InputType()
+export class AddUsersToGroupInput {
+  @Field()
+  chatId: ObjectId;
+
+  @Field((type) => [ObjectIdScalar])
+  newUsers: ObjectId[];
+}
+
 export interface NewMessagePayload {
   chatId: ObjectId;
   message: Message;
   recipients: ObjectId[];
   users?: Ref<User>[];
+  group?: Group;
 }
 
 export interface NewChatPayload {

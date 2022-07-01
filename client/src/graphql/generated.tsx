@@ -26,6 +26,11 @@ export type AddMessageInput = {
   text: Scalars['String'];
 };
 
+export type AddUsersToGroupInput = {
+  chatId: Scalars['ObjectId'];
+  newUsers: Array<Scalars['ObjectId']>;
+};
+
 export type AuthUser = {
   __typename?: 'AuthUser';
   isAuth: Scalars['Boolean'];
@@ -86,6 +91,7 @@ export type Message = {
 export type Mutation = {
   __typename?: 'Mutation';
   addMessage: Chat;
+  addUsersToGroup: Chat;
   createNewChat: Chat;
   createNewGroup: Chat;
   createUser: User;
@@ -98,6 +104,11 @@ export type Mutation = {
 
 export type MutationAddMessageArgs = {
   chatData: AddMessageInput;
+};
+
+
+export type MutationAddUsersToGroupArgs = {
+  addUsersArgs: AddUsersToGroupInput;
 };
 
 
@@ -144,6 +155,7 @@ export type NewGroupInput = {
 export type NewMessage = {
   __typename?: 'NewMessage';
   chatId: Scalars['ObjectId'];
+  group?: Maybe<Group>;
   message: Message;
   users?: Maybe<Array<User>>;
 };
@@ -298,12 +310,19 @@ export type OnNewChatAddedSubscription = { __typename?: 'Subscription', newChat:
 export type OnNewMessageAddedSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type OnNewMessageAddedSubscription = { __typename?: 'Subscription', newMessage: { __typename?: 'NewMessage', chatId: any, message: { __typename?: 'Message', text: string, _id: any, sender?: { __typename?: 'User', _id: any } | null }, users?: Array<{ __typename?: 'User', _id: any, username: string, fullname: string, profileImg?: { __typename?: 'Image', url: string } | null }> | null } };
+export type OnNewMessageAddedSubscription = { __typename?: 'Subscription', newMessage: { __typename?: 'NewMessage', chatId: any, message: { __typename?: 'Message', text: string, _id: any, sender?: { __typename?: 'User', _id: any } | null }, users?: Array<{ __typename?: 'User', _id: any, username: string, fullname: string, profileImg?: { __typename?: 'Image', url: string } | null }> | null, group?: { __typename?: 'Group', name: string, admins: Array<{ __typename?: 'User', _id: any }>, image?: { __typename?: 'Image', url: string } | null } | null } };
 
 export type OnNewUserAddedSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
 export type OnNewUserAddedSubscription = { __typename?: 'Subscription', newUser: { __typename?: 'NewUser', _id: any, fullname: string, username: string } };
+
+export type AddUsersToGroupMutationVariables = Exact<{
+  addUsersArgs: AddUsersToGroupInput;
+}>;
+
+
+export type AddUsersToGroupMutation = { __typename?: 'Mutation', addUsersToGroup: { __typename?: 'Chat', _id: any } };
 
 export type GetGroupDataQueryVariables = Exact<{
   chatId: Scalars['String'];
@@ -874,6 +893,15 @@ export const OnNewMessageAddedDocument = gql`
         url
       }
     }
+    group {
+      name
+      admins {
+        _id
+      }
+      image {
+        url
+      }
+    }
   }
 }
     `;
@@ -930,6 +958,39 @@ export function useOnNewUserAddedSubscription(baseOptions?: Apollo.SubscriptionH
       }
 export type OnNewUserAddedSubscriptionHookResult = ReturnType<typeof useOnNewUserAddedSubscription>;
 export type OnNewUserAddedSubscriptionResult = Apollo.SubscriptionResult<OnNewUserAddedSubscription>;
+export const AddUsersToGroupDocument = gql`
+    mutation AddUsersToGroup($addUsersArgs: AddUsersToGroupInput!) {
+  addUsersToGroup(addUsersArgs: $addUsersArgs) {
+    _id
+  }
+}
+    `;
+export type AddUsersToGroupMutationFn = Apollo.MutationFunction<AddUsersToGroupMutation, AddUsersToGroupMutationVariables>;
+
+/**
+ * __useAddUsersToGroupMutation__
+ *
+ * To run a mutation, you first call `useAddUsersToGroupMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAddUsersToGroupMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [addUsersToGroupMutation, { data, loading, error }] = useAddUsersToGroupMutation({
+ *   variables: {
+ *      addUsersArgs: // value for 'addUsersArgs'
+ *   },
+ * });
+ */
+export function useAddUsersToGroupMutation(baseOptions?: Apollo.MutationHookOptions<AddUsersToGroupMutation, AddUsersToGroupMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<AddUsersToGroupMutation, AddUsersToGroupMutationVariables>(AddUsersToGroupDocument, options);
+      }
+export type AddUsersToGroupMutationHookResult = ReturnType<typeof useAddUsersToGroupMutation>;
+export type AddUsersToGroupMutationResult = Apollo.MutationResult<AddUsersToGroupMutation>;
+export type AddUsersToGroupMutationOptions = Apollo.BaseMutationOptions<AddUsersToGroupMutation, AddUsersToGroupMutationVariables>;
 export const GetGroupDataDocument = gql`
     query GetGroupData($chatId: String!) {
   getGroupData(chatId: $chatId) {

@@ -4,6 +4,7 @@ import { useGroupContext } from "../../../stores/GroupContext";
 import useUsersSelection from "../../../hooks/useUsersSelection";
 import UsersSelection from "../../UsersSelection/UsersSelection";
 import { Modal } from "@/components/UI";
+import { useAddUsersToGroupMutation } from "@/graphql/generated";
 
 type Props = {
   isOpen: boolean;
@@ -19,12 +20,26 @@ const MembersModal = (props: Props) => {
     onSelectUser: onSelectMember,
     getSelectedUsersId: getSelectedMembersId,
   } = useUsersSelection();
+  const [addUsers] = useAddUsersToGroupMutation();
 
   const groupUsersIds = getGroupData.users.map((u) => u._id);
 
-  const addMembersHandler = () => {
+  const addMembersHandler = async () => {
     const membersIds = getSelectedMembersId();
-    console.log(membersIds);
+
+    try {
+      await addUsers({
+        variables: {
+          addUsersArgs: {
+            chatId: getGroupData._id,
+            newUsers: membersIds,
+          },
+        },
+      });
+    } catch (error) {
+      console.log(error);
+    }
+
     props.onClose();
   };
 

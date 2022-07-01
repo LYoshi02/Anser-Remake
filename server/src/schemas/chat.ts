@@ -35,6 +35,9 @@ export class NewMessage {
 
   @Field((type) => [User], { nullable: true })
   users?: Ref<User>[];
+
+  @Field((type) => Group, { nullable: true })
+  group?: Group;
 }
 
 export const ChatModel = getModelForClass(Chat, {

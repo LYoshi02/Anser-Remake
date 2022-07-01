@@ -19,7 +19,7 @@ import { useAuthUser } from "@/hooks/useAuthUser";
 
 const UserChatPage: NextPage = () => {
   const router = useRouter();
-  const [getChat, { data: chatData, subscribeToMore }] = useGetChatLazyQuery();
+  const [getChat, { data: chatData }] = useGetChatLazyQuery();
   const [getRecipient, { data: recipientData }] = useGetUserLazyQuery();
   const [createNewChat] = useCreateNewChatMutation();
   const [addMessage] = useAddMessageMutation();
@@ -27,6 +27,8 @@ const UserChatPage: NextPage = () => {
   const messagesEndRef = useScrollToBottom<HTMLDivElement>();
 
   const recipientUsername = router.query.user as string;
+
+  console.log(chatData);
 
   useEffect(() => {
     if (recipientUsername) {
@@ -47,19 +49,19 @@ const UserChatPage: NextPage = () => {
   }, [recipientUsername, getChat, getRecipient]);
 
   // ! BUG: when creating a group the chat is replaced with the incoming group chat
-  useEffect(() => {
-    subscribeToMore<OnNewChatAddedSubscription>({
-      document: OnNewChatAddedDocument,
-      updateQuery: (prev, { subscriptionData }) => {
-        if (!subscriptionData.data) return prev;
-        const newChat = subscriptionData.data.newChat;
+  // useEffect(() => {
+  //   subscribeToMore<OnNewChatAddedSubscription>({
+  //     document: OnNewChatAddedDocument,
+  //     updateQuery: (prev, { subscriptionData }) => {
+  //       if (!subscriptionData.data) return prev;
+  //       const newChat = subscriptionData.data.newChat;
 
-        return Object.assign({}, prev, {
-          getChat: newChat,
-        });
-      },
-    });
-  }, [subscribeToMore]);
+  //       return Object.assign({}, prev, {
+  //         getChat: newChat,
+  //       });
+  //     },
+  //   });
+  // }, [subscribeToMore]);
 
   const sendMessageHandler = async (text: string) => {
     try {

@@ -19,6 +19,15 @@ export const NEW_MESSAGE = gql`
           url
         }
       }
+      group {
+        name
+        admins {
+          _id
+        }
+        image {
+          url
+        }
+      }
     }
   }
 `;

@@ -19,6 +19,7 @@ import { ObjectId } from "mongodb";
 import { Context } from "../types";
 import {
   AddMessageInput,
+  AddUsersToGroupInput,
   NewChatInput,
   NewChatPayload,
   NewGroupInput,
@@ -27,7 +28,7 @@ import {
 import { Chat, ChatModel, NewMessage } from "../schemas/chat";
 import { Message } from "../schemas/message";
 import { UserModel } from "../schemas/user";
-import { generateChatUsersArr } from "../utils/chat";
+import { generateChatUsersArr, generateUniqueValuesArr } from "../utils/chat";
 
 @Resolver((of) => Chat)
 export class ChatResolver {
@@ -182,14 +183,12 @@ export class ChatResolver {
       throw new ValidationError("Chat not found");
     }
 
-    console.log(chat);
-
     return chat;
   }
 
   @Mutation((returns) => Chat)
   async createNewChat(
-    @PubSub("NEW_CHAT") publishNewChat: Publisher<NewChatPayload>,
+    @PubSub("NEW_MESSAGE") publishNewMessage: Publisher<NewMessagePayload>,
     @Arg("chatData") { recipients, text }: NewChatInput,
     @Ctx() ctx: Context
   ): Promise<Chat> {
@@ -226,10 +225,10 @@ export class ChatResolver {
     await newChat.populate("users");
     await newChat.save();
 
-    await publishNewChat({
-      _id: newChat._id,
+    await publishNewMessage({
+      chatId: newChat._id,
       users: newChat.users,
-      messages: newChat.messages,
+      message: newMessage,
       recipients: chatUsers,
     });
 
@@ -317,18 +316,19 @@ export class ChatResolver {
     },
   })
   newMessage(
-    @Root() { chatId, message, users }: NewMessagePayload
+    @Root() { chatId, message, users, group }: NewMessagePayload
   ): NewMessage {
     return {
       chatId,
       message,
       users,
+      group,
     };
   }
 
   @Mutation((returns) => Chat)
   async createNewGroup(
-    @PubSub("NEW_CHAT") publishNewChat: Publisher<NewChatPayload>,
+    @PubSub("NEW_MESSAGE") publishNewMessage: Publisher<NewMessagePayload>,
     @Arg("groupData") { groupName, groupMembers }: NewGroupInput,
     @Ctx() ctx: Context
   ): Promise<Chat> {
@@ -358,10 +358,10 @@ export class ChatResolver {
     await chat.populate("users");
     await chat.save();
 
-    await publishNewChat({
-      _id: chat._id,
+    await publishNewMessage({
+      chatId: chat._id,
       users: chat.users,
-      messages: chat.messages,
+      message: newMessage,
       recipients: chatUsers,
       group: chat.group,
     });
@@ -442,6 +442,81 @@ export class ChatResolver {
       recipients: groupUsers as ObjectId[],
       users: chat.users,
     });
+
+    return chat;
+  }
+
+  @Mutation((returns) => Chat)
+  async addUsersToGroup(
+    @PubSub("NEW_MESSAGE") publishNewMessage: Publisher<NewMessagePayload>,
+    @Arg("addUsersArgs") { chatId, newUsers }: AddUsersToGroupInput,
+    @Ctx() ctx: Context
+  ): Promise<Chat> {
+    if (!ctx.isAuth || !ctx.user) {
+      throw new AuthenticationError("User is not authenticated");
+    }
+
+    const authUserId = ctx.user._id;
+    const authUserIdString = authUserId.toString();
+
+    const chat = await ChatModel.findOne({
+      _id: chatId,
+      users: {
+        $in: [authUserId],
+        $nin: newUsers,
+      },
+      group: {
+        $ne: null,
+      },
+    });
+
+    if (!chat) {
+      throw new ValidationError("Chat not found");
+    }
+
+    const groupAdmins = [...chat.group!.admins];
+    const isAdmin = groupAdmins.some((u) => u.toString() === authUserIdString);
+
+    if (!isAdmin) {
+      throw new AuthenticationError(
+        "You need admin permissions to add a user to the group"
+      );
+    }
+
+    const newGroupUsersIds = generateUniqueValuesArr(newUsers);
+    const newGroupUsers = await UserModel.find({
+      _id: { $in: newGroupUsersIds },
+    });
+
+    const groupUsers = [...chat.users];
+    const newMessages: Message[] = [];
+    newGroupUsers.forEach((newUser) => {
+      groupUsers.push(newUser._id);
+      newMessages.push({
+        _id: new ObjectId(),
+        text: `@${ctx.user!.username} added @${newUser.username}`,
+        sender: null,
+        users: [...groupUsers],
+      });
+    });
+
+    chat.users = groupUsers;
+    chat.messages.push(...newMessages);
+    await chat.save();
+    await chat.populate("users");
+
+    const newMessagesPromises = newMessages.map(async (newMessage) => {
+      console.log(newMessage);
+      return await publishNewMessage({
+        chatId: chat._id,
+        message: newMessage,
+        recipients: newMessage.users as ObjectId[],
+        users: chat.users,
+        group: chat.group,
+      });
+    });
+
+    await Promise.all(newMessagesPromises);
 
     return chat;
   }
