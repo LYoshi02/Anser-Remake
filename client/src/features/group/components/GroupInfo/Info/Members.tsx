@@ -16,6 +16,8 @@ const Members = (props: Props) => {
   const groupUsers = getGroupData.users;
   const isAdmin = getGroupData.group!.admins.some((a) => a._id === authUserId);
 
+  console.log(groupUsers);
+
   return (
     <Box>
       <Flex justify="space-between" align="center">

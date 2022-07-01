@@ -20,8 +20,8 @@ import { Context } from "../types";
 import {
   AddMessageInput,
   AddUsersToGroupInput,
+  GroupOperationInput,
   NewChatInput,
-  NewChatPayload,
   NewGroupInput,
   NewMessagePayload,
 } from "./types/chat";
@@ -229,27 +229,9 @@ export class ChatResolver {
       chatId: newChat._id,
       users: newChat.users,
       message: newMessage,
-      recipients: chatUsers,
     });
 
     return newChat;
-  }
-
-  @Subscription({
-    topics: "NEW_CHAT",
-    filter: ({ payload, args, context }) => {
-      if (!context) return false;
-
-      const customPayload = payload as NewChatPayload;
-      return customPayload.recipients.some(
-        (u) => u.toString() === context.userId.toString()
-      );
-    },
-  })
-  newChat(@Root() newChatPayload: NewChatPayload): Chat {
-    return {
-      ...newChatPayload,
-    };
   }
 
   @Mutation((returns) => Chat)
@@ -279,15 +261,17 @@ export class ChatResolver {
       _id: new ObjectId(),
       text,
       sender: authUserId,
-      users: chat.users,
+      users: [...chat.users],
     };
     chat.messages.push(newMessage);
     await chat.save();
+    await chat.populate("users");
 
     await publishNewMessage({
       chatId: chat._id,
       message: newMessage,
-      recipients: chat.users as ObjectId[],
+      users: chat.users,
+      group: chat.group,
     });
 
     return chat;
@@ -309,7 +293,7 @@ export class ChatResolver {
       const customPayload = payload as NewMessagePayload;
       const contextUserId = context.userId.toString() as string;
 
-      return customPayload.recipients.some((r) => {
+      return customPayload.message.users.some((r) => {
         const recipientId = r.toString();
         return recipientId === contextUserId;
       });
@@ -362,7 +346,6 @@ export class ChatResolver {
       chatId: chat._id,
       users: chat.users,
       message: newMessage,
-      recipients: chatUsers,
       group: chat.group,
     });
 
@@ -439,8 +422,8 @@ export class ChatResolver {
     await publishNewMessage({
       chatId: chat._id,
       message: newMessage,
-      recipients: groupUsers as ObjectId[],
       users: chat.users,
+      group: chat.group,
     });
 
     return chat;
@@ -510,13 +493,226 @@ export class ChatResolver {
       return await publishNewMessage({
         chatId: chat._id,
         message: newMessage,
-        recipients: newMessage.users as ObjectId[],
         users: chat.users,
         group: chat.group,
       });
     });
 
     await Promise.all(newMessagesPromises);
+
+    return chat;
+  }
+
+  @Mutation((returns) => Chat)
+  async appointAdmin(
+    @PubSub("NEW_MESSAGE") publishNewMessage: Publisher<NewMessagePayload>,
+    @Arg("appointAdminArgs") { chatId, userId: newAdmin }: GroupOperationInput,
+    @Ctx() ctx: Context
+  ): Promise<Chat> {
+    if (!ctx.isAuth || !ctx.user) {
+      throw new AuthenticationError("User is not authenticated");
+    }
+
+    const authUserId = ctx.user._id;
+    const authUserIdString = authUserId.toString();
+
+    const chat = await ChatModel.findOne({
+      _id: chatId,
+      users: {
+        $in: [authUserId, newAdmin],
+      },
+      group: {
+        $ne: null,
+      },
+      "group.admins": {
+        $nin: [newAdmin],
+      },
+    });
+
+    if (!chat) {
+      throw new ValidationError("Chat not found");
+    }
+
+    const groupAdmins = [...chat.group!.admins];
+    const isAdmin = groupAdmins.some((u) => u.toString() === authUserIdString);
+
+    if (!isAdmin) {
+      throw new AuthenticationError(
+        "You need admin permissions to add a user to the group"
+      );
+    }
+
+    const newAdminData = await UserModel.findById(newAdmin, { username: 1 });
+
+    if (!newAdminData) {
+      throw new AuthenticationError("The user selected was not found");
+    }
+
+    const newMessage: Message = {
+      _id: new ObjectId(),
+      text: `@${newAdminData.username} is an admin now`,
+      sender: null,
+      users: [...chat.users],
+    };
+
+    groupAdmins.push(newAdmin);
+    chat.group!.admins = groupAdmins;
+    chat.messages.push(newMessage);
+    await chat.save();
+
+    await publishNewMessage({
+      chatId: chat._id,
+      message: newMessage,
+      group: chat.group,
+    });
+
+    return chat;
+  }
+
+  @Mutation((returns) => Chat)
+  async removeAdmin(
+    @PubSub("NEW_MESSAGE") publishNewMessage: Publisher<NewMessagePayload>,
+    @Arg("removeAdminArgs") { chatId, userId: adminId }: GroupOperationInput,
+    @Ctx() ctx: Context
+  ): Promise<Chat> {
+    if (!ctx.isAuth || !ctx.user) {
+      throw new AuthenticationError("User is not authenticated");
+    }
+
+    const authUserId = ctx.user._id;
+    const authUserIdString = authUserId.toString();
+
+    const chat = await ChatModel.findOne({
+      _id: chatId,
+      users: {
+        $in: [authUserId, adminId],
+      },
+      group: {
+        $ne: null,
+      },
+      "group.admins": {
+        $in: [adminId],
+      },
+    });
+
+    if (!chat) {
+      throw new ValidationError("Chat not found");
+    }
+
+    const groupAdmins = [...chat.group!.admins];
+    const isAdmin = groupAdmins.some((u) => u.toString() === authUserIdString);
+
+    if (!isAdmin) {
+      throw new AuthenticationError(
+        "You need admin permissions to add a user to the group"
+      );
+    }
+
+    const adminData = await UserModel.findById(adminId, { username: 1 });
+
+    if (!adminData) {
+      throw new AuthenticationError("The user selected was not found");
+    }
+
+    const newMessage: Message = {
+      _id: new ObjectId(),
+      text: `@${adminData.username} is not an admin anymore`,
+      sender: null,
+      users: [...chat.users],
+    };
+
+    const updatedGroupAdmins = groupAdmins.filter(
+      (a) => a.toString() !== adminId.toString()
+    );
+    chat.group!.admins = updatedGroupAdmins;
+    chat.messages.push(newMessage);
+    await chat.save();
+
+    await publishNewMessage({
+      chatId: chat._id,
+      message: newMessage,
+      group: chat.group,
+    });
+
+    return chat;
+  }
+
+  @Mutation((returns) => Chat)
+  async removeFromGroup(
+    @PubSub("NEW_MESSAGE") publishNewMessage: Publisher<NewMessagePayload>,
+    @Arg("removeFromGroupArgs") { chatId, userId }: GroupOperationInput,
+    @Ctx() ctx: Context
+  ): Promise<Chat> {
+    if (!ctx.isAuth || !ctx.user) {
+      throw new AuthenticationError("User is not authenticated");
+    }
+
+    const authUserId = ctx.user._id;
+    const authUserIdString = authUserId.toString();
+    const userIdString = userId.toString();
+
+    if (authUserIdString === userIdString) {
+      throw new AuthenticationError(
+        "You cannot remove yourself from the group"
+      );
+    }
+
+    const chat = await ChatModel.findOne({
+      _id: chatId,
+      users: {
+        $in: [authUserId, userId],
+      },
+      group: {
+        $ne: null,
+      },
+    });
+
+    if (!chat) {
+      throw new ValidationError("Chat not found");
+    }
+
+    const groupAdmins = [...chat.group!.admins];
+    const isAuthUserAdmin = groupAdmins.some(
+      (u) => u.toString() === authUserIdString
+    );
+
+    if (!isAuthUserAdmin) {
+      throw new AuthenticationError(
+        "You need admin permissions to add a user to the group"
+      );
+    }
+
+    const userData = await UserModel.findById(userId, { username: 1 });
+
+    if (!userData) {
+      throw new AuthenticationError("The user selected was not found");
+    }
+
+    const newMessage: Message = {
+      _id: new ObjectId(),
+      text: `@${ctx.user.username} removed @${userData.username}`,
+      sender: null,
+      users: [...chat.users],
+    };
+
+    const updatedGroupAdmins = groupAdmins.filter(
+      (a) => a.toString() !== userIdString
+    );
+    const updatedGroupUsers = chat.users.filter(
+      (u) => u.toString() !== userIdString
+    );
+    chat.group!.admins = updatedGroupAdmins;
+    chat.users = updatedGroupUsers;
+    chat.messages.push(newMessage);
+    await chat.save();
+    await chat.populate("users");
+
+    await publishNewMessage({
+      chatId: chat._id,
+      message: newMessage,
+      group: chat.group,
+      users: chat.users,
+    });
 
     return chat;
   }

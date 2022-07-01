@@ -18,6 +18,9 @@ export const GET_CHATS = gql`
       }
       group {
         name
+        admins {
+          _id
+        }
         image {
           url
         }

@@ -20,11 +20,20 @@ const useUsersSelection = () => {
     });
   };
 
+  const restartSelectedUsers = () => {
+    setSelectedUsers([]);
+  };
+
   const getSelectedUsersId = () => {
     return selectedUsers.map((user) => user._id);
   };
 
-  return { selectedUsers, onSelectUser, getSelectedUsersId };
+  return {
+    selectedUsers,
+    onSelectUser,
+    getSelectedUsersId,
+    restartSelectedUsers,
+  };
 };
 
 export default useUsersSelection;

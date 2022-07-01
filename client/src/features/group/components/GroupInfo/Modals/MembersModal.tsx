@@ -19,6 +19,7 @@ const MembersModal = (props: Props) => {
     selectedUsers: selectedMembers,
     onSelectUser: onSelectMember,
     getSelectedUsersId: getSelectedMembersId,
+    restartSelectedUsers,
   } = useUsersSelection();
   const [addUsers] = useAddUsersToGroupMutation();
 
@@ -36,6 +37,7 @@ const MembersModal = (props: Props) => {
           },
         },
       });
+      restartSelectedUsers();
     } catch (error) {
       console.log(error);
     }

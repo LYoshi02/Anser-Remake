@@ -1,7 +1,12 @@
 import { Badge, Box, Flex, MenuItem } from "@chakra-ui/react";
 
-import { Link, ListItem, Menu } from "@/components/UI";
+import { ListItem, Menu } from "@/components/UI";
 import { useGroupContext } from "../../../stores/GroupContext";
+import {
+  useAppointAdminMutation,
+  useRemoveAdminMutation,
+  useRemoveFromGroupMutation,
+} from "@/graphql/generated";
 
 type Props = {
   user: {
@@ -20,21 +25,58 @@ const Member = ({ user, isAdmin }: Props) => {
     data: { getGroupData },
     authUserId,
   } = useGroupContext();
+  const [apointAdmin] = useAppointAdminMutation();
+  const [removeAdmin] = useRemoveAdminMutation();
+  const [removeFromGroup] = useRemoveFromGroupMutation();
+
   const isMemberAdmin = getGroupData.group!.admins.some(
     (admin) => admin._id === user._id
   );
   const isAuthUser = user._id === authUserId;
 
-  const removeAdminHandler = (userId: string) => {
-    console.log(userId);
+  const removeAdminHandler = async (userId: string) => {
+    try {
+      await removeAdmin({
+        variables: {
+          removeAdminArgs: {
+            chatId: getGroupData._id,
+            userId,
+          },
+        },
+      });
+    } catch (error) {
+      console.log(error);
+    }
   };
 
-  const addAdminHandler = (userId: string) => {
-    console.log(userId);
+  const addAdminHandler = async (userId: string) => {
+    try {
+      await apointAdmin({
+        variables: {
+          appointAdminArgs: {
+            chatId: getGroupData._id,
+            userId,
+          },
+        },
+      });
+    } catch (error) {
+      console.log(error);
+    }
   };
 
-  const removeMemberHandler = (userId: string) => {
-    console.log(userId);
+  const removeMemberHandler = async (userId: string) => {
+    try {
+      await removeFromGroup({
+        variables: {
+          removeFromGroupArgs: {
+            chatId: getGroupData._id,
+            userId,
+          },
+        },
+      });
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   let adminMenu = null;
@@ -45,7 +87,7 @@ const Member = ({ user, isAdmin }: Props) => {
       </MenuItem>
     ) : (
       <MenuItem onClick={addAdminHandler.bind(this, user._id)}>
-        Make Admin
+        Appoint as Admin
       </MenuItem>
     );
 
@@ -71,19 +113,17 @@ const Member = ({ user, isAdmin }: Props) => {
   }
 
   return (
-    <Link href={isAuthUser ? `/profile` : `/users/${user.username}`}>
-      <ListItem
-        avatar={{ name: user.fullname }}
-        title={user.fullname}
-        description={`@${user.username}`}
-        detail={
-          <Flex align="center">
-            {adminBadge}
-            {adminMenu}
-          </Flex>
-        }
-      />
-    </Link>
+    <ListItem
+      avatar={{ name: user.fullname, src: user.profileImg?.url }}
+      title={user.fullname}
+      description={`@${user.username}`}
+      detail={
+        <Flex align="center">
+          {adminBadge}
+          {adminMenu}
+        </Flex>
+      }
+    />
   );
 };
 

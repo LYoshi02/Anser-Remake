@@ -66,6 +66,11 @@ export type Group = {
   name: Scalars['String'];
 };
 
+export type GroupOperationInput = {
+  chatId: Scalars['ObjectId'];
+  userId: Scalars['ObjectId'];
+};
+
 export type Image = {
   __typename?: 'Image';
   _id: Scalars['ObjectId'];
@@ -92,11 +97,14 @@ export type Mutation = {
   __typename?: 'Mutation';
   addMessage: Chat;
   addUsersToGroup: Chat;
+  appointAdmin: Chat;
   createNewChat: Chat;
   createNewGroup: Chat;
   createUser: User;
   deleteProfileImage: User;
   leaveGroup: Chat;
+  removeAdmin: Chat;
+  removeFromGroup: Chat;
   updateUser: User;
   uploadProfileImage: User;
 };
@@ -109,6 +117,11 @@ export type MutationAddMessageArgs = {
 
 export type MutationAddUsersToGroupArgs = {
   addUsersArgs: AddUsersToGroupInput;
+};
+
+
+export type MutationAppointAdminArgs = {
+  appointAdminArgs: GroupOperationInput;
 };
 
 
@@ -129,6 +142,16 @@ export type MutationCreateUserArgs = {
 
 export type MutationLeaveGroupArgs = {
   chatId: Scalars['String'];
+};
+
+
+export type MutationRemoveAdminArgs = {
+  removeAdminArgs: GroupOperationInput;
+};
+
+
+export type MutationRemoveFromGroupArgs = {
+  removeFromGroupArgs: GroupOperationInput;
 };
 
 
@@ -212,7 +235,6 @@ export type QueryLoginUserArgs = {
 
 export type Subscription = {
   __typename?: 'Subscription';
-  newChat: Chat;
   newMessage: NewMessage;
   newUser: NewUser;
 };
@@ -272,7 +294,7 @@ export type GetChatQuery = { __typename?: 'Query', getChat: { __typename?: 'Chat
 export type GetChatsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetChatsQuery = { __typename?: 'Query', getChats: Array<{ __typename?: 'Chat', _id: any, users: Array<{ __typename?: 'User', _id: any, username: string, fullname: string, profileImg?: { __typename?: 'Image', url: string } | null }>, messages: Array<{ __typename?: 'Message', _id: any, text: string }>, group?: { __typename?: 'Group', name: string, image?: { __typename?: 'Image', url: string } | null } | null }> };
+export type GetChatsQuery = { __typename?: 'Query', getChats: Array<{ __typename?: 'Chat', _id: any, users: Array<{ __typename?: 'User', _id: any, username: string, fullname: string, profileImg?: { __typename?: 'Image', url: string } | null }>, messages: Array<{ __typename?: 'Message', _id: any, text: string }>, group?: { __typename?: 'Group', name: string, admins: Array<{ __typename?: 'User', _id: any }>, image?: { __typename?: 'Image', url: string } | null } | null }> };
 
 export type GetFullUserQueryVariables = Exact<{
   username: Scalars['String'];
@@ -302,11 +324,6 @@ export type GetUsersQueryVariables = Exact<{
 
 export type GetUsersQuery = { __typename?: 'Query', getUsers: Array<{ __typename?: 'User', _id: any, username: string, fullname: string, profileImg?: { __typename?: 'Image', url: string } | null }> };
 
-export type OnNewChatAddedSubscriptionVariables = Exact<{ [key: string]: never; }>;
-
-
-export type OnNewChatAddedSubscription = { __typename?: 'Subscription', newChat: { __typename?: 'Chat', _id: any, users: Array<{ __typename?: 'User', _id: any, username: string, fullname: string, profileImg?: { __typename?: 'Image', url: string } | null }>, messages: Array<{ __typename?: 'Message', _id: any, text: string, sender?: { __typename?: 'User', _id: any } | null }>, group?: { __typename?: 'Group', name: string, image?: { __typename?: 'Image', url: string } | null } | null } };
-
 export type OnNewMessageAddedSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -323,6 +340,13 @@ export type AddUsersToGroupMutationVariables = Exact<{
 
 
 export type AddUsersToGroupMutation = { __typename?: 'Mutation', addUsersToGroup: { __typename?: 'Chat', _id: any } };
+
+export type AppointAdminMutationVariables = Exact<{
+  appointAdminArgs: GroupOperationInput;
+}>;
+
+
+export type AppointAdminMutation = { __typename?: 'Mutation', appointAdmin: { __typename?: 'Chat', _id: any } };
 
 export type GetGroupDataQueryVariables = Exact<{
   chatId: Scalars['String'];
@@ -344,6 +368,20 @@ export type CreateNewGroupMutationVariables = Exact<{
 
 
 export type CreateNewGroupMutation = { __typename?: 'Mutation', createNewGroup: { __typename?: 'Chat', _id: any } };
+
+export type RemoveAdminMutationVariables = Exact<{
+  removeAdminArgs: GroupOperationInput;
+}>;
+
+
+export type RemoveAdminMutation = { __typename?: 'Mutation', removeAdmin: { __typename?: 'Chat', _id: any } };
+
+export type RemoveFromGroupMutationVariables = Exact<{
+  removeFromGroupArgs: GroupOperationInput;
+}>;
+
+
+export type RemoveFromGroupMutation = { __typename?: 'Mutation', removeFromGroup: { __typename?: 'Chat', _id: any } };
 
 export type DeleteProfileImageMutationVariables = Exact<{ [key: string]: never; }>;
 
@@ -615,6 +653,9 @@ export const GetChatsDocument = gql`
     }
     group {
       name
+      admins {
+        _id
+      }
       image {
         url
       }
@@ -824,56 +865,6 @@ export function useGetUsersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<G
 export type GetUsersQueryHookResult = ReturnType<typeof useGetUsersQuery>;
 export type GetUsersLazyQueryHookResult = ReturnType<typeof useGetUsersLazyQuery>;
 export type GetUsersQueryResult = Apollo.QueryResult<GetUsersQuery, GetUsersQueryVariables>;
-export const OnNewChatAddedDocument = gql`
-    subscription OnNewChatAdded {
-  newChat {
-    _id
-    users {
-      _id
-      username
-      fullname
-      profileImg {
-        url
-      }
-    }
-    messages {
-      _id
-      text
-      sender {
-        _id
-      }
-    }
-    group {
-      name
-      image {
-        url
-      }
-    }
-  }
-}
-    `;
-
-/**
- * __useOnNewChatAddedSubscription__
- *
- * To run a query within a React component, call `useOnNewChatAddedSubscription` and pass it any options that fit your needs.
- * When your component renders, `useOnNewChatAddedSubscription` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useOnNewChatAddedSubscription({
- *   variables: {
- *   },
- * });
- */
-export function useOnNewChatAddedSubscription(baseOptions?: Apollo.SubscriptionHookOptions<OnNewChatAddedSubscription, OnNewChatAddedSubscriptionVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useSubscription<OnNewChatAddedSubscription, OnNewChatAddedSubscriptionVariables>(OnNewChatAddedDocument, options);
-      }
-export type OnNewChatAddedSubscriptionHookResult = ReturnType<typeof useOnNewChatAddedSubscription>;
-export type OnNewChatAddedSubscriptionResult = Apollo.SubscriptionResult<OnNewChatAddedSubscription>;
 export const OnNewMessageAddedDocument = gql`
     subscription OnNewMessageAdded {
   newMessage {
@@ -991,6 +982,39 @@ export function useAddUsersToGroupMutation(baseOptions?: Apollo.MutationHookOpti
 export type AddUsersToGroupMutationHookResult = ReturnType<typeof useAddUsersToGroupMutation>;
 export type AddUsersToGroupMutationResult = Apollo.MutationResult<AddUsersToGroupMutation>;
 export type AddUsersToGroupMutationOptions = Apollo.BaseMutationOptions<AddUsersToGroupMutation, AddUsersToGroupMutationVariables>;
+export const AppointAdminDocument = gql`
+    mutation AppointAdmin($appointAdminArgs: GroupOperationInput!) {
+  appointAdmin(appointAdminArgs: $appointAdminArgs) {
+    _id
+  }
+}
+    `;
+export type AppointAdminMutationFn = Apollo.MutationFunction<AppointAdminMutation, AppointAdminMutationVariables>;
+
+/**
+ * __useAppointAdminMutation__
+ *
+ * To run a mutation, you first call `useAppointAdminMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAppointAdminMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [appointAdminMutation, { data, loading, error }] = useAppointAdminMutation({
+ *   variables: {
+ *      appointAdminArgs: // value for 'appointAdminArgs'
+ *   },
+ * });
+ */
+export function useAppointAdminMutation(baseOptions?: Apollo.MutationHookOptions<AppointAdminMutation, AppointAdminMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<AppointAdminMutation, AppointAdminMutationVariables>(AppointAdminDocument, options);
+      }
+export type AppointAdminMutationHookResult = ReturnType<typeof useAppointAdminMutation>;
+export type AppointAdminMutationResult = Apollo.MutationResult<AppointAdminMutation>;
+export type AppointAdminMutationOptions = Apollo.BaseMutationOptions<AppointAdminMutation, AppointAdminMutationVariables>;
 export const GetGroupDataDocument = gql`
     query GetGroupData($chatId: String!) {
   getGroupData(chatId: $chatId) {
@@ -1109,6 +1133,72 @@ export function useCreateNewGroupMutation(baseOptions?: Apollo.MutationHookOptio
 export type CreateNewGroupMutationHookResult = ReturnType<typeof useCreateNewGroupMutation>;
 export type CreateNewGroupMutationResult = Apollo.MutationResult<CreateNewGroupMutation>;
 export type CreateNewGroupMutationOptions = Apollo.BaseMutationOptions<CreateNewGroupMutation, CreateNewGroupMutationVariables>;
+export const RemoveAdminDocument = gql`
+    mutation RemoveAdmin($removeAdminArgs: GroupOperationInput!) {
+  removeAdmin(removeAdminArgs: $removeAdminArgs) {
+    _id
+  }
+}
+    `;
+export type RemoveAdminMutationFn = Apollo.MutationFunction<RemoveAdminMutation, RemoveAdminMutationVariables>;
+
+/**
+ * __useRemoveAdminMutation__
+ *
+ * To run a mutation, you first call `useRemoveAdminMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRemoveAdminMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [removeAdminMutation, { data, loading, error }] = useRemoveAdminMutation({
+ *   variables: {
+ *      removeAdminArgs: // value for 'removeAdminArgs'
+ *   },
+ * });
+ */
+export function useRemoveAdminMutation(baseOptions?: Apollo.MutationHookOptions<RemoveAdminMutation, RemoveAdminMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RemoveAdminMutation, RemoveAdminMutationVariables>(RemoveAdminDocument, options);
+      }
+export type RemoveAdminMutationHookResult = ReturnType<typeof useRemoveAdminMutation>;
+export type RemoveAdminMutationResult = Apollo.MutationResult<RemoveAdminMutation>;
+export type RemoveAdminMutationOptions = Apollo.BaseMutationOptions<RemoveAdminMutation, RemoveAdminMutationVariables>;
+export const RemoveFromGroupDocument = gql`
+    mutation RemoveFromGroup($removeFromGroupArgs: GroupOperationInput!) {
+  removeFromGroup(removeFromGroupArgs: $removeFromGroupArgs) {
+    _id
+  }
+}
+    `;
+export type RemoveFromGroupMutationFn = Apollo.MutationFunction<RemoveFromGroupMutation, RemoveFromGroupMutationVariables>;
+
+/**
+ * __useRemoveFromGroupMutation__
+ *
+ * To run a mutation, you first call `useRemoveFromGroupMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRemoveFromGroupMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [removeFromGroupMutation, { data, loading, error }] = useRemoveFromGroupMutation({
+ *   variables: {
+ *      removeFromGroupArgs: // value for 'removeFromGroupArgs'
+ *   },
+ * });
+ */
+export function useRemoveFromGroupMutation(baseOptions?: Apollo.MutationHookOptions<RemoveFromGroupMutation, RemoveFromGroupMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RemoveFromGroupMutation, RemoveFromGroupMutationVariables>(RemoveFromGroupDocument, options);
+      }
+export type RemoveFromGroupMutationHookResult = ReturnType<typeof useRemoveFromGroupMutation>;
+export type RemoveFromGroupMutationResult = Apollo.MutationResult<RemoveFromGroupMutation>;
+export type RemoveFromGroupMutationOptions = Apollo.BaseMutationOptions<RemoveFromGroupMutation, RemoveFromGroupMutationVariables>;
 export const DeleteProfileImageDocument = gql`
     mutation DeleteProfileImage {
   deleteProfileImage {

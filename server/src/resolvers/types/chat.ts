@@ -43,18 +43,18 @@ export class AddUsersToGroupInput {
   newUsers: ObjectId[];
 }
 
+@InputType()
+export class GroupOperationInput {
+  @Field()
+  chatId: ObjectId;
+
+  @Field()
+  userId: ObjectId;
+}
+
 export interface NewMessagePayload {
   chatId: ObjectId;
   message: Message;
-  recipients: ObjectId[];
   users?: Ref<User>[];
-  group?: Group;
-}
-
-export interface NewChatPayload {
-  _id: ObjectId;
-  users: Ref<User>[];
-  messages: Message[];
-  recipients: ObjectId[];
   group?: Group;
 }

@@ -46,6 +46,7 @@ const ChatsList = () => {
             ...prev.getChats[changedChatIndex],
             messages: [...prev.getChats[changedChatIndex].messages, newMessage],
             users: messageUsers || prev.getChats[changedChatIndex].users,
+            group,
           };
 
           updatedChats.splice(changedChatIndex, 1);
