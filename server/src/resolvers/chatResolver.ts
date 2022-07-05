@@ -70,15 +70,15 @@ export class ChatResolver {
           },
         },
       },
-      {
-        $addFields: {
-          messages: [
-            {
-              $last: "$messages",
-            },
-          ],
-        },
-      },
+      // {
+      //   $addFields: {
+      //     messages: [
+      //       {
+      //         $last: "$messages",
+      //       },
+      //     ],
+      //   },
+      // },
       {
         $sort: {
           updatedAt: -1,
@@ -113,6 +113,7 @@ export class ChatResolver {
 
     const chat = await ChatModel.findOne({
       users: { $all: [ctx.user._id, recipient._id], $size: 2 },
+      group: null,
     })
       .populate("users")
       .exec();
@@ -339,7 +340,7 @@ export class ChatResolver {
       group: {
         admins: [authUserId],
         name: groupName,
-        image: null,
+        image: undefined,
       },
     });
     await chat.populate("users");
@@ -865,7 +866,7 @@ export class ChatResolver {
     const previousName = chat.group!.name;
     const newMessage: Message = {
       _id: new ObjectId(),
-      text: `@${ctx.user.username} changed group's name from ${previousName} to ${newName}`,
+      text: `@${ctx.user.username} changed group's name from "${previousName}" to "${newName}"`,
       sender: null,
       users: [...chat.users],
     };

@@ -11,15 +11,16 @@ import {
   useGetChatLazyQuery,
   useAddMessageMutation,
   useGetUserLazyQuery,
-  OnNewChatAddedSubscription,
-  OnNewChatAddedDocument,
   useCreateNewChatMutation,
+  OnNewMessageAddedDocument,
+  OnNewMessageAddedSubscription,
 } from "@/graphql/generated";
 import { useAuthUser } from "@/hooks/useAuthUser";
 
 const UserChatPage: NextPage = () => {
   const router = useRouter();
-  const [getChat, { data: chatData }] = useGetChatLazyQuery();
+  const [getChat, { data: chatData, subscribeToMore, refetch: refetchChat }] =
+    useGetChatLazyQuery();
   const [getRecipient, { data: recipientData }] = useGetUserLazyQuery();
   const [createNewChat] = useCreateNewChatMutation();
   const [addMessage] = useAddMessageMutation();
@@ -27,8 +28,6 @@ const UserChatPage: NextPage = () => {
   const messagesEndRef = useScrollToBottom<HTMLDivElement>();
 
   const recipientUsername = router.query.user as string;
-
-  console.log(chatData);
 
   useEffect(() => {
     if (recipientUsername) {
@@ -48,20 +47,34 @@ const UserChatPage: NextPage = () => {
     }
   }, [recipientUsername, getChat, getRecipient]);
 
-  // ! BUG: when creating a group the chat is replaced with the incoming group chat
-  // useEffect(() => {
-  //   subscribeToMore<OnNewChatAddedSubscription>({
-  //     document: OnNewChatAddedDocument,
-  //     updateQuery: (prev, { subscriptionData }) => {
-  //       if (!subscriptionData.data) return prev;
-  //       const newChat = subscriptionData.data.newChat;
+  /*
+    To update the query when receiving a message from a user if you are in his 
+    chat, and the chat doesn´t exist yet.
+  */
+  useEffect(() => {
+    subscribeToMore<OnNewMessageAddedSubscription>({
+      document: OnNewMessageAddedDocument,
+      updateQuery: (prev, { subscriptionData }) => {
+        if (!subscriptionData.data || !recipientUsername) return prev;
 
-  //       return Object.assign({}, prev, {
-  //         getChat: newChat,
-  //       });
-  //     },
-  //   });
-  // }, [subscribeToMore]);
+        const { newMessage } = subscriptionData.data;
+        const recipientExists = newMessage.users?.some(
+          (u) => u.username === recipientUsername
+        );
+
+        if (
+          recipientExists &&
+          Object.keys(prev).length === 0 &&
+          !newMessage.group
+        ) {
+          console.log("Refetching chat...");
+          refetchChat({ recipientUsername });
+        }
+
+        return prev;
+      },
+    });
+  }, [subscribeToMore, recipientUsername, refetchChat]);
 
   const sendMessageHandler = async (text: string) => {
     try {

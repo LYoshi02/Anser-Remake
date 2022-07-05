@@ -15,6 +15,9 @@ export const GET_CHATS = gql`
       messages {
         _id
         text
+        sender {
+          _id
+        }
       }
       group {
         name

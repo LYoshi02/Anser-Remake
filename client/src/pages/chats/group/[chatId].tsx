@@ -50,6 +50,8 @@ const GroupChatPage: NextPage = () => {
     return <p>Chat not found</p>;
   }
 
+  console.log(chatData);
+
   const leaveGroupHandler = async () => {
     try {
       await leaveGroup({

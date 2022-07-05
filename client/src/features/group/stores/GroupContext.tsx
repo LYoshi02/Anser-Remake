@@ -55,6 +55,8 @@ export const GroupProvider = (props: GroupProviderProps) => {
     return <p>Group not found</p>;
   }
 
+  console.log("Group: ", groupData);
+
   const contextValue: ContextValue = {
     data: groupData,
     authUserId: authUser._id,

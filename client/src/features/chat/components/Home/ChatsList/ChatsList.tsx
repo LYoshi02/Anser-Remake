@@ -34,19 +34,19 @@ const ChatsList = () => {
         const updatedChats = [...prev.getChats];
 
         if (changedChatIndex === -1) {
-          const newChat = {
+          updatedChats.unshift({
+            __typename: "Chat",
             _id: chatId,
             messages: [newMessage],
             users: messageUsers!,
             group,
-          };
-          updatedChats.unshift(newChat);
+          });
         } else {
           const updatedChat = {
             ...prev.getChats[changedChatIndex],
             messages: [...prev.getChats[changedChatIndex].messages, newMessage],
             users: messageUsers || prev.getChats[changedChatIndex].users,
-            group,
+            group: group || prev.getChats[changedChatIndex].group,
           };
 
           updatedChats.splice(changedChatIndex, 1);

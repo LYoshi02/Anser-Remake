@@ -35,7 +35,13 @@ const Message = ({ sender, text, sentByMe }: Props) => {
   }
 
   return (
-    <Flex my="2" direction="row" justify={messagePosition} align="center">
+    <Flex
+      my="2"
+      direction="row"
+      justify={messagePosition}
+      align="center"
+      textAlign={sender ? "left" : "center"}
+    >
       {senderAvatar}
       <Box>
         {senderName}
