@@ -1,5 +1,5 @@
 import { ObjectId } from "mongodb";
-import { ArgsType, Field, InputType } from "type-graphql";
+import { Field, InputType } from "type-graphql";
 
 import { Ref } from "../../types";
 import { ObjectIdScalar } from "../../utils/objectId.scalar";
@@ -50,6 +50,15 @@ export class GroupOperationInput {
 
   @Field()
   userId: ObjectId;
+}
+
+@InputType()
+export class ChangeGroupNameArgs {
+  @Field()
+  chatId: ObjectId;
+
+  @Field()
+  newName: string;
 }
 
 export interface NewMessagePayload {

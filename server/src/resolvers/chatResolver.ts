@@ -15,11 +15,13 @@ import {
   Root,
 } from "type-graphql";
 import { ObjectId } from "mongodb";
+import { FileUpload, GraphQLUpload } from "graphql-upload";
 
 import { Context } from "../types";
 import {
   AddMessageInput,
   AddUsersToGroupInput,
+  ChangeGroupNameArgs,
   GroupOperationInput,
   NewChatInput,
   NewGroupInput,
@@ -29,6 +31,7 @@ import { Chat, ChatModel, NewMessage } from "../schemas/chat";
 import { Message } from "../schemas/message";
 import { UserModel } from "../schemas/user";
 import { generateChatUsersArr, generateUniqueValuesArr } from "../utils/chat";
+import { deleteFromCloudinary, uploadToCloudinary } from "../utils/upload";
 
 @Resolver((of) => Chat)
 export class ChatResolver {
@@ -712,6 +715,169 @@ export class ChatResolver {
       message: newMessage,
       group: chat.group,
       users: chat.users,
+    });
+
+    return chat;
+  }
+
+  @Mutation((returns) => Chat)
+  async setGroupImage(
+    @PubSub("NEW_MESSAGE") publishNewMessage: Publisher<NewMessagePayload>,
+    @Arg("chatId") chatId: ObjectId,
+    @Arg("file", () => GraphQLUpload) file: FileUpload,
+    @Ctx() ctx: Context
+  ): Promise<Chat> {
+    if (!ctx.isAuth || !ctx.user) {
+      throw new AuthenticationError("User is not authenticated");
+    }
+
+    const authUserId = ctx.user._id;
+
+    const chat = await ChatModel.findOne({
+      _id: chatId,
+      users: {
+        $in: [authUserId],
+      },
+      group: {
+        $ne: null,
+      },
+    });
+
+    if (!chat) {
+      throw new ValidationError("Chat not found");
+    }
+
+    const uploadedFile = await uploadToCloudinary(file, { folder: "group" });
+    if (!uploadedFile) {
+      throw new ApolloError("Couldn't upload group image");
+    }
+
+    const olderImagePublicId = chat.group!.image?.publicId;
+    const newImage = {
+      _id: new ObjectId(),
+      publicId: uploadedFile.public_id,
+      url: uploadedFile.secure_url,
+    };
+    const newMessage: Message = {
+      _id: new ObjectId(),
+      sender: null,
+      users: chat.users,
+      text: `${ctx.user.username} changed the group's image`,
+    };
+
+    chat.group!.image = newImage;
+    chat.messages.push(newMessage);
+    await chat.save();
+
+    if (olderImagePublicId) {
+      await deleteFromCloudinary(olderImagePublicId);
+    }
+
+    await publishNewMessage({
+      chatId: chat._id,
+      message: newMessage,
+      group: chat.group,
+    });
+
+    return chat;
+  }
+
+  @Mutation((returns) => Chat)
+  async deleteGroupImage(
+    @PubSub("NEW_MESSAGE") publishNewMessage: Publisher<NewMessagePayload>,
+    @Arg("chatId") chatId: ObjectId,
+    @Ctx() ctx: Context
+  ): Promise<Chat> {
+    if (!ctx.isAuth || !ctx.user) {
+      throw new AuthenticationError("User is not authenticated");
+    }
+
+    const authUserId = ctx.user._id;
+
+    const chat = await ChatModel.findOne({
+      _id: chatId,
+      users: {
+        $in: [authUserId],
+      },
+      group: {
+        $ne: null,
+      },
+    });
+
+    if (!chat) {
+      throw new ValidationError("Chat not found");
+    }
+
+    const currentImagePublicId = chat.group!.image?.publicId;
+
+    if (!currentImagePublicId) {
+      throw new ValidationError("The group doesn't have an image");
+    }
+
+    await deleteFromCloudinary(currentImagePublicId);
+
+    const newMessage: Message = {
+      _id: new ObjectId(),
+      sender: null,
+      users: chat.users,
+      text: `${ctx.user.username} deleted the group's image`,
+    };
+
+    chat.group!.image = undefined;
+    chat.messages.push(newMessage);
+    await chat.save();
+
+    await publishNewMessage({
+      chatId: chat._id,
+      message: newMessage,
+      group: chat.group,
+    });
+
+    return chat;
+  }
+
+  @Mutation((returns) => Chat)
+  async changeGroupName(
+    @PubSub("NEW_MESSAGE") publishNewMessage: Publisher<NewMessagePayload>,
+    @Arg("changeGroupNameArgs") { chatId, newName }: ChangeGroupNameArgs,
+    @Ctx() ctx: Context
+  ): Promise<Chat> {
+    if (!ctx.isAuth || !ctx.user) {
+      throw new AuthenticationError("User is not authenticated");
+    }
+
+    const authUserId = ctx.user._id;
+
+    const chat = await ChatModel.findOne({
+      _id: chatId,
+      users: {
+        $in: [authUserId],
+      },
+      group: {
+        $ne: null,
+      },
+    });
+
+    if (!chat) {
+      throw new ValidationError("Chat not found");
+    }
+
+    const previousName = chat.group!.name;
+    const newMessage: Message = {
+      _id: new ObjectId(),
+      text: `@${ctx.user.username} changed group's name from ${previousName} to ${newName}`,
+      sender: null,
+      users: [...chat.users],
+    };
+
+    chat.group!.name = newName;
+    chat.messages.push(newMessage);
+    await chat.save();
+
+    await publishNewMessage({
+      chatId: chat._id,
+      message: newMessage,
+      group: chat.group,
     });
 
     return chat;

@@ -1,5 +1,10 @@
 import { ImageUploader } from "@/components/ImageUploader";
 import { Modal } from "@/components/UI";
+import { useGroupContext } from "@/features/group/stores/GroupContext";
+import {
+  useDeleteGroupImageMutation,
+  useSetGroupImageMutation,
+} from "@/graphql/generated";
 
 type Props = {
   isOpen: boolean;
@@ -7,14 +12,37 @@ type Props = {
 };
 
 const ImageModal = (props: Props) => {
-  const uploadImageHandler = (image: Blob) => {
-    console.log("Uploading image...");
-    props.onClose();
+  const {
+    data: { getGroupData },
+  } = useGroupContext();
+  const [setGroupImage] = useSetGroupImageMutation();
+  const [deleteGroupImage] = useDeleteGroupImageMutation();
+
+  const uploadImageHandler = async (image: Blob) => {
+    try {
+      await setGroupImage({
+        variables: {
+          chatId: getGroupData._id,
+          file: image,
+        },
+      });
+      props.onClose();
+    } catch (error) {
+      console.log(error);
+    }
   };
 
-  const deleteImageHandler = () => {
-    console.log("Deleting image...");
-    props.onClose();
+  const deleteImageHandler = async () => {
+    try {
+      await deleteGroupImage({
+        variables: {
+          chatId: getGroupData._id,
+        },
+      });
+      props.onClose();
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
@@ -27,6 +55,7 @@ const ImageModal = (props: Props) => {
         <ImageUploader
           onUpload={uploadImageHandler}
           onDelete={deleteImageHandler}
+          currentImage={getGroupData.group?.image?.url}
         />
       }
       modalBodyProps={{ overflow: "auto", py: "4" }}

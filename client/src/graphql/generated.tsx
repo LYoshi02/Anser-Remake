@@ -37,6 +37,11 @@ export type AuthUser = {
   user?: Maybe<User>;
 };
 
+export type ChangeGroupNameArgs = {
+  chatId: Scalars['ObjectId'];
+  newName: Scalars['String'];
+};
+
 export type Chat = {
   __typename?: 'Chat';
   _id: Scalars['ObjectId'];
@@ -98,13 +103,16 @@ export type Mutation = {
   addMessage: Chat;
   addUsersToGroup: Chat;
   appointAdmin: Chat;
+  changeGroupName: Chat;
   createNewChat: Chat;
   createNewGroup: Chat;
   createUser: User;
+  deleteGroupImage: Chat;
   deleteProfileImage: User;
   leaveGroup: Chat;
   removeAdmin: Chat;
   removeFromGroup: Chat;
+  setGroupImage: Chat;
   updateUser: User;
   uploadProfileImage: User;
 };
@@ -125,6 +133,11 @@ export type MutationAppointAdminArgs = {
 };
 
 
+export type MutationChangeGroupNameArgs = {
+  changeGroupNameArgs: ChangeGroupNameArgs;
+};
+
+
 export type MutationCreateNewChatArgs = {
   chatData: NewChatInput;
 };
@@ -140,6 +153,11 @@ export type MutationCreateUserArgs = {
 };
 
 
+export type MutationDeleteGroupImageArgs = {
+  chatId: Scalars['ObjectId'];
+};
+
+
 export type MutationLeaveGroupArgs = {
   chatId: Scalars['String'];
 };
@@ -152,6 +170,12 @@ export type MutationRemoveAdminArgs = {
 
 export type MutationRemoveFromGroupArgs = {
   removeFromGroupArgs: GroupOperationInput;
+};
+
+
+export type MutationSetGroupImageArgs = {
+  chatId: Scalars['ObjectId'];
+  file: Scalars['Upload'];
 };
 
 
@@ -348,6 +372,20 @@ export type AppointAdminMutationVariables = Exact<{
 
 export type AppointAdminMutation = { __typename?: 'Mutation', appointAdmin: { __typename?: 'Chat', _id: any } };
 
+export type ChangeGroupNameMutationVariables = Exact<{
+  changeGroupNameArgs: ChangeGroupNameArgs;
+}>;
+
+
+export type ChangeGroupNameMutation = { __typename?: 'Mutation', changeGroupName: { __typename?: 'Chat', _id: any } };
+
+export type DeleteGroupImageMutationVariables = Exact<{
+  chatId: Scalars['ObjectId'];
+}>;
+
+
+export type DeleteGroupImageMutation = { __typename?: 'Mutation', deleteGroupImage: { __typename?: 'Chat', _id: any } };
+
 export type GetGroupDataQueryVariables = Exact<{
   chatId: Scalars['String'];
 }>;
@@ -382,6 +420,14 @@ export type RemoveFromGroupMutationVariables = Exact<{
 
 
 export type RemoveFromGroupMutation = { __typename?: 'Mutation', removeFromGroup: { __typename?: 'Chat', _id: any } };
+
+export type SetGroupImageMutationVariables = Exact<{
+  file: Scalars['Upload'];
+  chatId: Scalars['ObjectId'];
+}>;
+
+
+export type SetGroupImageMutation = { __typename?: 'Mutation', setGroupImage: { __typename?: 'Chat', _id: any } };
 
 export type DeleteProfileImageMutationVariables = Exact<{ [key: string]: never; }>;
 
@@ -1015,6 +1061,72 @@ export function useAppointAdminMutation(baseOptions?: Apollo.MutationHookOptions
 export type AppointAdminMutationHookResult = ReturnType<typeof useAppointAdminMutation>;
 export type AppointAdminMutationResult = Apollo.MutationResult<AppointAdminMutation>;
 export type AppointAdminMutationOptions = Apollo.BaseMutationOptions<AppointAdminMutation, AppointAdminMutationVariables>;
+export const ChangeGroupNameDocument = gql`
+    mutation ChangeGroupName($changeGroupNameArgs: ChangeGroupNameArgs!) {
+  changeGroupName(changeGroupNameArgs: $changeGroupNameArgs) {
+    _id
+  }
+}
+    `;
+export type ChangeGroupNameMutationFn = Apollo.MutationFunction<ChangeGroupNameMutation, ChangeGroupNameMutationVariables>;
+
+/**
+ * __useChangeGroupNameMutation__
+ *
+ * To run a mutation, you first call `useChangeGroupNameMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useChangeGroupNameMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [changeGroupNameMutation, { data, loading, error }] = useChangeGroupNameMutation({
+ *   variables: {
+ *      changeGroupNameArgs: // value for 'changeGroupNameArgs'
+ *   },
+ * });
+ */
+export function useChangeGroupNameMutation(baseOptions?: Apollo.MutationHookOptions<ChangeGroupNameMutation, ChangeGroupNameMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ChangeGroupNameMutation, ChangeGroupNameMutationVariables>(ChangeGroupNameDocument, options);
+      }
+export type ChangeGroupNameMutationHookResult = ReturnType<typeof useChangeGroupNameMutation>;
+export type ChangeGroupNameMutationResult = Apollo.MutationResult<ChangeGroupNameMutation>;
+export type ChangeGroupNameMutationOptions = Apollo.BaseMutationOptions<ChangeGroupNameMutation, ChangeGroupNameMutationVariables>;
+export const DeleteGroupImageDocument = gql`
+    mutation DeleteGroupImage($chatId: ObjectId!) {
+  deleteGroupImage(chatId: $chatId) {
+    _id
+  }
+}
+    `;
+export type DeleteGroupImageMutationFn = Apollo.MutationFunction<DeleteGroupImageMutation, DeleteGroupImageMutationVariables>;
+
+/**
+ * __useDeleteGroupImageMutation__
+ *
+ * To run a mutation, you first call `useDeleteGroupImageMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteGroupImageMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteGroupImageMutation, { data, loading, error }] = useDeleteGroupImageMutation({
+ *   variables: {
+ *      chatId: // value for 'chatId'
+ *   },
+ * });
+ */
+export function useDeleteGroupImageMutation(baseOptions?: Apollo.MutationHookOptions<DeleteGroupImageMutation, DeleteGroupImageMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteGroupImageMutation, DeleteGroupImageMutationVariables>(DeleteGroupImageDocument, options);
+      }
+export type DeleteGroupImageMutationHookResult = ReturnType<typeof useDeleteGroupImageMutation>;
+export type DeleteGroupImageMutationResult = Apollo.MutationResult<DeleteGroupImageMutation>;
+export type DeleteGroupImageMutationOptions = Apollo.BaseMutationOptions<DeleteGroupImageMutation, DeleteGroupImageMutationVariables>;
 export const GetGroupDataDocument = gql`
     query GetGroupData($chatId: String!) {
   getGroupData(chatId: $chatId) {
@@ -1199,6 +1311,40 @@ export function useRemoveFromGroupMutation(baseOptions?: Apollo.MutationHookOpti
 export type RemoveFromGroupMutationHookResult = ReturnType<typeof useRemoveFromGroupMutation>;
 export type RemoveFromGroupMutationResult = Apollo.MutationResult<RemoveFromGroupMutation>;
 export type RemoveFromGroupMutationOptions = Apollo.BaseMutationOptions<RemoveFromGroupMutation, RemoveFromGroupMutationVariables>;
+export const SetGroupImageDocument = gql`
+    mutation SetGroupImage($file: Upload!, $chatId: ObjectId!) {
+  setGroupImage(file: $file, chatId: $chatId) {
+    _id
+  }
+}
+    `;
+export type SetGroupImageMutationFn = Apollo.MutationFunction<SetGroupImageMutation, SetGroupImageMutationVariables>;
+
+/**
+ * __useSetGroupImageMutation__
+ *
+ * To run a mutation, you first call `useSetGroupImageMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSetGroupImageMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [setGroupImageMutation, { data, loading, error }] = useSetGroupImageMutation({
+ *   variables: {
+ *      file: // value for 'file'
+ *      chatId: // value for 'chatId'
+ *   },
+ * });
+ */
+export function useSetGroupImageMutation(baseOptions?: Apollo.MutationHookOptions<SetGroupImageMutation, SetGroupImageMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SetGroupImageMutation, SetGroupImageMutationVariables>(SetGroupImageDocument, options);
+      }
+export type SetGroupImageMutationHookResult = ReturnType<typeof useSetGroupImageMutation>;
+export type SetGroupImageMutationResult = Apollo.MutationResult<SetGroupImageMutation>;
+export type SetGroupImageMutationOptions = Apollo.BaseMutationOptions<SetGroupImageMutation, SetGroupImageMutationVariables>;
 export const DeleteProfileImageDocument = gql`
     mutation DeleteProfileImage {
   deleteProfileImage {

@@ -8,16 +8,33 @@ import {
 
 import EditNameControls from "./EditNameControls";
 import { useGroupContext } from "../../../stores/GroupContext";
+import { useChangeGroupNameMutation } from "@/graphql/generated";
 
 const Name = () => {
   const {
     data: { getGroupData },
   } = useGroupContext();
+  const [changeGroupName] = useChangeGroupNameMutation();
 
   const groupName = getGroupData.group!.name;
 
-  const updateGroupNameHandler = (newName: string) => {
-    console.log(newName);
+  const updateGroupNameHandler = async (newName: string) => {
+    const trimmedName = newName.trim();
+
+    if (trimmedName.length === 0) return;
+
+    try {
+      await changeGroupName({
+        variables: {
+          changeGroupNameArgs: {
+            chatId: getGroupData._id,
+            newName: trimmedName,
+          },
+        },
+      });
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
