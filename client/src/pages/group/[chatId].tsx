@@ -6,14 +6,14 @@ import { GroupInfo, GroupProvider } from "@/features/group";
 
 const GroupInfoPage: NextPage = () => {
   return (
-    <GroupProvider>
-      <AppLayout>
-        <BackNav isBackIconRequired />
-        <Container>
+    <AppLayout>
+      <BackNav isBackIconRequired />
+      <Container>
+        <GroupProvider>
           <GroupInfo />
-        </Container>
-      </AppLayout>
-    </GroupProvider>
+        </GroupProvider>
+      </Container>
+    </AppLayout>
   );
 };
 

@@ -12,6 +12,7 @@ import {
   useUsersSelection,
 } from "@/features/group";
 import { useCreateNewGroupMutation } from "@/graphql/generated";
+import { useToast } from "@/hooks/useToast";
 
 const NewGroupPage: NextPage = () => {
   const {
@@ -21,27 +22,39 @@ const NewGroupPage: NextPage = () => {
   } = useDisclosure();
   const { selectedUsers, onSelectUser, getSelectedUsersId } =
     useUsersSelection();
-  const [createNewGroup] = useCreateNewGroupMutation();
+  const [createNewGroup, { loading: reqLoading }] = useCreateNewGroupMutation();
+  const toast = useToast();
   const router = useRouter();
 
   const createNewGroupHandler = async (groupName: string) => {
     const groupMembersIds = getSelectedUsersId();
 
-    await createNewGroup({
-      variables: {
-        groupData: {
-          groupName,
-          groupMembers: groupMembersIds,
+    try {
+      const res = await createNewGroup({
+        variables: {
+          groupData: {
+            groupName,
+            groupMembers: groupMembersIds,
+          },
         },
-      },
-    });
+      });
 
-    await router.replace("/chats");
+      if (res.data) {
+        onCloseModal();
+        toast({
+          status: "success",
+          title: "Success",
+          description: "Group created successfully",
+        });
+      }
+
+      router.replace("/chats");
+    } catch (e) {}
   };
 
   return (
     <AppLayout>
-      <Box width="100%" flexGrow="1">
+      <Box width="100%">
         <BackNav />
         <Box p="2">
           <SelectedUsersList selectedUsers={selectedUsers} />
@@ -55,6 +68,7 @@ const NewGroupPage: NextPage = () => {
               isOpen={isModalOpen}
               onClose={onCloseModal}
               onCreateGroup={createNewGroupHandler}
+              isLoading={reqLoading}
             />
           )}
         </Box>

@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Area } from "react-easy-crop/types";
-import { useToast } from "@chakra-ui/react";
 
 import ImageCropper from "./Actions/Cropper";
 import ImageSelector from "./Actions/Selector";
 import { getCroppedImg } from "@/utils/cropImage";
+import { useToast } from "@/hooks/useToast";
 
 type Props = {
   currentImage?: string;
@@ -41,7 +41,6 @@ const ImageUploader = (props: Props) => {
           title: "Error!",
           description: "We couldn't generate your image. Try again later.",
           status: "error",
-          isClosable: true,
         });
       }
     }

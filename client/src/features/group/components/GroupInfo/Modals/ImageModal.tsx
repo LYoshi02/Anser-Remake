@@ -5,6 +5,7 @@ import {
   useDeleteGroupImageMutation,
   useSetGroupImageMutation,
 } from "@/graphql/generated";
+import { useToast } from "@/hooks/useToast";
 
 type Props = {
   isOpen: boolean;
@@ -15,34 +16,43 @@ const ImageModal = (props: Props) => {
   const {
     data: { getGroupData },
   } = useGroupContext();
-  const [setGroupImage] = useSetGroupImageMutation();
-  const [deleteGroupImage] = useDeleteGroupImageMutation();
+  const [setGroupImage, { loading: setImageReqLoading }] =
+    useSetGroupImageMutation();
+  const [deleteGroupImage, { loading: deleteImageReqLoading }] =
+    useDeleteGroupImageMutation();
+  const toast = useToast({ status: "success", title: "Success" });
 
   const uploadImageHandler = async (image: Blob) => {
     try {
-      await setGroupImage({
+      const res = await setGroupImage({
         variables: {
           chatId: getGroupData._id,
           file: image,
         },
       });
+
+      if (res.data) {
+        toast({ description: "Image uploaded successfully." });
+      }
+
       props.onClose();
-    } catch (error) {
-      console.log(error);
-    }
+    } catch (e) {}
   };
 
   const deleteImageHandler = async () => {
     try {
-      await deleteGroupImage({
+      const res = await deleteGroupImage({
         variables: {
           chatId: getGroupData._id,
         },
       });
+
+      if (res.data) {
+        toast({ description: "Image deleted successfully." });
+      }
+
       props.onClose();
-    } catch (error) {
-      console.log(error);
-    }
+    } catch (e) {}
   };
 
   return (
@@ -56,6 +66,7 @@ const ImageModal = (props: Props) => {
           onUpload={uploadImageHandler}
           onDelete={deleteImageHandler}
           currentImage={getGroupData.group?.image?.url}
+          isReqLoading={setImageReqLoading || deleteImageReqLoading}
         />
       }
       modalBodyProps={{ overflow: "auto", py: "4" }}

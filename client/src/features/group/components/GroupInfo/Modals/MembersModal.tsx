@@ -1,10 +1,11 @@
-import { Box, Button } from "@chakra-ui/react";
+import { Button } from "@chakra-ui/react";
 
 import { useGroupContext } from "../../../stores/GroupContext";
 import useUsersSelection from "../../../hooks/useUsersSelection";
 import UsersSelection from "../../UsersSelection/UsersSelection";
 import { Modal } from "@/components/UI";
 import { useAddUsersToGroupMutation } from "@/graphql/generated";
+import { useToast } from "@/hooks/useToast";
 
 type Props = {
   isOpen: boolean;
@@ -21,7 +22,8 @@ const MembersModal = (props: Props) => {
     getSelectedUsersId: getSelectedMembersId,
     restartSelectedUsers,
   } = useUsersSelection();
-  const [addUsers] = useAddUsersToGroupMutation();
+  const [addUsers, { loading: reqLoading }] = useAddUsersToGroupMutation();
+  const toast = useToast();
 
   const groupUsersIds = getGroupData.users.map((u) => u._id);
 
@@ -29,7 +31,7 @@ const MembersModal = (props: Props) => {
     const membersIds = getSelectedMembersId();
 
     try {
-      await addUsers({
+      const res = await addUsers({
         variables: {
           addUsersArgs: {
             chatId: getGroupData._id,
@@ -37,10 +39,17 @@ const MembersModal = (props: Props) => {
           },
         },
       });
+
+      if (res.data) {
+        toast({
+          status: "success",
+          title: "Success",
+          description: "Members added successfully",
+        });
+      }
+
       restartSelectedUsers();
-    } catch (error) {
-      console.log(error);
-    }
+    } catch (e) {}
 
     props.onClose();
   };
@@ -64,6 +73,7 @@ const MembersModal = (props: Props) => {
           colorScheme="purple"
           isDisabled={selectedMembers.length === 0}
           onClick={addMembersHandler}
+          isLoading={reqLoading}
         >
           Add
         </Button>

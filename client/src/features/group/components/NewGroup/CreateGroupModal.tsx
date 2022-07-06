@@ -9,6 +9,7 @@ type Props = {
   isOpen: boolean;
   onClose: () => void;
   onCreateGroup: (groupName: string) => void;
+  isLoading: boolean;
 };
 
 const CreateGroupModal = (props: Props) => {
@@ -45,7 +46,11 @@ const CreateGroupModal = (props: Props) => {
             error={errors.name?.message}
           />
           <Box py="4" textAlign="right">
-            <Button colorScheme="purple" type="submit">
+            <Button
+              colorScheme="purple"
+              type="submit"
+              isLoading={props.isLoading}
+            >
               Create Group
             </Button>
           </Box>

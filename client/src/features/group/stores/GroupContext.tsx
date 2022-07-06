@@ -6,6 +6,7 @@ import {
   useGetGroupDataLazyQuery,
 } from "@/graphql/generated";
 import { useAuthUser } from "@/hooks/useAuthUser";
+import { Alert, Spinner } from "@/components/UI";
 
 type GroupProviderProps = { children: ReactNode };
 
@@ -25,7 +26,8 @@ export const useGroupContext = () => {
 };
 
 export const GroupProvider = (props: GroupProviderProps) => {
-  const [getData, { data: groupData, loading }] = useGetGroupDataLazyQuery();
+  const [getData, { data: groupData, loading: reqLoading }] =
+    useGetGroupDataLazyQuery();
   const authUser = useAuthUser({ redirectTo: "/login" });
   const router = useRouter();
 
@@ -38,24 +40,18 @@ export const GroupProvider = (props: GroupProviderProps) => {
           await getData({
             variables: { chatId },
           });
-        } catch (error) {
-          console.log(error);
-        }
+        } catch (e) {}
       };
 
       getGroupData();
     }
   }, [chatId, getData]);
 
-  if (loading || !authUser) {
-    return <p>Loading...</p>;
+  if (reqLoading || !authUser) {
+    return <Spinner text="Loading group..." />;
+  } else if (!groupData) {
+    return <Alert alertProps={{ status: "error" }} title="Group not found" />;
   }
-
-  if (!groupData) {
-    return <p>Group not found</p>;
-  }
-
-  console.log("Group: ", groupData);
 
   const contextValue: ContextValue = {
     data: groupData,
