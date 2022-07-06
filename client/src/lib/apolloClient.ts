@@ -1,9 +1,25 @@
 import { ApolloClient, InMemoryCache, split } from "@apollo/client";
-import { getMainDefinition } from "@apollo/client/utilities";
 import { setContext } from "@apollo/client/link/context";
+import { onError } from "@apollo/client/link/error";
+import { getMainDefinition } from "@apollo/client/utilities";
 import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
 import { createClient } from "graphql-ws";
 import { createUploadLink } from "apollo-upload-client";
+import { createStandaloneToast } from "@chakra-ui/react";
+
+import theme from "@/styles/theme";
+
+const toast = createStandaloneToast({
+  theme,
+  defaultOptions: {
+    title: "Error!",
+    status: "error",
+    duration: 8000,
+    isClosable: true,
+    variant: "solid",
+    position: "bottom",
+  },
+});
 
 const uploadLink = createUploadLink({
   uri: process.env.NEXT_PUBLIC_SERVER_URL,
@@ -20,6 +36,29 @@ const authLink = setContext((_, { headers }) => {
       authorization: token ? token : "",
     },
   };
+});
+
+const errorLink = onError(({ graphQLErrors, networkError }) => {
+  if (graphQLErrors)
+    graphQLErrors.forEach((err) => {
+      console.log(
+        `[GraphQL error]: Message: ${err.message}, Location: ${err.locations}, Path: ${err.path}`
+      );
+
+      if (err.extensions.code === "UNAUTHENTICATED") {
+        // TODO: implement logic to handle this case
+        console.log("Err: User not authenticated");
+      }
+
+      toast({
+        description: err.message,
+      });
+    });
+  if (networkError) {
+    toast({
+      description: "Network error",
+    });
+  }
 });
 
 const wsLink =
@@ -46,7 +85,7 @@ const splitLink =
           );
         },
         wsLink!,
-        authLink.concat(uploadLink)
+        errorLink.concat(authLink.concat(uploadLink))
       )
     : uploadLink;
 

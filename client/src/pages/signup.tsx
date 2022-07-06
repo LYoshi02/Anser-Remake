@@ -1,5 +1,4 @@
 import type { NextPage } from "next";
-import { useMutation } from "@apollo/client";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Input } from "@chakra-ui/react";
@@ -18,7 +17,6 @@ import { useCreateUserMutation } from "@/graphql/generated";
 
 const SignupPage: NextPage = () => {
   const [signupUser, { loading: reqLoading }] = useCreateUserMutation();
-
   const {
     register,
     handleSubmit,
@@ -39,9 +37,7 @@ const SignupPage: NextPage = () => {
           },
         },
       });
-    } catch (error: any) {
-      console.log(error);
-    }
+    } catch (e) {}
   };
 
   return (
@@ -102,7 +98,7 @@ const SignupPage: NextPage = () => {
         </FormBody>
 
         <FormFooter
-          btnText="Crear Cuenta"
+          btnText="Sign up"
           secondaryAction={{
             text: "Already have an account?",
             linkText: "Log in now!",

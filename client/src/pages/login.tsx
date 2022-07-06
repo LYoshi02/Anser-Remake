@@ -15,9 +15,11 @@ import {
 } from "@/features/auth";
 import { FormControl } from "@/components/UI";
 import { useLoginUserLazyQuery } from "@/graphql/generated";
+import { useToast } from "@/hooks/useToast";
 
 const LoginPage: NextPage = () => {
-  const [loginUser] = useLoginUserLazyQuery();
+  const [loginUser, { loading, error }] = useLoginUserLazyQuery();
+  const toast = useToast();
   const {
     register,
     handleSubmit,
@@ -34,14 +36,18 @@ const LoginPage: NextPage = () => {
       });
 
       if (!res.data?.loginUser.token) {
-        throw new Error("Couldn't generate token");
+        const errorMessage = "Couldn't generate an authentication token";
+        toast({
+          status: "error",
+          title: "Error!",
+          description: errorMessage,
+        });
+        throw new Error(errorMessage);
       }
 
       localStorage.setItem("token", res.data!.loginUser.token);
       router.push("/chats");
-    } catch (error) {
-      console.log(error);
-    }
+    } catch (e) {}
   };
 
   return (
@@ -77,6 +83,7 @@ const LoginPage: NextPage = () => {
 
         <FormFooter
           btnText="Log In"
+          isLoading={loading}
           secondaryAction={{
             text: "Don't have an account?",
             linkText: "Sign up now!",
