@@ -18,6 +18,7 @@ const MAX_ZOOM = 3;
 type Props = {
   image: string;
   onUploadImage: (croppedArea: Area) => void;
+  isLoading?: boolean;
 };
 
 const ImageCropper = (props: Props) => {
@@ -74,7 +75,13 @@ const ImageCropper = (props: Props) => {
           <SliderThumb />
         </Slider>
       </Box>
-      <Button isFullWidth colorScheme="purple" mt="4" onClick={finishCrop}>
+      <Button
+        isFullWidth
+        colorScheme="purple"
+        mt="4"
+        onClick={finishCrop}
+        isLoading={props.isLoading}
+      >
         Finish and Upload
       </Button>
     </Box>

@@ -12,6 +12,7 @@ type Props = {
   currentImage: string | null;
   onSelectImage: (img: string) => void;
   onDeleteImage: () => void;
+  isLoading?: boolean;
 };
 
 const ImageSelector = (props: Props) => {
@@ -60,7 +61,12 @@ const ImageSelector = (props: Props) => {
             "Your Image"
           )}
         </Flex>
-        <Button colorScheme="yellow" isFullWidth mt="4">
+        <Button
+          colorScheme="yellow"
+          isFullWidth
+          mt="4"
+          isLoading={props.isLoading}
+        >
           Select Image
         </Button>
       </Box>
@@ -71,6 +77,7 @@ const ImageSelector = (props: Props) => {
           isFullWidth
           mt="2"
           onClick={props.onDeleteImage}
+          isLoading={props.isLoading}
         >
           Delete Image
         </Button>

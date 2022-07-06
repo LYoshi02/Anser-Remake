@@ -6,6 +6,7 @@ import { ProfileFormValues } from "../types";
 import { FormControl } from "@/components/UI";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useUpdateUserMutation } from "@/graphql/generated";
+import { useToast } from "@/hooks/useToast";
 
 type Props = {
   fullname: string;
@@ -13,6 +14,8 @@ type Props = {
 };
 
 const ProfileForm = (props: Props) => {
+  const [updateUser, { loading: reqLoading }] = useUpdateUserMutation();
+  const toast = useToast();
   const {
     register,
     handleSubmit,
@@ -25,7 +28,6 @@ const ProfileForm = (props: Props) => {
       description: props.description,
     },
   });
-  const [updateUser, { loading }] = useUpdateUserMutation();
 
   const submitHandler = async (values: ProfileFormValues) => {
     try {
@@ -37,14 +39,17 @@ const ProfileForm = (props: Props) => {
       });
 
       if (res.data) {
+        toast({
+          status: "success",
+          title: "Success",
+          description: "Profile updated successfully.",
+        });
         resetField("fullname", { defaultValue: res.data.updateUser.fullname });
         resetField("description", {
           defaultValue: res.data.updateUser.description,
         });
       }
-    } catch (error) {
-      console.log(error);
-    }
+    } catch (e) {}
   };
 
   return (
@@ -84,7 +89,7 @@ const ProfileForm = (props: Props) => {
           type="submit"
           colorScheme="yellow"
           disabled={!isDirty}
-          isLoading={loading}
+          isLoading={reqLoading}
         >
           Save
         </Button>

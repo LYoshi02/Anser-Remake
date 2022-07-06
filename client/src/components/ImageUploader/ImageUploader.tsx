@@ -11,6 +11,7 @@ type Props = {
   onUpload: (img: Blob) => void;
   onDelete: () => void;
   onUploadError?: (err: any) => void;
+  isReqLoading?: boolean;
 };
 
 const ImageUploader = (props: Props) => {
@@ -51,11 +52,16 @@ const ImageUploader = (props: Props) => {
       currentImage={image}
       onSelectImage={selectImageHandler}
       onDeleteImage={props.onDelete}
+      isLoading={props.isReqLoading}
     />
   );
   if (image && isCropping) {
     imageComponent = (
-      <ImageCropper onUploadImage={uploadImageHandler} image={image} />
+      <ImageCropper
+        onUploadImage={uploadImageHandler}
+        image={image}
+        isLoading={props.isReqLoading}
+      />
     );
   }
 
