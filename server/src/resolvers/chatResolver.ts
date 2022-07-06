@@ -115,7 +115,7 @@ export class ChatResolver {
       users: { $all: [ctx.user._id, recipient._id], $size: 2 },
       group: null,
     })
-      .populate("users")
+      .populate("messages.sender")
       .exec();
 
     if (!chat) {

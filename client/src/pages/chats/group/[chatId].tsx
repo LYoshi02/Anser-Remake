@@ -1,12 +1,10 @@
 import { useEffect } from "react";
 import type { NextPage } from "next";
 import { useRouter } from "next/router";
-import { Box, Flex } from "@chakra-ui/react";
 
-import { ChatInfo, GroupMenu, Message, MessageInput } from "@/features/chat";
+import { ChatBody, ChatInfo, GroupMenu, MessageInput } from "@/features/chat";
 import { AppLayout } from "@/components/Layout";
 import { BackNav } from "@/components/UI";
-import useScrollToBottom from "@/features/chat/hooks/useScrollToBottom";
 import {
   useAddMessageMutation,
   useGetGroupChatLazyQuery,
@@ -15,10 +13,9 @@ import {
 import { useAuthUser } from "@/hooks/useAuthUser";
 
 const GroupChatPage: NextPage = () => {
-  const messagesEndRef = useScrollToBottom<HTMLDivElement>();
   const router = useRouter();
   const authUser = useAuthUser({ redirectTo: "/login" });
-  const [getGroupChat, { data: chatData, loading }] =
+  const [getGroupChat, { data: chatData, loading: reqLoading }] =
     useGetGroupChatLazyQuery();
   const [addMessage] = useAddMessageMutation();
   const [leaveGroup] = useLeaveGroupMutation();
@@ -32,25 +29,12 @@ const GroupChatPage: NextPage = () => {
           await getGroupChat({
             variables: { chatId },
           });
-        } catch (error) {
-          console.log(error);
-        }
+        } catch (e) {}
       };
 
       getChatData();
     }
   }, [chatId, getGroupChat]);
-
-  // ! BUG: these returns don't let the AppLayout loading and overwrite the chat cache
-  if (loading) {
-    return <p>Loading...</p>;
-  }
-
-  if (!chatData) {
-    return <p>Chat not found</p>;
-  }
-
-  console.log(chatData);
 
   const leaveGroupHandler = async () => {
     try {
@@ -59,17 +43,13 @@ const GroupChatPage: NextPage = () => {
           chatId,
         },
       });
-    } catch (error) {
-      console.log(error);
-    }
+    } catch (e) {}
   };
 
   const sendMessageHandler = async (text: string) => {
-    try {
-      if (!chatId) {
-        throw new Error("Cannot send the message");
-      }
+    if (!chatId) return;
 
+    try {
       await addMessage({
         variables: {
           chatData: {
@@ -78,57 +58,41 @@ const GroupChatPage: NextPage = () => {
           },
         },
       });
-    } catch (error) {
-      console.log(error);
-    }
+    } catch (e) {}
   };
 
-  let messages, isMember;
+  let isMember = null;
   if (chatData && authUser) {
     isMember = chatData.getGroupChat.users.some((u) => u._id === authUser._id);
-    messages = chatData.getGroupChat.messages.map((msg) => {
-      const isSentByMe = Boolean(msg.sender && msg.sender._id === authUser._id);
+  }
 
-      return (
-        <Message
-          key={msg._id}
-          sender={msg.sender}
-          text={msg.text}
-          sentByMe={isSentByMe}
-        />
-      );
-    });
+  let messageInput;
+  if (!reqLoading && isMember != null) {
+    messageInput = (
+      <MessageInput isMember={isMember} onSendMessage={sendMessageHandler} />
+    );
+  }
+
+  let groupMenu;
+  if (isMember) {
+    groupMenu = <GroupMenu chatId={chatId} onLeaveGroup={leaveGroupHandler} />;
   }
 
   return (
     <AppLayout>
       <BackNav>
         <ChatInfo
-          name={chatData.getGroupChat.group?.name || ""}
-          imageUrl={chatData.getGroupChat.group?.image?.url}
+          name={chatData?.getGroupChat.group?.name || ""}
+          imageUrl={chatData?.getGroupChat.group?.image?.url}
           isGroup
         />
-        {isMember && (
-          <GroupMenu chatId={chatId} onLeaveGroup={leaveGroupHandler} />
-        )}
+        {groupMenu}
       </BackNav>
-      <Flex
-        direction="column"
-        justify="space-between"
-        grow="1"
-        overflow="hidden"
-      >
-        <Box overflow="auto" p="2">
-          {messages}
-          <div ref={messagesEndRef} />
-        </Box>
-        {isMember != null && (
-          <MessageInput
-            isMember={isMember}
-            onSendMessage={sendMessageHandler}
-          />
-        )}
-      </Flex>
+      <ChatBody
+        messages={chatData?.getGroupChat.messages}
+        authUserId={authUser?._id}
+        messageInput={messageInput}
+      />
     </AppLayout>
   );
 };

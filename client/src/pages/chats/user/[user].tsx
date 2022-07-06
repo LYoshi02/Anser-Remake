@@ -1,12 +1,10 @@
 import { useEffect } from "react";
 import type { NextPage } from "next";
-import { Box, Flex } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 
-import { ChatInfo, Message, MessageInput } from "@/features/chat";
+import { ChatBody, ChatInfo, MessageInput } from "@/features/chat";
 import { AppLayout } from "@/components/Layout";
 import { BackNav } from "@/components/UI";
-import useScrollToBottom from "@/features/chat/hooks/useScrollToBottom";
 import {
   useGetChatLazyQuery,
   useAddMessageMutation,
@@ -18,14 +16,21 @@ import {
 import { useAuthUser } from "@/hooks/useAuthUser";
 
 const UserChatPage: NextPage = () => {
-  const router = useRouter();
-  const [getChat, { data: chatData, subscribeToMore, refetch: refetchChat }] =
-    useGetChatLazyQuery();
-  const [getRecipient, { data: recipientData }] = useGetUserLazyQuery();
+  const [
+    getChat,
+    {
+      data: chatData,
+      subscribeToMore,
+      refetch: refetchChat,
+      loading: chatReqLoading,
+    },
+  ] = useGetChatLazyQuery();
+  const [getRecipient, { data: recipientData, loading: userReqLoading }] =
+    useGetUserLazyQuery();
   const [createNewChat] = useCreateNewChatMutation();
   const [addMessage] = useAddMessageMutation();
   const authUser = useAuthUser({ redirectTo: "/login" });
-  const messagesEndRef = useScrollToBottom<HTMLDivElement>();
+  const router = useRouter();
 
   const recipientUsername = router.query.user as string;
 
@@ -38,9 +43,7 @@ const UserChatPage: NextPage = () => {
           });
 
           await getRecipient({ variables: { username: recipientUsername } });
-        } catch (error) {
-          console.log(error);
-        }
+        } catch (e) {}
       };
 
       getChatData();
@@ -52,37 +55,37 @@ const UserChatPage: NextPage = () => {
     chat, and the chat doesn´t exist yet.
   */
   useEffect(() => {
-    subscribeToMore<OnNewMessageAddedSubscription>({
-      document: OnNewMessageAddedDocument,
-      updateQuery: (prev, { subscriptionData }) => {
-        if (!subscriptionData.data || !recipientUsername) return prev;
+    if (recipientUsername) {
+      subscribeToMore<OnNewMessageAddedSubscription>({
+        document: OnNewMessageAddedDocument,
+        updateQuery: (prev, { subscriptionData }) => {
+          if (!subscriptionData.data) return prev;
 
-        const { newMessage } = subscriptionData.data;
-        const recipientExists = newMessage.users?.some(
-          (u) => u.username === recipientUsername
-        );
+          const { newMessage } = subscriptionData.data;
+          const recipientExists = newMessage.users?.some(
+            (u) => u.username === recipientUsername
+          );
 
-        if (
-          recipientExists &&
-          Object.keys(prev).length === 0 &&
-          !newMessage.group
-        ) {
-          console.log("Refetching chat...");
-          refetchChat({ recipientUsername });
-        }
+          if (
+            recipientExists &&
+            Object.keys(prev).length === 0 &&
+            !newMessage.group
+          ) {
+            console.log("Refetching chat...");
+            refetchChat({ recipientUsername });
+          }
 
-        return prev;
-      },
-    });
+          return prev;
+        },
+      });
+    }
   }, [subscribeToMore, recipientUsername, refetchChat]);
 
   const sendMessageHandler = async (text: string) => {
-    try {
-      if (!recipientData) {
-        throw new Error("Cannot send the message");
-      }
+    if (!chatData && !recipientData) return;
 
-      const chatId = chatData?.getChat._id;
+    try {
+      const chatId = chatData!.getChat._id;
 
       if (chatId) {
         await addMessage({
@@ -94,35 +97,21 @@ const UserChatPage: NextPage = () => {
           },
         });
       } else {
-        const recipients = [recipientData.getUser._id];
         await createNewChat({
           variables: {
             chatData: {
-              recipients,
+              recipients: [recipientData!.getUser._id],
               text,
             },
           },
         });
       }
-    } catch (error) {
-      console.log(error);
-    }
+    } catch (e) {}
   };
 
-  let messages;
-  if (chatData && authUser && recipientData) {
-    messages = chatData.getChat.messages.map((msg) => {
-      const isSentByMe = Boolean(msg.sender && msg.sender._id === authUser._id);
-
-      return (
-        <Message
-          key={msg._id}
-          sender={isSentByMe ? authUser : recipientData.getUser}
-          text={msg.text}
-          sentByMe={isSentByMe}
-        />
-      );
-    });
+  let messageInput;
+  if (!chatReqLoading && !userReqLoading) {
+    messageInput = <MessageInput onSendMessage={sendMessageHandler} />;
   }
 
   return (
@@ -133,18 +122,11 @@ const UserChatPage: NextPage = () => {
           imageUrl={recipientData?.getUser.profileImg?.url}
         />
       </BackNav>
-      <Flex
-        direction="column"
-        justify="space-between"
-        grow="1"
-        overflow="hidden"
-      >
-        <Box overflow="auto" p="2">
-          {messages}
-          <div ref={messagesEndRef} />
-        </Box>
-        <MessageInput onSendMessage={sendMessageHandler} />
-      </Flex>
+      <ChatBody
+        messages={chatData?.getChat.messages}
+        authUserId={authUser?._id}
+        messageInput={messageInput}
+      />
     </AppLayout>
   );
 };

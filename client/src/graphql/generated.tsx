@@ -313,7 +313,7 @@ export type GetChatQueryVariables = Exact<{
 }>;
 
 
-export type GetChatQuery = { __typename?: 'Query', getChat: { __typename?: 'Chat', _id: any, users: Array<{ __typename?: 'User', _id: any, fullname: string, profileImg?: { __typename?: 'Image', url: string } | null }>, messages: Array<{ __typename?: 'Message', _id: any, text: string, sender?: { __typename?: 'User', _id: any } | null }> } };
+export type GetChatQuery = { __typename?: 'Query', getChat: { __typename?: 'Chat', _id: any, users: Array<{ __typename?: 'User', _id: any }>, messages: Array<{ __typename?: 'Message', _id: any, text: string, sender?: { __typename?: 'User', _id: any, fullname: string, profileImg?: { __typename?: 'Image', url: string } | null } | null }> } };
 
 export type GetChatsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -638,15 +638,15 @@ export const GetChatDocument = gql`
     _id
     users {
       _id
-      fullname
-      profileImg {
-        url
-      }
     }
     messages {
       _id
       sender {
         _id
+        fullname
+        profileImg {
+          url
+        }
       }
       text
     }

@@ -23,7 +23,7 @@ const Name = () => {
   const updateGroupNameHandler = async (newName: string) => {
     const trimmedName = newName.trim();
 
-    if (trimmedName.length === 0) return;
+    if (trimmedName.length === 0 || newName === groupName) return;
 
     try {
       const res = await changeGroupName({

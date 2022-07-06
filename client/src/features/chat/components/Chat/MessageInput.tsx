@@ -20,7 +20,11 @@ const MessageInput = ({ onSendMessage, isMember = true }: Props) => {
   const colorGray = useColorModeValue("gray.300", "gray.700");
 
   const sendMessageHandler = () => {
-    onSendMessage(text);
+    const trimmedText = text.trim();
+
+    if (trimmedText.length === 0) return;
+
+    onSendMessage(trimmedText);
     setText("");
   };
 

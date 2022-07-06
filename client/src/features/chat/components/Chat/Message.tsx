@@ -18,9 +18,8 @@ const Message = ({ sender, text, sentByMe }: Props) => {
 
   let messagePosition = "flex-end";
   let senderAvatar, senderName;
-  if (!sender) {
-    messagePosition = "center";
-  } else if (!sentByMe) {
+
+  if (sender && !sentByMe) {
     messagePosition = "flex-start";
     senderAvatar = (
       <Avatar
@@ -32,6 +31,8 @@ const Message = ({ sender, text, sentByMe }: Props) => {
     );
 
     senderName = <Text fontSize="sm">{sender.fullname}</Text>;
+  } else if (!sentByMe) {
+    messagePosition = "center";
   }
 
   return (

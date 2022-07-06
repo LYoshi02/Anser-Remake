@@ -6,15 +6,15 @@ export const GET_CHAT = gql`
       _id
       users {
         _id
-        fullname
-        profileImg {
-          url
-        }
       }
       messages {
         _id
         sender {
           _id
+          fullname
+          profileImg {
+            url
+          }
         }
         text
       }
