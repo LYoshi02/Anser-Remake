@@ -1,11 +1,11 @@
-import { useState } from "react";
-import { Box, Button, Icon, useColorModeValue } from "@chakra-ui/react";
+import { ReactNode } from "react";
+import { Icon, useColorModeValue } from "@chakra-ui/react";
 import { IoMdCheckbox } from "react-icons/io";
 
-import SearchInput from "../Inputs/SearchInput";
 import { User } from "../../types";
 import { ListItem } from "@/components/UI";
-import { useGetUsersQuery } from "@/graphql/generated";
+import UsersSearch from "@/components/Users/UsersSearch";
+import { useGetUsers } from "@/hooks/useGetUsers";
 
 type Props = {
   selectedUsers: User[];
@@ -13,111 +13,50 @@ type Props = {
   excludedUsers?: string[];
 };
 
-const FETCH_LIMIT = 20;
-
-// TODO: improve loading and error messages
 const UsersSelection = ({
   selectedUsers,
   onUserSelected,
-  excludedUsers,
+  excludedUsers = [],
 }: Props) => {
-  const checkIconColor = useColorModeValue("yellow.500", "yellow.300");
-  const ButtonColor = useColorModeValue("yellow.700", "yellow.500");
-  const [lastSearch, setLastSearch] = useState("");
-  const {
-    data: usersData,
-    loading,
-    fetchMore,
-    refetch,
-  } = useGetUsersQuery({
-    variables: {
-      searchOptions: {
-        searchText: "",
-        limit: FETCH_LIMIT,
-        offset: 0,
-        excludedUsers,
-      },
-    },
+  const { reqLoading, users, onFetchMoreUsers, onSearchUser } = useGetUsers({
+    fetchLimit: 20,
+    excludedUsers,
   });
-
-  if (loading) {
-    return <p>Loading...</p>;
-  }
-
-  if (!usersData) {
-    return <p>Users not found</p>;
-  }
+  const checkIconColor = useColorModeValue("yellow.500", "yellow.300");
 
   const findSelectedUser = (userId: string) => {
     return selectedUsers.some((u) => u._id === userId);
   };
 
-  const fetchMoreUsersHandler = async () => {
-    console.log("Fetching more users: ", lastSearch);
-    const res = await fetchMore({
-      variables: {
-        searchOptions: {
-          searchText: lastSearch,
-          limit: FETCH_LIMIT,
-          offset: usersData.getUsers.length,
-          excludedUsers,
-        },
-      },
-    });
-    console.log(res);
-  };
+  let userItems: ReactNode[] = [];
+  if (users) {
+    userItems = users.getUsers.map((user) => {
+      const isSelected = findSelectedUser(user._id);
 
-  const searchUserHandler = async (searchText: string) => {
-    if (
-      (lastSearch.length === 0 && searchText.length === 0) ||
-      lastSearch === searchText
-    ) {
-      console.log("Invalid search");
-      return;
-    }
-
-    setLastSearch(searchText);
-    await refetch({
-      searchOptions: {
-        searchText,
-        limit: FETCH_LIMIT,
-        offset: 0,
-        excludedUsers,
-      },
+      return (
+        <ListItem
+          key={user._id}
+          avatar={{ name: user.fullname, src: user.profileImg?.url }}
+          title={user.fullname}
+          description={`@${user.username}`}
+          clicked={() => onUserSelected(user)}
+          detail={
+            isSelected ? (
+              <Icon as={IoMdCheckbox} w="6" h="6" color={checkIconColor} />
+            ) : undefined
+          }
+        />
+      );
     });
-  };
+  }
 
   return (
-    <Box>
-      <SearchInput onSearchUser={searchUserHandler} />
-      {usersData.getUsers.map((user) => {
-        const isSelected = findSelectedUser(user._id);
-
-        return (
-          <ListItem
-            key={user._id}
-            avatar={{ name: user.fullname }}
-            title={user.fullname}
-            description={`@${user.username}`}
-            clicked={() => onUserSelected(user)}
-            detail={
-              isSelected ? (
-                <Icon as={IoMdCheckbox} w="6" h="6" color={checkIconColor} />
-              ) : undefined
-            }
-          />
-        );
-      })}
-      <Box textAlign="center" mt="4" pb="4">
-        <Button
-          variant="ghost"
-          color={ButtonColor}
-          onClick={fetchMoreUsersHandler}
-        >
-          Load More Users
-        </Button>
-      </Box>
-    </Box>
+    <UsersSearch
+      isLoading={reqLoading}
+      userItems={userItems}
+      onSearchUser={onSearchUser}
+      onFetchMore={onFetchMoreUsers}
+    />
   );
 };
 

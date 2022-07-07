@@ -1,50 +1,34 @@
-import { useEffect } from "react";
-import { Box } from "@chakra-ui/react";
+import { ReactNode } from "react";
 
 import UserItem from "./UserItem";
-import {
-  useGetUsersQuery,
-  OnNewUserAddedDocument,
-  OnNewUserAddedSubscription,
-} from "@/graphql/generated";
+import { useGetUsers } from "@/hooks/useGetUsers";
+import UsersSearch from "@/components/Users/UsersSearch";
 
 // TODO: add variables to the query
 const UsersList = () => {
-  const { data: usersData, loading, subscribeToMore } = useGetUsersQuery();
+  const { reqLoading, users, onFetchMoreUsers, onSearchUser } = useGetUsers({
+    fetchLimit: 20,
+  });
 
-  useEffect(() => {
-    subscribeToMore<OnNewUserAddedSubscription>({
-      document: OnNewUserAddedDocument,
-      updateQuery: (prev, { subscriptionData }) => {
-        if (!subscriptionData.data) return prev;
-        const newUser = subscriptionData.data.newUser;
-
-        return Object.assign({}, prev, {
-          getUsers: [newUser, ...prev.getUsers],
-        });
-      },
-    });
-  }, [subscribeToMore]);
-
-  if (loading) {
-    return <p>Loading...</p>;
-  }
-
-  if (!usersData) {
-    return <p>Users not found</p>;
+  let userItems: ReactNode[] = [];
+  if (users) {
+    userItems = users.getUsers.map((user) => (
+      <UserItem
+        key={user._id}
+        username={user.username}
+        fullname={user.fullname}
+        imageUrl={user.profileImg?.url}
+      />
+    ));
   }
 
   return (
-    <Box>
-      {usersData.getUsers.map((user) => (
-        <UserItem
-          key={user._id}
-          username={user.username}
-          fullname={user.fullname}
-          imageUrl={user.profileImg?.url}
-        />
-      ))}
-    </Box>
+    <UsersSearch
+      isLoading={reqLoading}
+      userItems={userItems}
+      onSearchUser={onSearchUser}
+      onFetchMore={onFetchMoreUsers}
+    />
   );
 };
 

@@ -6,6 +6,9 @@ export const NEW_USER = gql`
       _id
       fullname
       username
+      profileImg {
+        url
+      }
     }
   }
 `;

@@ -43,7 +43,7 @@ import { deleteFromCloudinary, uploadToCloudinary } from "../utils/upload";
 export class UserResolver {
   @Mutation((returns) => User)
   async createUser(
-    @PubSub("NEW_USER") publish: Publisher<NewUserPayload>,
+    @PubSub("NEW_USER") publish: Publisher<User>,
     @Arg("newUser") { email, fullname, username, password }: CreateUserInput
   ): Promise<User> {
     const userExists = await UserModel.findOne({
@@ -70,9 +70,8 @@ export class UserResolver {
     await user.save();
 
     await publish({
-      _id: user._id,
-      fullname: user.fullname,
-      username: user.username,
+      ...user.toObject(),
+      password: "",
     });
 
     return user;
@@ -85,9 +84,9 @@ export class UserResolver {
       return true;
     },
   })
-  newUser(@Root() newUserPayload: NewUserPayload): NewUser {
+  newUser(@Root() newUser: User): User {
     console.log("Sending new user data.");
-    return newUserPayload;
+    return newUser;
   }
 
   @Mutation((returns) => User)
@@ -201,10 +200,7 @@ export class UserResolver {
   @Query((returns) => [User])
   async getUsers(
     @Ctx() ctx: Context,
-    @Arg("searchOptions", {
-      nullable: true,
-      defaultValue: { searchText: "", limit: 0, offset: 0 },
-    })
+    @Arg("searchOptions")
     { searchText, limit, offset, excludedUsers }: GetUsersInput
   ): Promise<User[]> {
     if (!ctx.isAuth || !ctx.user) {

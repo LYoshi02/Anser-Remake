@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 
 import { useGetAuthUserQuery } from "@/graphql/generated";
 
-type Props = {
+type Params = {
   redirectTo?: string;
   redirectIfFound?: boolean;
 };
@@ -11,7 +11,7 @@ type Props = {
 export const useAuthUser = ({
   redirectTo = "",
   redirectIfFound = false,
-}: Props) => {
+}: Params) => {
   const { data: userData, loading, error } = useGetAuthUserQuery();
   const router = useRouter();
 

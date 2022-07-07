@@ -7,6 +7,8 @@ import { createClient } from "graphql-ws";
 import { createUploadLink } from "apollo-upload-client";
 import { createStandaloneToast } from "@chakra-ui/react";
 
+import { offsetLimitPagination } from "@apollo/client/utilities";
+
 import theme from "@/styles/theme";
 
 const toast = createStandaloneToast({
@@ -95,15 +97,30 @@ export const client = new ApolloClient({
     typePolicies: {
       Query: {
         fields: {
+          // Necessary to use pagination
           getUsers: {
-            // Don't cache separate results based on
-            // any of this field's arguments.
-            keyArgs: false,
+            keyArgs: ["searchOptions", ["searchText", "excludedUsers"]],
+            merge(existing, incoming, { args }) {
+              console.log(existing, incoming, args);
+              const merged = existing ? existing.slice(0) : [];
 
-            // Concatenate the incoming list items with
-            // the existing list items.
-            merge(existing = [], incoming) {
-              return [...existing, ...incoming];
+              if (incoming) {
+                if (args && args.searchOptions) {
+                  // Assume an offset of 0 if args.offset omitted.
+                  const { offset = 0 } = args.searchOptions;
+                  for (let i = 0; i < incoming.length; ++i) {
+                    merged[offset + i] = incoming[i];
+                  }
+                } else {
+                  // It's unusual (probably a mistake) for a paginated field not
+                  // to receive any arguments, so you might prefer to throw an
+                  // exception here, instead of recovering by appending incoming
+                  // onto the existing array.
+                  merged.push.apply(merged, incoming);
+                }
+              }
+
+              return merged;
             },
           },
         },

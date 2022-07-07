@@ -27,7 +27,7 @@ const Home = () => {
           <TabPanel p="0">
             <ChatsList />
           </TabPanel>
-          <TabPanel p="0">
+          <TabPanel py="2" px="0">
             <UsersList />
           </TabPanel>
         </TabPanels>

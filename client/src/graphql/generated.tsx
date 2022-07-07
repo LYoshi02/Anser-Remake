@@ -207,13 +207,6 @@ export type NewMessage = {
   users?: Maybe<Array<User>>;
 };
 
-export type NewUser = {
-  __typename?: 'NewUser';
-  _id: Scalars['ObjectId'];
-  fullname: Scalars['String'];
-  username: Scalars['String'];
-};
-
 export type Query = {
   __typename?: 'Query';
   getAuthUser: AuthUser;
@@ -248,7 +241,7 @@ export type QueryGetUserArgs = {
 
 
 export type QueryGetUsersArgs = {
-  searchOptions?: InputMaybe<GetUsersInput>;
+  searchOptions: GetUsersInput;
 };
 
 
@@ -260,7 +253,7 @@ export type QueryLoginUserArgs = {
 export type Subscription = {
   __typename?: 'Subscription';
   newMessage: NewMessage;
-  newUser: NewUser;
+  newUser: User;
 };
 
 export type User = {
@@ -342,7 +335,7 @@ export type GetUserQueryVariables = Exact<{
 export type GetUserQuery = { __typename?: 'Query', getUser: { __typename?: 'User', _id: any, fullname: string, profileImg?: { __typename?: 'Image', url: string } | null } };
 
 export type GetUsersQueryVariables = Exact<{
-  searchOptions?: InputMaybe<GetUsersInput>;
+  searchOptions: GetUsersInput;
 }>;
 
 
@@ -356,7 +349,7 @@ export type OnNewMessageAddedSubscription = { __typename?: 'Subscription', newMe
 export type OnNewUserAddedSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type OnNewUserAddedSubscription = { __typename?: 'Subscription', newUser: { __typename?: 'NewUser', _id: any, fullname: string, username: string } };
+export type OnNewUserAddedSubscription = { __typename?: 'Subscription', newUser: { __typename?: 'User', _id: any, fullname: string, username: string, profileImg?: { __typename?: 'Image', url: string } | null } };
 
 export type AddUsersToGroupMutationVariables = Exact<{
   addUsersArgs: AddUsersToGroupInput;
@@ -875,7 +868,7 @@ export type GetUserQueryHookResult = ReturnType<typeof useGetUserQuery>;
 export type GetUserLazyQueryHookResult = ReturnType<typeof useGetUserLazyQuery>;
 export type GetUserQueryResult = Apollo.QueryResult<GetUserQuery, GetUserQueryVariables>;
 export const GetUsersDocument = gql`
-    query GetUsers($searchOptions: GetUsersInput) {
+    query GetUsers($searchOptions: GetUsersInput!) {
   getUsers(searchOptions: $searchOptions) {
     _id
     username
@@ -903,7 +896,7 @@ export const GetUsersDocument = gql`
  *   },
  * });
  */
-export function useGetUsersQuery(baseOptions?: Apollo.QueryHookOptions<GetUsersQuery, GetUsersQueryVariables>) {
+export function useGetUsersQuery(baseOptions: Apollo.QueryHookOptions<GetUsersQuery, GetUsersQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<GetUsersQuery, GetUsersQueryVariables>(GetUsersDocument, options);
       }
@@ -973,6 +966,9 @@ export const OnNewUserAddedDocument = gql`
     _id
     fullname
     username
+    profileImg {
+      url
+    }
   }
 }
     `;

@@ -6,26 +6,28 @@ import {
   Input,
   InputGroup,
   InputLeftElement,
+  InputProps,
   InputRightElement,
 } from "@chakra-ui/react";
 
 type Props = {
-  onSearchUser: (searchText: string) => void;
+  onSearch: (searchText: string) => void;
+  inputProps?: InputProps;
 };
 
-const SearchInput = ({ onSearchUser }: Props) => {
+const SearchInput = ({ onSearch, inputProps }: Props) => {
   const [search, setSearch] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       if (search === inputRef.current!.value) {
-        onSearchUser(search.trim());
+        onSearch(search.trim());
       }
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [search, inputRef, onSearchUser]);
+  }, [search, inputRef, onSearch]);
 
   const cleanSearch = () => {
     setSearch("");
@@ -39,10 +41,10 @@ const SearchInput = ({ onSearchUser }: Props) => {
         </InputLeftElement>
         <Input
           type="text"
-          placeholder="Buscar usuario"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           ref={inputRef}
+          {...inputProps}
         />
         {search.length > 0 && (
           <InputRightElement cursor="pointer" onClick={cleanSearch}>
