@@ -40,7 +40,7 @@ const LoginPage: NextPage = () => {
           status: "success",
           title: "Success",
           description: "User logged in successfully",
-          duration: 5000,
+          duration: 3000,
         });
       } else {
         const errorMessage = "Couldn't generate an authentication token";

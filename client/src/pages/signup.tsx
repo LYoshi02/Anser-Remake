@@ -45,7 +45,7 @@ const SignupPage: NextPage = () => {
           status: "success",
           title: "Success",
           description: "User signed up successfully",
-          duration: 5000,
+          duration: 3000,
         });
       }
     } catch (e) {}

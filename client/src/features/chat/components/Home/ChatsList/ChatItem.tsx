@@ -3,24 +3,30 @@ import { HiUserGroup } from "react-icons/hi";
 
 import { Link, ListItem } from "@/components/UI";
 
-type Props = {
-  chat: {
+type Chat = {
+  _id: string;
+  users: {
     _id: string;
-    users: {
+    fullname: string;
+    username: string;
+    profileImg?: { url: string } | null;
+  }[];
+  messages: {
+    _id: string;
+    text: string;
+    sender?: {
       _id: string;
-      fullname: string;
-      username: string;
-      profileImg?: { url: string } | null;
-    }[];
-    messages: {
-      text: string;
-    }[];
-    group?: {
-      name: string;
-      image?: { url: string } | null;
     } | null;
-    newMessage?: boolean;
-  };
+  }[];
+  group?: {
+    name: string;
+    image?: { url: string } | null;
+  } | null;
+  newMessage?: boolean;
+};
+
+type Props = {
+  chat: Chat;
   userId: string;
 };
 
@@ -32,6 +38,11 @@ const ChatItem = ({ chat, userId }: Props) => {
   let chatName = "";
   let chatUrl = "";
 
+  const lastMessage = chat.messages[chat.messages.length - 1];
+  let lastMessageText = lastMessage.text;
+
+  console.log(chat);
+
   if (chat.group) {
     avatarProps = {
       bg: groupBgColor,
@@ -40,6 +51,14 @@ const ChatItem = ({ chat, userId }: Props) => {
     };
     chatName = chat.group.name;
     chatUrl = `/chats/group/${chat._id}`;
+
+    const lastMessageSender = chat.users.find(
+      (u) => u._id === lastMessage.sender?._id
+    );
+    if (lastMessageSender) {
+      const senderFirstName = lastMessageSender.fullname.split(" ")[0];
+      lastMessageText = `${senderFirstName}: ${lastMessageText}`;
+    }
   } else {
     const receiver = chat.users.find((user) => user._id !== userId);
     avatarProps = {
@@ -50,15 +69,13 @@ const ChatItem = ({ chat, userId }: Props) => {
     chatUrl = `/chats/user/${receiver?.username}`;
   }
 
-  // TODO: add the sender's name when the chat is from a group
-  const lastMessage = chat.messages[chat.messages.length - 1].text;
-
   return (
     <Link href={chatUrl}>
       <ListItem
         avatar={avatarProps}
         title={chatName}
-        description={lastMessage}
+        description={lastMessageText}
+        descriptionProps={{ noOfLines: 1 }}
       />
     </Link>
   );

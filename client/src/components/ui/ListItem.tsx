@@ -5,18 +5,27 @@ import {
   Box,
   Flex,
   Text,
+  TextProps,
   useColorModeValue,
 } from "@chakra-ui/react";
 
 type Props = {
   avatar: AvatarProps;
   description: string;
+  descriptionProps?: TextProps;
   title: string;
   detail?: ReactElement;
   clicked?: (e: MouseEvent) => void;
 };
 
-const ListItem = ({ avatar, description, title, detail, clicked }: Props) => {
+const ListItem = ({
+  avatar,
+  description,
+  descriptionProps,
+  title,
+  detail,
+  clicked,
+}: Props) => {
   const userHoverColor = useColorModeValue("gray.100", "gray.700");
 
   return (
@@ -36,7 +45,9 @@ const ListItem = ({ avatar, description, title, detail, clicked }: Props) => {
           <Text fontWeight="bold" fontSize="xl">
             {title}
           </Text>
-          <Text fontSize="md">{description}</Text>
+          <Text fontSize="md" {...descriptionProps}>
+            {description}
+          </Text>
         </Box>
         {detail}
       </Flex>
