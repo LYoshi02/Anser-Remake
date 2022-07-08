@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { Box, Button, Text, useColorModeValue } from "@chakra-ui/react";
 
-import { Spinner, SearchInput } from "../UI";
+import { ListSkeleton, Spinner, SearchInput } from "../UI";
 
 type Props = {
   isLoading: boolean;
@@ -40,7 +40,7 @@ const UsersSearch = ({
 
   let usersElement: ReactNode = userItems;
   if (isLoading) {
-    usersElement = <Spinner text="Loading users..." />;
+    usersElement = <ListSkeleton itemsNumber={10} />;
   } else if (userItems.length === 0) {
     usersElement = (
       <Text fontSize="lg" textAlign="center" p="2">

@@ -8,6 +8,7 @@ import {
   OnNewMessageAddedSubscription,
   useGetChatsQuery,
 } from "@/graphql/generated";
+import { ListSkeleton } from "@/components/UI";
 
 // TODO: add an alert when there are messages that haven't been read
 const ChatsList = () => {
@@ -64,11 +65,11 @@ const ChatsList = () => {
   }, [subscribeToMore]);
 
   if (loading || !user) {
-    return <p>Loading...</p>;
+    return <ListSkeleton itemsNumber={10} />;
   }
 
   if (!chatsData) {
-    return <p>Chats not found</p>;
+    return null;
   }
 
   return (
