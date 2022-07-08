@@ -19,7 +19,6 @@ const ChatsList = () => {
     subscribeToMore<OnNewMessageAddedSubscription>({
       document: OnNewMessageAddedDocument,
       updateQuery: (prev, { subscriptionData }) => {
-        console.log("New message: ", subscriptionData);
         if (!subscriptionData.data) return prev;
 
         const {
@@ -53,9 +52,6 @@ const ChatsList = () => {
           updatedChats.splice(changedChatIndex, 1);
           updatedChats.unshift(updatedChat);
         }
-
-        console.log("Previous chats: ", prev.getChats);
-        console.log("Updated chats: ", updatedChats);
 
         return Object.assign({}, prev, {
           getChats: updatedChats,

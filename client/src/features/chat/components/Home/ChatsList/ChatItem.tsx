@@ -41,8 +41,6 @@ const ChatItem = ({ chat, userId }: Props) => {
   const lastMessage = chat.messages[chat.messages.length - 1];
   let lastMessageText = lastMessage.text;
 
-  console.log(chat);
-
   if (chat.group) {
     avatarProps = {
       bg: groupBgColor,

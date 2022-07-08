@@ -125,6 +125,20 @@ export const client = new ApolloClient({
           },
         },
       },
+      Chat: {
+        fields: {
+          users: {
+            merge(existing, incoming) {
+              return incoming;
+            },
+          },
+          group: {
+            merge(existing, incoming, { mergeObjects }) {
+              return mergeObjects(existing, incoming);
+            },
+          },
+        },
+      },
     },
   }),
 });
