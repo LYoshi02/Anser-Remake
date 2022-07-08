@@ -1,6 +1,6 @@
 import { ObjectId } from "mongodb";
 import { getModelForClass, prop as Property } from "@typegoose/typegoose";
-import { Field, Int, ObjectType } from "type-graphql";
+import { Field, ObjectType } from "type-graphql";
 
 import { Image } from "./image";
 
@@ -32,30 +32,9 @@ export class User {
   @Field((type) => Image, { nullable: true })
   @Property()
   profileImg?: Image;
-}
 
-@ObjectType()
-export class NewUser {
-  @Field()
-  readonly _id: ObjectId;
-
-  @Field()
-  email: string;
-
-  @Field()
-  username: string;
-
-  @Field()
-  fullname: string;
-
-  @Field()
-  description: string;
-
-  @Field((type) => Image, { nullable: true })
-  profileImg?: Image;
-
-  @Field()
-  isNewUser: boolean;
+  @Field({ nullable: true })
+  isNewUser?: boolean;
 }
 
 @ObjectType()
@@ -66,25 +45,6 @@ export class LoggedInUser {
   @Field()
   token: string;
 }
-
-// * Delete this
-// @ObjectType()
-// export class UserWithoutPassword {
-//   @Field()
-//   readonly _id: ObjectId;
-
-//   @Field()
-//   email: string;
-
-//   @Field()
-//   username: string;
-
-//   @Field()
-//   fullname: string;
-
-//   @Field()
-//   description: string;
-// }
 
 @ObjectType()
 export class AuthUser {

@@ -26,7 +26,7 @@ import {
   User,
   LoggedInUser,
   AuthUser,
-  NewUser,
+  // NewUser,
 } from "../schemas/user";
 import {
   CreateUserInput,
@@ -83,7 +83,7 @@ export class UserResolver {
       return true;
     },
   })
-  newUser(@Root() newUser: User): NewUser {
+  newUser(@Root() newUser: User): User {
     console.log("Sending new user data.");
     return {
       ...newUser,
@@ -199,12 +199,12 @@ export class UserResolver {
     return { user: foundUserObj, token };
   }
 
-  @Query((returns) => [NewUser])
+  @Query((returns) => [User])
   async getUsers(
     @Ctx() ctx: Context,
     @Arg("searchOptions")
     { searchText, limit, offset, excludedUsers }: GetUsersInput
-  ): Promise<NewUser[]> {
+  ): Promise<User[]> {
     if (!ctx.isAuth || !ctx.user) {
       throw new AuthenticationError("User is not authenticated");
     }
