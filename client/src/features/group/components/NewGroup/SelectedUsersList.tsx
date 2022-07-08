@@ -27,7 +27,7 @@ const SelectedUsersList = ({ selectedUsers }: Props) => {
   return (
     <Box mb="4">
       <Text fontSize="lg" mb="1">
-        Integrantes {`(${selectedUsers.length})`}:
+        Members {`(${selectedUsers.length})`}:
       </Text>
       <Wrap overflow="auto">{wrapItems}</Wrap>
     </Box>

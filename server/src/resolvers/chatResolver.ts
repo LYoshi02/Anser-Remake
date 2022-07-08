@@ -70,15 +70,6 @@ export class ChatResolver {
           },
         },
       },
-      // {
-      //   $addFields: {
-      //     messages: [
-      //       {
-      //         $last: "$messages",
-      //       },
-      //     ],
-      //   },
-      // },
       {
         $sort: {
           updatedAt: -1,
@@ -181,7 +172,14 @@ export class ChatResolver {
       _id: chatId,
       users: { $in: [authUserId] },
       group: { $ne: null },
-    }).populate("users");
+    }).populate({
+      path: "users",
+      options: {
+        sort: {
+          fullname: 1,
+        },
+      },
+    });
 
     if (!chat) {
       throw new ValidationError("Chat not found");

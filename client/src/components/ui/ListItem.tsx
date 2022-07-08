@@ -1,4 +1,4 @@
-import { ReactElement } from "react";
+import { MouseEvent, ReactElement } from "react";
 import {
   Avatar,
   AvatarProps,
@@ -13,7 +13,7 @@ type Props = {
   description: string;
   title: string;
   detail?: ReactElement;
-  clicked?: () => void;
+  clicked?: (e: MouseEvent) => void;
 };
 
 const ListItem = ({ avatar, description, title, detail, clicked }: Props) => {

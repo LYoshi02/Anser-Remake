@@ -35,7 +35,14 @@ const LoginPage: NextPage = () => {
         variables: { email: values.email, password: values.password },
       });
 
-      if (!res.data?.loginUser.token) {
+      if (res.data && res.data.loginUser.token) {
+        toast({
+          status: "success",
+          title: "Success",
+          description: "User logged in successfully",
+          duration: 5000,
+        });
+      } else {
         const errorMessage = "Couldn't generate an authentication token";
         toast({
           status: "error",
@@ -45,7 +52,7 @@ const LoginPage: NextPage = () => {
         throw new Error(errorMessage);
       }
 
-      localStorage.setItem("token", res.data!.loginUser.token);
+      localStorage.setItem("token", res.data.loginUser.token);
       router.push("/chats");
     } catch (e) {}
   };

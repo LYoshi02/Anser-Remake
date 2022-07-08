@@ -9,6 +9,7 @@ export const GET_USERS = gql`
       profileImg {
         url
       }
+      isNewUser
     }
   }
 `;

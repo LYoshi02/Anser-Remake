@@ -32,7 +32,6 @@ import {
   CreateUserInput,
   GetUsersInput,
   LoginUserArgs,
-  NewUserPayload,
   UpdateUserArgs,
 } from "./types/user";
 import { Context } from "../types";
@@ -84,9 +83,12 @@ export class UserResolver {
       return true;
     },
   })
-  newUser(@Root() newUser: User): User {
+  newUser(@Root() newUser: User): NewUser {
     console.log("Sending new user data.");
-    return newUser;
+    return {
+      ...newUser,
+      isNewUser: true,
+    };
   }
 
   @Mutation((returns) => User)
@@ -197,12 +199,12 @@ export class UserResolver {
     return { user: foundUserObj, token };
   }
 
-  @Query((returns) => [User])
+  @Query((returns) => [NewUser])
   async getUsers(
     @Ctx() ctx: Context,
     @Arg("searchOptions")
     { searchText, limit, offset, excludedUsers }: GetUsersInput
-  ): Promise<User[]> {
+  ): Promise<NewUser[]> {
     if (!ctx.isAuth || !ctx.user) {
       throw new AuthenticationError("User is not authenticated");
     }
@@ -229,9 +231,49 @@ export class UserResolver {
       };
     }
 
-    const users = await UserModel.find(filterQuery).skip(offset).limit(limit);
+    /* 
+      GOALS:
+        1. Implement the logic to support offset-based pagination.
+        2. Add the field "isNewUser" whose value is true when the difference in days 
+        between the current date and its creation date is less than or equal to 1  
+    */
+    const usersAgg = await UserModel.aggregate([
+      {
+        $match: {
+          ...filterQuery,
+        },
+      },
+      {
+        $sort: {
+          createdAt: -1,
+        },
+      },
+      {
+        $skip: offset,
+      },
+      {
+        $limit: limit,
+      },
+      {
+        $set: {
+          daysDiff: {
+            $round: {
+              $divide: [{ $subtract: ["$$NOW", "$createdAt"] }, 86400000],
+            },
+          },
+        },
+      },
+      {
+        $set: {
+          isNewUser: { $lte: ["$daysDiff", 1] },
+        },
+      },
+      {
+        $unset: "daysDiff",
+      },
+    ]);
 
-    return users;
+    return usersAgg;
   }
 
   @Query((returns) => AuthUser)

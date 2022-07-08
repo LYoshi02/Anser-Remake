@@ -7,3 +7,4 @@ export { default as Menu } from "./Menu";
 export { default as Modal } from "./Modal";
 export { default as Spinner } from "./Spinner";
 export { default as Alert } from "./Alert";
+export { default as SearchInput } from "./Inputs/SearchInput";

@@ -4,7 +4,7 @@ import { IoMdCheckbox } from "react-icons/io";
 
 import { User } from "../../types";
 import { ListItem } from "@/components/UI";
-import UsersSearch from "@/components/Users/UsersSearch";
+import { UsersSearch } from "@/components/Users";
 import { useGetUsers } from "@/hooks/useGetUsers";
 
 type Props = {
@@ -18,9 +18,16 @@ const UsersSelection = ({
   onUserSelected,
   excludedUsers = [],
 }: Props) => {
-  const { reqLoading, users, onFetchMoreUsers, onSearchUser } = useGetUsers({
-    fetchLimit: 20,
+  const {
+    reqLoading,
+    isFetchingMore,
+    users,
+    keepFetching,
+    onFetchMoreUsers,
+    onSearchUser,
+  } = useGetUsers({
     excludedUsers,
+    fetchLimit: 20,
   });
   const checkIconColor = useColorModeValue("yellow.500", "yellow.300");
 
@@ -53,7 +60,9 @@ const UsersSelection = ({
   return (
     <UsersSearch
       isLoading={reqLoading}
+      isFetchingMore={isFetchingMore}
       userItems={userItems}
+      keepFetching={keepFetching}
       onSearchUser={onSearchUser}
       onFetchMore={onFetchMoreUsers}
     />

@@ -1,12 +1,13 @@
 import { Badge, Box, Flex, MenuItem } from "@chakra-ui/react";
 
-import { ListItem, Menu } from "@/components/UI";
+import { Link, ListItem, Menu } from "@/components/UI";
 import { useGroupContext } from "../../../stores/GroupContext";
 import {
   useAppointAdminMutation,
   useRemoveAdminMutation,
   useRemoveFromGroupMutation,
 } from "@/graphql/generated";
+import { useRouter } from "next/router";
 
 type Props = {
   user: {
@@ -92,7 +93,12 @@ const Member = ({ user, isAdmin }: Props) => {
     );
 
     adminMenu = (
-      <Box ml="2">
+      <Box
+        ml="2"
+        onClick={(e) => {
+          e.preventDefault();
+        }}
+      >
         <Menu menuColor="gray">
           {adminMenuItem}
           <MenuItem onClick={removeMemberHandler.bind(this, user._id)}>
@@ -113,17 +119,22 @@ const Member = ({ user, isAdmin }: Props) => {
   }
 
   return (
-    <ListItem
-      avatar={{ name: user.fullname, src: user.profileImg?.url }}
-      title={user.fullname}
-      description={`@${user.username}`}
-      detail={
-        <Flex align="center">
-          {adminBadge}
-          {adminMenu}
-        </Flex>
-      }
-    />
+    <Link href={isAuthUser ? "/profile" : `/users/${user.username}`}>
+      <ListItem
+        avatar={{ name: user.fullname, src: user.profileImg?.url }}
+        title={user.fullname}
+        description={`@${user.username}`}
+        clicked={() => {
+          console.log("clicked");
+        }}
+        detail={
+          <Flex align="center">
+            {adminBadge}
+            {adminMenu}
+          </Flex>
+        }
+      />
+    </Link>
   );
 };
 

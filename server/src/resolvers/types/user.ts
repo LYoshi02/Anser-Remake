@@ -38,12 +38,6 @@ export class UpdateUserArgs {
   description: string;
 }
 
-export interface NewUserPayload {
-  _id: ObjectId;
-  username: string;
-  fullname: string;
-}
-
 @InputType()
 export class GetUsersInput {
   @Field()

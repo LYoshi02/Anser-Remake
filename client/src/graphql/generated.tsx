@@ -207,6 +207,17 @@ export type NewMessage = {
   users?: Maybe<Array<User>>;
 };
 
+export type NewUser = {
+  __typename?: 'NewUser';
+  _id: Scalars['ObjectId'];
+  description: Scalars['String'];
+  email: Scalars['String'];
+  fullname: Scalars['String'];
+  isNewUser: Scalars['Boolean'];
+  profileImg?: Maybe<Image>;
+  username: Scalars['String'];
+};
+
 export type Query = {
   __typename?: 'Query';
   getAuthUser: AuthUser;
@@ -215,7 +226,7 @@ export type Query = {
   getGroupChat: Chat;
   getGroupData: Chat;
   getUser: User;
-  getUsers: Array<User>;
+  getUsers: Array<NewUser>;
   loginUser: LoggedInUser;
 };
 
@@ -253,7 +264,7 @@ export type QueryLoginUserArgs = {
 export type Subscription = {
   __typename?: 'Subscription';
   newMessage: NewMessage;
-  newUser: User;
+  newUser: NewUser;
 };
 
 export type User = {
@@ -339,7 +350,7 @@ export type GetUsersQueryVariables = Exact<{
 }>;
 
 
-export type GetUsersQuery = { __typename?: 'Query', getUsers: Array<{ __typename?: 'User', _id: any, username: string, fullname: string, profileImg?: { __typename?: 'Image', url: string } | null }> };
+export type GetUsersQuery = { __typename?: 'Query', getUsers: Array<{ __typename?: 'NewUser', _id: any, username: string, fullname: string, isNewUser: boolean, profileImg?: { __typename?: 'Image', url: string } | null }> };
 
 export type OnNewMessageAddedSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
@@ -349,7 +360,7 @@ export type OnNewMessageAddedSubscription = { __typename?: 'Subscription', newMe
 export type OnNewUserAddedSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type OnNewUserAddedSubscription = { __typename?: 'Subscription', newUser: { __typename?: 'User', _id: any, fullname: string, username: string, profileImg?: { __typename?: 'Image', url: string } | null } };
+export type OnNewUserAddedSubscription = { __typename?: 'Subscription', newUser: { __typename?: 'NewUser', _id: any, fullname: string, username: string, isNewUser: boolean, profileImg?: { __typename?: 'Image', url: string } | null } };
 
 export type AddUsersToGroupMutationVariables = Exact<{
   addUsersArgs: AddUsersToGroupInput;
@@ -876,6 +887,7 @@ export const GetUsersDocument = gql`
     profileImg {
       url
     }
+    isNewUser
   }
 }
     `;
@@ -969,6 +981,7 @@ export const OnNewUserAddedDocument = gql`
     profileImg {
       url
     }
+    isNewUser
   }
 }
     `;

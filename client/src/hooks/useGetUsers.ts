@@ -12,9 +12,13 @@ type Params = {
 };
 
 export const useGetUsers = ({ excludedUsers, fetchLimit = 20 }: Params) => {
+  const [keepFetching, setKeepFetching] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [lastSearch, setLastSearch] = useState("");
   const {
     data: usersData,
-    loading,
+    loading: reqLoading,
     subscribeToMore,
     refetch,
     fetchMore,
@@ -27,16 +31,19 @@ export const useGetUsers = ({ excludedUsers, fetchLimit = 20 }: Params) => {
         excludedUsers,
       },
     },
+    onCompleted: (data) => {
+      if (fetchLimit > 0) {
+        setKeepFetching(data.getUsers.length >= fetchLimit);
+      }
+    },
   });
-  const [lastSearch, setLastSearch] = useState("");
-
-  console.log(usersData);
 
   useEffect(() => {
-    subscribeToMore<OnNewUserAddedSubscription>({
+    const unsubscribe = subscribeToMore<OnNewUserAddedSubscription>({
       document: OnNewUserAddedDocument,
       updateQuery: (prev, { subscriptionData }) => {
         if (!subscriptionData.data) return prev;
+
         const newUser = subscriptionData.data.newUser;
 
         return Object.assign({}, prev, {
@@ -44,15 +51,24 @@ export const useGetUsers = ({ excludedUsers, fetchLimit = 20 }: Params) => {
         });
       },
     });
-  }, [subscribeToMore]);
+
+    if (lastSearch.length > 0) {
+      unsubscribe();
+    }
+
+    return () => {
+      unsubscribe();
+    };
+  }, [subscribeToMore, lastSearch]);
 
   const fetchMoreUsersHandler = async () => {
-    if (!usersData) return;
+    if (!usersData || !keepFetching) return;
 
     console.log("Fetching more users: ", lastSearch);
 
     try {
-      await fetchMore({
+      setIsFetchingMore(true);
+      const res = await fetchMore({
         variables: {
           searchOptions: {
             searchText: lastSearch,
@@ -62,19 +78,25 @@ export const useGetUsers = ({ excludedUsers, fetchLimit = 20 }: Params) => {
           },
         },
       });
-    } catch (e) {}
+
+      if (res.data) {
+        setKeepFetching(res.data.getUsers.length >= fetchLimit);
+      }
+    } catch (e) {
+      setKeepFetching(false);
+    } finally {
+      setIsFetchingMore(false);
+    }
   };
 
   const searchUserHandler = async (searchText: string) => {
-    if (
-      (lastSearch.length === 0 && searchText.length === 0) ||
-      lastSearch === searchText
-    ) {
+    if (lastSearch === searchText) {
       console.log("Invalid search");
       return;
     }
 
     setLastSearch(searchText);
+    setIsSearching(true);
 
     try {
       await refetch({
@@ -85,12 +107,17 @@ export const useGetUsers = ({ excludedUsers, fetchLimit = 20 }: Params) => {
           excludedUsers,
         },
       });
-    } catch (e) {}
+    } catch (e) {
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   return {
     users: usersData,
-    reqLoading: loading,
+    keepFetching,
+    isFetchingMore,
+    reqLoading: reqLoading || isSearching,
     onSearchUser: searchUserHandler,
     onFetchMoreUsers: fetchMoreUsersHandler,
   };

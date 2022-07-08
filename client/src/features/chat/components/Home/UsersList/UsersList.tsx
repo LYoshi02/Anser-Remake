@@ -2,13 +2,17 @@ import { ReactNode } from "react";
 
 import UserItem from "./UserItem";
 import { useGetUsers } from "@/hooks/useGetUsers";
-import UsersSearch from "@/components/Users/UsersSearch";
+import { UsersSearch } from "@/components/Users";
 
-// TODO: add variables to the query
 const UsersList = () => {
-  const { reqLoading, users, onFetchMoreUsers, onSearchUser } = useGetUsers({
-    fetchLimit: 20,
-  });
+  const {
+    reqLoading,
+    isFetchingMore,
+    users,
+    keepFetching,
+    onFetchMoreUsers,
+    onSearchUser,
+  } = useGetUsers({});
 
   let userItems: ReactNode[] = [];
   if (users) {
@@ -18,6 +22,7 @@ const UsersList = () => {
         username={user.username}
         fullname={user.fullname}
         imageUrl={user.profileImg?.url}
+        isNewUser={user.isNewUser}
       />
     ));
   }
@@ -25,7 +30,9 @@ const UsersList = () => {
   return (
     <UsersSearch
       isLoading={reqLoading}
+      isFetchingMore={isFetchingMore}
       userItems={userItems}
+      keepFetching={keepFetching}
       onSearchUser={onSearchUser}
       onFetchMore={onFetchMoreUsers}
     />
