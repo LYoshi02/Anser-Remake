@@ -16,6 +16,7 @@ import "reflect-metadata";
 import { AuthMiddleware } from "./middlewares/auth";
 import { UserResolver } from "./resolvers/user/userResolver";
 import { ChatResolver } from "./resolvers/chat/chatResolver";
+import { GroupChatResolver } from "./resolvers/chat/groupChatResolver";
 import { CustomRequest } from "./types";
 import { ObjectIdScalar } from "./utils/objectId.scalar";
 import { TypegooseMiddleware } from "./middlewares/typegoose";
@@ -36,7 +37,7 @@ async function startApp() {
     const httpServer = createServer(app);
 
     const schema = await buildSchema({
-      resolvers: [UserResolver, ChatResolver],
+      resolvers: [UserResolver, ChatResolver, GroupChatResolver],
       emitSchemaFile: true,
       scalarsMap: [{ type: ObjectId, scalar: ObjectIdScalar }],
       validate: false,
