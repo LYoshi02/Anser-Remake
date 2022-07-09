@@ -2,7 +2,7 @@ import { NextFunction, Response, Request } from "express";
 
 import { UserModel } from "../schemas/user";
 import { CustomRequest } from "../types";
-import { getDecodedToken, extractBearerToken } from "../utils/user";
+import { getDecodedToken, extractBearerToken } from "../utils/auth";
 
 /**
  * Custom User Authentication Middleware

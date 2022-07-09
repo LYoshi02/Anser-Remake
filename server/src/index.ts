@@ -14,8 +14,8 @@ import { useServer } from "graphql-ws/lib/use/ws";
 import "reflect-metadata";
 
 import { AuthMiddleware } from "./middlewares/auth";
-import { UserResolver } from "./resolvers/userResolver";
-import { ChatResolver } from "./resolvers/chatResolver";
+import { UserResolver } from "./resolvers/user/userResolver";
+import { ChatResolver } from "./resolvers/chat/chatResolver";
 import { CustomRequest } from "./types";
 import { ObjectIdScalar } from "./utils/objectId.scalar";
 import { TypegooseMiddleware } from "./middlewares/typegoose";
@@ -23,7 +23,7 @@ import {
   getUserIdWithToken,
   getDecodedToken,
   extractBearerToken,
-} from "./utils/user";
+} from "./utils/auth";
 
 const port = process.env.PORT || 4000;
 

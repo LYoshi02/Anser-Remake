@@ -25,21 +25,6 @@ export class Chat {
   group?: Group;
 }
 
-@ObjectType()
-export class NewMessage {
-  @Field()
-  readonly chatId: ObjectId;
-
-  @Field((type) => Message)
-  message: Message;
-
-  @Field((type) => [User], { nullable: true })
-  users?: Ref<User>[];
-
-  @Field((type) => Group, { nullable: true })
-  group?: Group;
-}
-
 export const ChatModel = getModelForClass(Chat, {
   schemaOptions: { timestamps: true },
 });

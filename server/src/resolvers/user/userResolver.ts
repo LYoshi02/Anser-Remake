@@ -27,16 +27,16 @@ import {
   LoggedInUser,
   AuthUser,
   // NewUser,
-} from "../schemas/user";
+} from "../../schemas/user";
 import {
   CreateUserInput,
   GetUsersInput,
   LoginUserArgs,
   UpdateUserArgs,
-} from "./types/user";
-import { Context } from "../types";
-import { issueAuthToken } from "../utils/user";
-import { deleteFromCloudinary, uploadToCloudinary } from "../utils/upload";
+} from "./types";
+import { Context } from "../../types";
+import { issueAuthToken } from "../../utils/auth";
+import { deleteFromCloudinary, uploadToCloudinary } from "../../utils/upload";
 
 @Resolver((of) => User)
 export class UserResolver {

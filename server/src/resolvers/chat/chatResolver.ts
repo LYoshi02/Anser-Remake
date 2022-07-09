@@ -17,7 +17,7 @@ import {
 import { ObjectId } from "mongodb";
 import { FileUpload, GraphQLUpload } from "graphql-upload";
 
-import { Context } from "../types";
+import { Context } from "../../types";
 import {
   AddMessageInput,
   AddUsersToGroupInput,
@@ -26,15 +26,18 @@ import {
   NewChatInput,
   NewGroupInput,
   NewMessagePayload,
-} from "./types/chat";
-import { Chat, ChatModel, NewMessage } from "../schemas/chat";
-import { Message } from "../schemas/message";
-import { UserModel } from "../schemas/user";
-import { generateChatUsersArr, generateUniqueValuesArr } from "../utils/chat";
-import { deleteFromCloudinary, uploadToCloudinary } from "../utils/upload";
+} from "./types";
+import { Chat, ChatModel } from "../../schemas/chat";
+import { Message } from "../../schemas/message";
+import { UserModel } from "../../schemas/user";
+import { generateChatUsersArr, generateUniqueValuesArr } from "../../utils/chat";
+import { deleteFromCloudinary, uploadToCloudinary } from "../../utils/upload";
+import { createChatBaseResolver } from "./chatBaseResolver";
+
+const ChatBaseResolver = createChatBaseResolver();
 
 @Resolver((of) => Chat)
-export class ChatResolver {
+export class ChatResolver extends ChatBaseResolver {
   // TODO: the last message needs to include the user doing the request withing the "users" property
   @Query((returns) => [Chat])
   async getChats(@Ctx() ctx: Context): Promise<Chat[]> {
@@ -279,38 +282,30 @@ export class ChatResolver {
     return chat;
   }
 
-  @Subscription({
-    topics: "NEW_MESSAGE",
-    filter: async ({ payload, args, context }) => {
-      if (!context || !context.userId) return false;
+  // @Subscription({
+  //   topics: "NEW_MESSAGE",
+  //   filter: async ({ payload, args, context }) => {
+  //     if (!context || !context.userId) return false;
 
-      // Logs to see what is in the arguments
-      // console.log("PAYLOAD");
-      // console.log(payload);
-      // console.log("ARGS");
-      // console.log(args);
-      // console.log("CONTEXT");
-      // console.log(context);
+  //     const customPayload = payload as NewMessagePayload;
+  //     const contextUserId = context.userId.toString() as string;
 
-      const customPayload = payload as NewMessagePayload;
-      const contextUserId = context.userId.toString() as string;
-
-      return customPayload.message.users.some((r) => {
-        const recipientId = r.toString();
-        return recipientId === contextUserId;
-      });
-    },
-  })
-  newMessage(
-    @Root() { chatId, message, users, group }: NewMessagePayload
-  ): NewMessage {
-    return {
-      chatId,
-      message,
-      users,
-      group,
-    };
-  }
+  //     return customPayload.message.users.some((r) => {
+  //       const recipientId = r.toString();
+  //       return recipientId === contextUserId;
+  //     });
+  //   },
+  // })
+  // newMessage(
+  //   @Root() { chatId, message, users, group }: NewMessagePayload
+  // ): NewMessage {
+  //   return {
+  //     chatId,
+  //     message,
+  //     users,
+  //     group,
+  //   };
+  // }
 
   @Mutation((returns) => Chat)
   async createNewGroup(
