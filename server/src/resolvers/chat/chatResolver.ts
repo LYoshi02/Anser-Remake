@@ -9,6 +9,7 @@ import {
   PubSub,
   Root,
   Subscription,
+  UseMiddleware,
 } from "type-graphql";
 import { ObjectId } from "mongodb";
 
@@ -23,15 +24,15 @@ import { Chat, ChatModel } from "../../schemas/chat";
 import { Message } from "../../schemas/message";
 import { UserModel } from "../../schemas/user";
 import { generateChatUsersArr } from "./utils";
+import { IsAuthenticated } from "../middlewares/isAuth";
 
 @Resolver((of) => Chat)
 export class ChatResolver {
   // TODO: the last message needs to include the user doing the request withing the "users" property
   @Query((returns) => [Chat])
+  @UseMiddleware(IsAuthenticated)
   async getChats(@Ctx() ctx: Context): Promise<Chat[]> {
-    if (!ctx.isAuth || !ctx.user) {
-      throw new AuthenticationError("User is not authenticated");
-    }
+    const authUserId = ctx.user!._id;
 
     /*
       GOALS: 
@@ -45,8 +46,8 @@ export class ChatResolver {
       {
         $match: {
           $or: [
-            { users: { $in: [ctx.user._id] } },
-            { "messages.users": { $in: [ctx.user._id] } },
+            { users: { $in: [authUserId] } },
+            { "messages.users": { $in: [authUserId] } },
           ],
         },
       },
@@ -56,7 +57,7 @@ export class ChatResolver {
             $filter: {
               input: "$messages",
               as: "message",
-              cond: { $in: [ctx.user._id, "$$message.users"] },
+              cond: { $in: [authUserId, "$$message.users"] },
             },
           },
         },
@@ -76,14 +77,12 @@ export class ChatResolver {
   }
 
   @Query((returns) => Chat)
+  @UseMiddleware(IsAuthenticated)
   async getChat(
     @Arg("recipientUsername") recipientUsername: string,
     @Ctx() ctx: Context
   ): Promise<Chat> {
-    if (!ctx.isAuth || !ctx.user) {
-      throw new AuthenticationError("User is not authenticated");
-    }
-
+    const authUserId = ctx.user!._id;
     const recipient = await UserModel.findOne(
       { username: recipientUsername },
       { _id: 1 }
@@ -94,7 +93,7 @@ export class ChatResolver {
     }
 
     const chat = await ChatModel.findOne({
-      users: { $all: [ctx.user._id, recipient._id], $size: 2 },
+      users: { $all: [authUserId, recipient._id], $size: 2 },
       group: null,
     })
       .populate("messages.sender")
@@ -108,16 +107,13 @@ export class ChatResolver {
   }
 
   @Mutation((returns) => Chat)
+  @UseMiddleware(IsAuthenticated)
   async createNewChat(
     @PubSub("NEW_MESSAGE") publishNewMessage: Publisher<NewMessagePayload>,
     @Arg("chatData") { recipients, text }: NewChatInput,
     @Ctx() ctx: Context
   ): Promise<Chat> {
-    if (!ctx.isAuth || !ctx.user) {
-      throw new AuthenticationError("User is not authenticated");
-    }
-
-    const authUserId = ctx.user._id;
+    const authUserId = ctx.user!._id;
     const chatUsers = generateChatUsersArr(recipients, authUserId);
 
     const existingChat = await ChatModel.findOne({
@@ -156,16 +152,13 @@ export class ChatResolver {
   }
 
   @Mutation((returns) => Chat)
+  @UseMiddleware(IsAuthenticated)
   async addMessage(
     @PubSub("NEW_MESSAGE") publishNewMessage: Publisher<NewMessagePayload>,
     @Arg("chatData") { text, chatId }: AddMessageInput,
     @Ctx() ctx: Context
   ): Promise<Chat> {
-    if (!ctx.isAuth || !ctx.user) {
-      throw new AuthenticationError("User is not authenticated");
-    }
-
-    const authUserId = ctx.user._id;
+    const authUserId = ctx.user!._id;
 
     const chat = await ChatModel.findOne({
       _id: chatId,

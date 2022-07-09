@@ -11,6 +11,7 @@ import {
   Arg,
   Publisher,
   PubSub,
+  UseMiddleware,
 } from "type-graphql";
 import { ObjectId } from "mongodb";
 import { FileUpload, GraphQLUpload } from "graphql-upload";
@@ -28,17 +29,17 @@ import { Message } from "../../schemas/message";
 import { UserModel } from "../../schemas/user";
 import { generateChatUsersArr, generateUniqueValuesArr } from "./utils";
 import { deleteFromCloudinary, uploadToCloudinary } from "../../utils/upload";
+import { IsAuthenticated } from "../middlewares/isAuth";
 
 @Resolver((of) => Chat)
 export class GroupChatResolver {
   @Query((returns) => Chat)
+  @UseMiddleware(IsAuthenticated)
   async getGroupChat(
     @Arg("chatId") chatId: string,
     @Ctx() ctx: Context
   ): Promise<Chat> {
-    if (!ctx.isAuth || !ctx.user) {
-      throw new AuthenticationError("User is not authenticated");
-    }
+    const authUserId = ctx.user!._id;
 
     /*
         GOAL: the property "messages" of the chat must contain only the messages the 
@@ -52,7 +53,7 @@ export class GroupChatResolver {
             $filter: {
               input: "$messages",
               as: "message",
-              cond: { $in: [ctx.user._id, "$$message.users"] },
+              cond: { $in: [authUserId, "$$message.users"] },
             },
           },
           users: 1,
@@ -73,15 +74,12 @@ export class GroupChatResolver {
   }
 
   @Query((returns) => Chat)
+  @UseMiddleware(IsAuthenticated)
   async getGroupData(
     @Arg("chatId") chatId: string,
     @Ctx() ctx: Context
   ): Promise<Chat> {
-    if (!ctx.isAuth || !ctx.user) {
-      throw new AuthenticationError("User is not authenticated");
-    }
-
-    const authUserId = ctx.user._id;
+    const authUserId = ctx.user!._id;
 
     const chat = await ChatModel.findOne({
       _id: chatId,
@@ -104,21 +102,18 @@ export class GroupChatResolver {
   }
 
   @Mutation((returns) => Chat)
+  @UseMiddleware(IsAuthenticated)
   async createNewGroup(
     @PubSub("NEW_MESSAGE") publishNewMessage: Publisher<NewMessagePayload>,
     @Arg("groupData") { groupName, groupMembers }: NewGroupInput,
     @Ctx() ctx: Context
   ): Promise<Chat> {
-    if (!ctx.isAuth || !ctx.user) {
-      throw new AuthenticationError("User is not authenticated");
-    }
-
-    const authUserId = ctx.user._id;
+    const { _id: authUserId, username: authUsername } = ctx.user!;
     const chatUsers = generateChatUsersArr(groupMembers, authUserId);
 
     const newMessage: Message = {
       _id: new ObjectId(),
-      text: `@${ctx.user.username} created the group "${groupName}"`,
+      text: `@${authUsername} created the group "${groupName}"`,
       sender: null,
       users: chatUsers,
     };
@@ -146,16 +141,13 @@ export class GroupChatResolver {
   }
 
   @Mutation((returns) => Chat)
+  @UseMiddleware(IsAuthenticated)
   async addUsersToGroup(
     @PubSub("NEW_MESSAGE") publishNewMessage: Publisher<NewMessagePayload>,
     @Arg("addUsersArgs") { chatId, newUsers }: AddUsersToGroupInput,
     @Ctx() ctx: Context
   ): Promise<Chat> {
-    if (!ctx.isAuth || !ctx.user) {
-      throw new AuthenticationError("User is not authenticated");
-    }
-
-    const authUserId = ctx.user._id;
+    const { _id: authUserId, username: authUsername } = ctx.user!;
     const authUserIdString = authUserId.toString();
 
     const chat = await ChatModel.findOne({
@@ -193,7 +185,7 @@ export class GroupChatResolver {
       groupUsers.push(newUser._id);
       newMessages.push({
         _id: new ObjectId(),
-        text: `@${ctx.user!.username} added @${newUser.username}`,
+        text: `@${authUsername} added @${newUser.username}`,
         sender: null,
         users: [...groupUsers],
       });
@@ -220,23 +212,18 @@ export class GroupChatResolver {
   }
 
   @Mutation((returns) => Chat)
+  @UseMiddleware(IsAuthenticated)
   async removeFromGroup(
     @PubSub("NEW_MESSAGE") publishNewMessage: Publisher<NewMessagePayload>,
     @Arg("removeFromGroupArgs") { chatId, userId }: GroupOperationInput,
     @Ctx() ctx: Context
   ): Promise<Chat> {
-    if (!ctx.isAuth || !ctx.user) {
-      throw new AuthenticationError("User is not authenticated");
-    }
-
-    const authUserId = ctx.user._id;
+    const { _id: authUserId, username: authUsername } = ctx.user!;
     const authUserIdString = authUserId.toString();
     const userIdString = userId.toString();
 
     if (authUserIdString === userIdString) {
-      throw new AuthenticationError(
-        "You cannot remove yourself from the group"
-      );
+      throw new ValidationError("You cannot remove yourself from the group");
     }
 
     const chat = await ChatModel.findOne({
@@ -267,12 +254,12 @@ export class GroupChatResolver {
     const userData = await UserModel.findById(userId, { username: 1 });
 
     if (!userData) {
-      throw new AuthenticationError("The user selected was not found");
+      throw new ValidationError("The user selected was not found");
     }
 
     const newMessage: Message = {
       _id: new ObjectId(),
-      text: `@${ctx.user.username} removed @${userData.username}`,
+      text: `@${authUsername} removed @${userData.username}`,
       sender: null,
       users: [...chat.users],
     };
@@ -300,16 +287,13 @@ export class GroupChatResolver {
   }
 
   @Mutation((returns) => Chat)
+  @UseMiddleware(IsAuthenticated)
   async leaveGroup(
     @PubSub("NEW_MESSAGE") publishNewMessage: Publisher<NewMessagePayload>,
     @Arg("chatId") chatId: string,
     @Ctx() ctx: Context
   ): Promise<Chat> {
-    if (!ctx.isAuth || !ctx.user) {
-      throw new AuthenticationError("User is not authenticated");
-    }
-
-    const authUserId = ctx.user._id;
+    const { _id: authUserId, username: authUsername } = ctx.user!;
     const authUserIdString = authUserId.toString();
 
     const chat = await ChatModel.findOne({
@@ -356,7 +340,7 @@ export class GroupChatResolver {
 
     const newMessage: Message = {
       _id: new ObjectId(),
-      text: `@${ctx.user.username} left the group`,
+      text: `@${authUsername} left the group`,
       sender: null,
       users: groupUsers,
     };
@@ -377,16 +361,13 @@ export class GroupChatResolver {
   }
 
   @Mutation((returns) => Chat)
+  @UseMiddleware(IsAuthenticated)
   async appointAdmin(
     @PubSub("NEW_MESSAGE") publishNewMessage: Publisher<NewMessagePayload>,
     @Arg("appointAdminArgs") { chatId, userId: newAdmin }: GroupOperationInput,
     @Ctx() ctx: Context
   ): Promise<Chat> {
-    if (!ctx.isAuth || !ctx.user) {
-      throw new AuthenticationError("User is not authenticated");
-    }
-
-    const authUserId = ctx.user._id;
+    const authUserId = ctx.user!._id;
     const authUserIdString = authUserId.toString();
 
     const chat = await ChatModel.findOne({
@@ -418,7 +399,7 @@ export class GroupChatResolver {
     const newAdminData = await UserModel.findById(newAdmin, { username: 1 });
 
     if (!newAdminData) {
-      throw new AuthenticationError("The user selected was not found");
+      throw new ValidationError("The user selected was not found");
     }
 
     const newMessage: Message = {
@@ -443,16 +424,13 @@ export class GroupChatResolver {
   }
 
   @Mutation((returns) => Chat)
+  @UseMiddleware(IsAuthenticated)
   async removeAdmin(
     @PubSub("NEW_MESSAGE") publishNewMessage: Publisher<NewMessagePayload>,
     @Arg("removeAdminArgs") { chatId, userId: adminId }: GroupOperationInput,
     @Ctx() ctx: Context
   ): Promise<Chat> {
-    if (!ctx.isAuth || !ctx.user) {
-      throw new AuthenticationError("User is not authenticated");
-    }
-
-    const authUserId = ctx.user._id;
+    const authUserId = ctx.user!._id;
     const authUserIdString = authUserId.toString();
 
     const chat = await ChatModel.findOne({
@@ -484,7 +462,7 @@ export class GroupChatResolver {
     const adminData = await UserModel.findById(adminId, { username: 1 });
 
     if (!adminData) {
-      throw new AuthenticationError("The user selected was not found");
+      throw new ValidationError("The user selected was not found");
     }
 
     const newMessage: Message = {
@@ -511,17 +489,14 @@ export class GroupChatResolver {
   }
 
   @Mutation((returns) => Chat)
+  @UseMiddleware(IsAuthenticated)
   async setGroupImage(
     @PubSub("NEW_MESSAGE") publishNewMessage: Publisher<NewMessagePayload>,
     @Arg("chatId") chatId: ObjectId,
     @Arg("file", () => GraphQLUpload) file: FileUpload,
     @Ctx() ctx: Context
   ): Promise<Chat> {
-    if (!ctx.isAuth || !ctx.user) {
-      throw new AuthenticationError("User is not authenticated");
-    }
-
-    const authUserId = ctx.user._id;
+    const { _id: authUserId, username: authUsername } = ctx.user!;
 
     const chat = await ChatModel.findOne({
       _id: chatId,
@@ -552,7 +527,7 @@ export class GroupChatResolver {
       _id: new ObjectId(),
       sender: null,
       users: chat.users,
-      text: `${ctx.user.username} changed the group's image`,
+      text: `${authUsername} changed the group's image`,
     };
 
     chat.group!.image = newImage;
@@ -573,16 +548,13 @@ export class GroupChatResolver {
   }
 
   @Mutation((returns) => Chat)
+  @UseMiddleware(IsAuthenticated)
   async deleteGroupImage(
     @PubSub("NEW_MESSAGE") publishNewMessage: Publisher<NewMessagePayload>,
     @Arg("chatId") chatId: ObjectId,
     @Ctx() ctx: Context
   ): Promise<Chat> {
-    if (!ctx.isAuth || !ctx.user) {
-      throw new AuthenticationError("User is not authenticated");
-    }
-
-    const authUserId = ctx.user._id;
+    const { _id: authUserId, username: authUsername } = ctx.user!;
 
     const chat = await ChatModel.findOne({
       _id: chatId,
@@ -610,7 +582,7 @@ export class GroupChatResolver {
       _id: new ObjectId(),
       sender: null,
       users: chat.users,
-      text: `${ctx.user.username} deleted the group's image`,
+      text: `${authUsername} deleted the group's image`,
     };
 
     chat.group!.image = undefined;
@@ -627,16 +599,13 @@ export class GroupChatResolver {
   }
 
   @Mutation((returns) => Chat)
+  @UseMiddleware(IsAuthenticated)
   async changeGroupName(
     @PubSub("NEW_MESSAGE") publishNewMessage: Publisher<NewMessagePayload>,
     @Arg("changeGroupNameArgs") { chatId, newName }: ChangeGroupNameArgs,
     @Ctx() ctx: Context
   ): Promise<Chat> {
-    if (!ctx.isAuth || !ctx.user) {
-      throw new AuthenticationError("User is not authenticated");
-    }
-
-    const authUserId = ctx.user._id;
+    const { _id: authUserId, username: authUsername } = ctx.user!;
 
     const chat = await ChatModel.findOne({
       _id: chatId,
@@ -655,7 +624,7 @@ export class GroupChatResolver {
     const previousName = chat.group!.name;
     const newMessage: Message = {
       _id: new ObjectId(),
-      text: `@${ctx.user.username} changed group's name from "${previousName}" to "${newName}"`,
+      text: `@${authUsername} changed group's name from "${previousName}" to "${newName}"`,
       sender: null,
       users: [...chat.users],
     };
