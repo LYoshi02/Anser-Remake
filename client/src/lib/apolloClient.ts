@@ -7,8 +7,6 @@ import { createClient } from "graphql-ws";
 import { createUploadLink } from "apollo-upload-client";
 import { createStandaloneToast } from "@chakra-ui/react";
 
-import { offsetLimitPagination } from "@apollo/client/utilities";
-
 import theme from "@/styles/theme";
 
 const toast = createStandaloneToast({

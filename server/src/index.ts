@@ -55,19 +55,19 @@ async function startApp() {
         schema,
         onConnect: (ctx) => {
           if (!ctx.connectionParams || !ctx.connectionParams.authToken) {
-            throw new Error("Auth token missing");
+            return false;
           }
 
           const token = extractBearerToken(
             ctx.connectionParams.authToken as string
           );
           if (!token) {
-            throw new Error("Auth token missing");
+            return false;
           }
 
           const decodedToken = getDecodedToken(token);
           if (!decodedToken) {
-            throw new Error("Invalid auth token");
+            return false;
           }
         },
         context: async (ctx, msg, args) => {
