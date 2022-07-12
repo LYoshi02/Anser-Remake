@@ -67,7 +67,6 @@ const getDecodedToken: (t: string, s: string) => JwtPayload | null = (
   return decodedToken;
 };
 
-// TODO: check this function
 // The token looks like "Bearer <user_token>"
 export const getUserIdWithToken = (userToken: any) => {
   if (!userToken || typeof userToken !== "string") return null;

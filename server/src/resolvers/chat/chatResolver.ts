@@ -28,7 +28,6 @@ import { IsAuthenticated } from "../middlewares/isAuth";
 
 @Resolver((of) => Chat)
 export class ChatResolver {
-  // TODO: the last message needs to include the user doing the request withing the "users" property
   @Query((returns) => [Chat])
   @UseMiddleware(IsAuthenticated)
   async getChats(@Ctx() ctx: Context): Promise<Chat[]> {
@@ -60,6 +59,15 @@ export class ChatResolver {
               cond: { $in: [authUserId, "$$message.users"] },
             },
           },
+        },
+      },
+      {
+        $addFields: {
+          messages: [
+            {
+              $last: "$messages",
+            },
+          ],
         },
       },
       {
