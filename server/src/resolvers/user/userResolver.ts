@@ -204,7 +204,6 @@ export class UserResolver {
 
     await publish({
       ...user.toObject(),
-      password: "",
     });
 
     return user;

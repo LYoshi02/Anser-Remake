@@ -34,7 +34,7 @@ const NewGroupPage: NextPage = () => {
         variables: {
           groupData: {
             groupName,
-            groupMembers: groupMembersIds,
+            groupUsers: groupMembersIds,
           },
         },
       });

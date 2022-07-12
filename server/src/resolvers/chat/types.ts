@@ -6,10 +6,12 @@ import { ObjectIdScalar } from "../../utils/objectId.scalar";
 import { User } from "../../schemas/user";
 import { Message } from "../../schemas/message";
 import { Group } from "../../schemas/group";
+import { ArrayNotEmpty, IsNotEmpty, MinLength } from "class-validator";
 
 @InputType()
 export class AddMessageInput {
   @Field()
+  @IsNotEmpty({ message: "Invalid message" })
   text: string;
 
   @Field()
@@ -19,19 +21,23 @@ export class AddMessageInput {
 @InputType()
 export class NewChatInput {
   @Field()
+  @IsNotEmpty({ message: "Invalid message" })
   text: string;
 
   @Field((type) => [ObjectIdScalar])
+  @ArrayNotEmpty({ message: "The recipients array can't be empty" })
   recipients: ObjectId[];
 }
 
 @InputType()
 export class NewGroupInput {
   @Field()
+  @MinLength(3, { message: "The name must be at least 3 characters long" })
   groupName: string;
 
   @Field((type) => [ObjectIdScalar])
-  groupMembers: ObjectId[];
+  @ArrayNotEmpty({ message: "The groupUsers array can't be empty" })
+  groupUsers: ObjectId[];
 }
 
 @InputType()
@@ -40,6 +46,7 @@ export class AddUsersToGroupInput {
   chatId: ObjectId;
 
   @Field((type) => [ObjectIdScalar])
+  @ArrayNotEmpty({ message: "The newUsers array can't be empty" })
   newUsers: ObjectId[];
 }
 
@@ -58,6 +65,7 @@ export class ChangeGroupNameArgs {
   chatId: ObjectId;
 
   @Field()
+  @MinLength(3, { message: "The name must be at least 3 characters long" })
   newName: string;
 }
 
@@ -67,6 +75,7 @@ export class NewMessage {
   readonly chatId: ObjectId;
 
   @Field((type) => Message)
+  @IsNotEmpty({ message: "Invalid message" })
   message: Message;
 
   @Field((type) => [User], { nullable: true })

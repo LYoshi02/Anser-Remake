@@ -22,11 +22,10 @@ export class User {
   fullname: string;
 
   @Field()
-  @Property({ default: "", trim: true })
+  @Property({ default: "", trim: true, maxLength: 160 })
   description: string;
 
-  @Field()
-  @Property()
+  @Property({ minLength: 8 })
   password: string;
 
   @Field((type) => Image, { nullable: true })

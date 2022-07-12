@@ -105,11 +105,11 @@ export class GroupChatResolver {
   @UseMiddleware(IsAuthenticated)
   async createNewGroup(
     @PubSub("NEW_MESSAGE") publishNewMessage: Publisher<NewMessagePayload>,
-    @Arg("groupData") { groupName, groupMembers }: NewGroupInput,
+    @Arg("groupData") { groupName, groupUsers }: NewGroupInput,
     @Ctx() ctx: Context
   ): Promise<Chat> {
     const { userId: authUserId, username: authUsername } = ctx.payload;
-    const chatUsers = generateChatUsersArr(groupMembers, authUserId);
+    const chatUsers = generateChatUsersArr(groupUsers, authUserId);
 
     const newMessage: Message = {
       _id: new ObjectId(),

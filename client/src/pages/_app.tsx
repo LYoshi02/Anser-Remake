@@ -10,6 +10,7 @@ import { setAccessToken } from "@/helpers/accessToken";
 function MyApp({ Component, pageProps }: AppProps) {
   const [loading, setLoading] = useState(true);
 
+  // TODO: check this
   useEffect(() => {
     setLoading(true);
     fetch("http://localhost:4000/refresh-token", {

@@ -88,7 +88,7 @@ const LoginPage: NextPage = () => {
             input={
               <Input
                 placeholder="user@email.com"
-                type="text"
+                type="email"
                 {...register("email")}
               />
             }

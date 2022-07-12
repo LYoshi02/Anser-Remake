@@ -203,8 +203,8 @@ export type NewChatInput = {
 };
 
 export type NewGroupInput = {
-  groupMembers: Array<Scalars['ObjectId']>;
   groupName: Scalars['String'];
+  groupUsers: Array<Scalars['ObjectId']>;
 };
 
 export type NewMessage = {
@@ -264,7 +264,6 @@ export type User = {
   email: Scalars['String'];
   fullname: Scalars['String'];
   isNewUser?: Maybe<Scalars['Boolean']>;
-  password: Scalars['String'];
   profileImg?: Maybe<Image>;
   username: Scalars['String'];
 };
