@@ -1,5 +1,4 @@
 import { useRouter } from "next/router";
-import { useApolloClient } from "@apollo/client";
 import {
   Box,
   Flex,
@@ -19,19 +18,29 @@ import {
 } from "react-icons/hi";
 
 import { Link, Menu } from "@/components/UI";
+import { useLogoutUserMutation } from "@/graphql/generated";
+import { setAccessToken } from "@/helpers/accessToken";
+import { useToast } from "@/hooks/useToast";
 
 const ChatNavigation = () => {
   const router = useRouter();
-  const client = useApolloClient();
+  const [logout, { client, loading: reqLoading }] = useLogoutUserMutation();
   const { colorMode, toggleColorMode } = useColorMode();
+  const toast = useToast();
 
   const colorRed = useColorModeValue("red.700", "red.400");
   const colorMainNavbar = useColorModeValue("purple.700", "");
 
-  const onLogout = () => {
-    localStorage.removeItem("token");
-    client.clearStore();
-    router.push("/");
+  const onLogout = async () => {
+    toast({
+      title: "Logging out...",
+      status: "info",
+    });
+    await logout();
+    await client.clearStore();
+    setAccessToken("");
+    await router.push("/");
+    toast.closeAll();
   };
 
   return (
@@ -77,6 +86,7 @@ const ChatNavigation = () => {
             color={colorRed}
             icon={<Icon as={HiLogout} w="5" h="5" d="block" />}
             onClick={onLogout}
+            isDisabled={reqLoading}
           >
             Log Out
           </MenuItem>

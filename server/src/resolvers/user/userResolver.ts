@@ -28,38 +28,17 @@ import {
   LoginUserArgs,
   UpdateUserArgs,
 } from "./types";
-import { Context } from "../../types";
-import { issueAuthToken } from "../../utils/auth";
+import { Context, JwtPayload } from "../../types";
+import {
+  createRefreshToken,
+  createAccessToken,
+  sendRefreshToken,
+} from "../../utils/auth";
 import { deleteFromCloudinary, uploadToCloudinary } from "../../utils/upload";
 import { IsAuthenticated } from "../middlewares/isAuth";
 
 @Resolver((of) => User)
 export class UserResolver {
-  @Query((returns) => LoggedInUser)
-  async loginUser(
-    @Args() { email, password }: LoginUserArgs
-  ): Promise<LoggedInUser> {
-    const foundUser = await UserModel.findOne({ email });
-
-    if (!foundUser) {
-      throw new UserInputError("Email or password are not valid");
-    }
-
-    const passwordsDoMatch = await comparePasswords(
-      password,
-      foundUser.password
-    );
-    if (!passwordsDoMatch) {
-      throw new UserInputError("Email or password are not valid");
-    }
-
-    const foundUserObj = foundUser.toObject();
-
-    const token = issueAuthToken({ _id: foundUserObj._id });
-
-    return { user: foundUserObj, token };
-  }
-
   @Query((returns) => [User])
   @UseMiddleware(IsAuthenticated)
   async getUsers(
@@ -67,7 +46,7 @@ export class UserResolver {
     @Arg("searchOptions")
     { searchText, limit, offset, excludedUsers }: GetUsersInput
   ): Promise<User[]> {
-    const authUserId = ctx.user!._id;
+    const authUserId = ctx.payload.userId;
 
     let filterQuery: FilterQuery<User> = {
       _id: { $not: { $eq: authUserId } },
@@ -137,20 +116,19 @@ export class UserResolver {
   @Query((returns) => AuthUser)
   @UseMiddleware(IsAuthenticated)
   async getAuthUser(@Ctx() ctx: Context): Promise<AuthUser> {
-    const authUser = {
-      ...ctx.user!,
-      password: "",
-    };
+    const authUserId = ctx.payload.userId;
 
-    return { ...ctx, user: authUser };
+    const authUser = await UserModel.findById(authUserId);
+    if (!authUser) {
+      throw new ValidationError("User not found");
+    }
+
+    return { isAuth: true, user: authUser };
   }
 
   @Query((returns) => User)
   @UseMiddleware(IsAuthenticated)
-  async getUser(
-    @Arg("username") username: string,
-    @Ctx() ctx: Context
-  ): Promise<User> {
+  async getUser(@Arg("username") username: string): Promise<User> {
     const user = await UserModel.findOne({
       username,
     });
@@ -160,6 +138,40 @@ export class UserResolver {
     }
 
     return user;
+  }
+
+  @Mutation((returns) => LoggedInUser)
+  async loginUser(
+    @Args() { email, password }: LoginUserArgs,
+    @Ctx() ctx: Context
+  ): Promise<LoggedInUser> {
+    const foundUser = await UserModel.findOne({ email });
+
+    if (!foundUser) {
+      throw new UserInputError("Email or password are not valid");
+    }
+
+    const passwordsDoMatch = await comparePasswords(
+      password,
+      foundUser.password
+    );
+    if (!passwordsDoMatch) {
+      throw new UserInputError("Email or password are not valid");
+    }
+
+    const foundUserObj = foundUser.toObject();
+
+    const tokenData: JwtPayload = {
+      userId: foundUserObj._id,
+      username: foundUserObj.username,
+    };
+
+    const refreshToken = createRefreshToken(tokenData);
+    sendRefreshToken(ctx.res, refreshToken);
+
+    const token = createAccessToken(tokenData);
+
+    return { user: foundUserObj, token };
   }
 
   @Mutation((returns) => User)
@@ -198,13 +210,19 @@ export class UserResolver {
     return user;
   }
 
+  @Mutation((returns) => Boolean)
+  logout(@Ctx() ctx: Context): Boolean {
+    sendRefreshToken(ctx.res, "");
+    return true;
+  }
+
   @Mutation((returns) => User)
   @UseMiddleware(IsAuthenticated)
   async updateUser(
     @Ctx() ctx: Context,
     @Args() { fullname, description }: UpdateUserArgs
   ): Promise<User> {
-    const authUserId = ctx.user!._id;
+    const authUserId = ctx.payload.userId;
 
     const updatedUser = await UserModel.findByIdAndUpdate(
       authUserId,
@@ -228,10 +246,10 @@ export class UserResolver {
     @Arg("file", () => GraphQLUpload)
     file: FileUpload
   ): Promise<User> {
-    const authUserId = ctx.user!._id;
-    const user = await UserModel.findById(authUserId);
+    const authUserId = ctx.payload.userId;
 
-    if (!user) {
+    const authUser = await UserModel.findById(authUserId);
+    if (!authUser) {
       throw new ApolloError("Couldn't upload profile image");
     }
 
@@ -240,28 +258,28 @@ export class UserResolver {
       throw new ApolloError("Couldn't upload profile image");
     }
 
-    const olderImagePublicId = user.profileImg
-      ? user.profileImg.publicId
+    const olderImagePublicId = authUser.profileImg
+      ? authUser.profileImg.publicId
       : null;
 
-    user.profileImg = {
+    authUser.profileImg = {
       _id: new ObjectId(),
       publicId: uploadedFile.public_id,
       url: uploadedFile.secure_url,
     };
-    await user.save();
+    await authUser.save();
 
     if (olderImagePublicId) {
       await deleteFromCloudinary(olderImagePublicId);
     }
 
-    return user;
+    return authUser;
   }
 
   @Mutation((returns) => User)
   @UseMiddleware(IsAuthenticated)
   async deleteProfileImage(@Ctx() ctx: Context): Promise<User> {
-    const authUserId = ctx.user!._id;
+    const authUserId = ctx.payload.userId;
     const user = await UserModel.findById(authUserId);
 
     if (!user || !user.profileImg) {

@@ -6,7 +6,7 @@ type Props = {
   username: string;
   fullname: string;
   imageUrl?: string;
-  isNewUser?: boolean;
+  isNewUser?: boolean | null;
 };
 
 const UserItem = ({ username, fullname, imageUrl, isNewUser }: Props) => {

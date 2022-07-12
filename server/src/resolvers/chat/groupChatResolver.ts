@@ -39,7 +39,7 @@ export class GroupChatResolver {
     @Arg("chatId") chatId: string,
     @Ctx() ctx: Context
   ): Promise<Chat> {
-    const authUserId = ctx.user!._id;
+    const authUserId = ctx.payload.userId;
 
     /*
         GOAL: the property "messages" of the chat must contain only the messages the 
@@ -79,7 +79,7 @@ export class GroupChatResolver {
     @Arg("chatId") chatId: string,
     @Ctx() ctx: Context
   ): Promise<Chat> {
-    const authUserId = ctx.user!._id;
+    const authUserId = ctx.payload.userId;
 
     const chat = await ChatModel.findOne({
       _id: chatId,
@@ -108,7 +108,7 @@ export class GroupChatResolver {
     @Arg("groupData") { groupName, groupMembers }: NewGroupInput,
     @Ctx() ctx: Context
   ): Promise<Chat> {
-    const { _id: authUserId, username: authUsername } = ctx.user!;
+    const { userId: authUserId, username: authUsername } = ctx.payload;
     const chatUsers = generateChatUsersArr(groupMembers, authUserId);
 
     const newMessage: Message = {
@@ -147,7 +147,7 @@ export class GroupChatResolver {
     @Arg("addUsersArgs") { chatId, newUsers }: AddUsersToGroupInput,
     @Ctx() ctx: Context
   ): Promise<Chat> {
-    const { _id: authUserId, username: authUsername } = ctx.user!;
+    const { userId: authUserId, username: authUsername } = ctx.payload;
     const authUserIdString = authUserId.toString();
 
     const chat = await ChatModel.findOne({
@@ -218,7 +218,7 @@ export class GroupChatResolver {
     @Arg("removeFromGroupArgs") { chatId, userId }: GroupOperationInput,
     @Ctx() ctx: Context
   ): Promise<Chat> {
-    const { _id: authUserId, username: authUsername } = ctx.user!;
+    const { userId: authUserId, username: authUsername } = ctx.payload;
     const authUserIdString = authUserId.toString();
     const userIdString = userId.toString();
 
@@ -293,7 +293,7 @@ export class GroupChatResolver {
     @Arg("chatId") chatId: string,
     @Ctx() ctx: Context
   ): Promise<Chat> {
-    const { _id: authUserId, username: authUsername } = ctx.user!;
+    const { userId: authUserId, username: authUsername } = ctx.payload;
     const authUserIdString = authUserId.toString();
 
     const chat = await ChatModel.findOne({
@@ -367,7 +367,7 @@ export class GroupChatResolver {
     @Arg("appointAdminArgs") { chatId, userId: newAdmin }: GroupOperationInput,
     @Ctx() ctx: Context
   ): Promise<Chat> {
-    const authUserId = ctx.user!._id;
+    const authUserId = ctx.payload.userId;
     const authUserIdString = authUserId.toString();
 
     const chat = await ChatModel.findOne({
@@ -430,7 +430,7 @@ export class GroupChatResolver {
     @Arg("removeAdminArgs") { chatId, userId: adminId }: GroupOperationInput,
     @Ctx() ctx: Context
   ): Promise<Chat> {
-    const authUserId = ctx.user!._id;
+    const authUserId = ctx.payload.userId;
     const authUserIdString = authUserId.toString();
 
     const chat = await ChatModel.findOne({
@@ -496,7 +496,7 @@ export class GroupChatResolver {
     @Arg("file", () => GraphQLUpload) file: FileUpload,
     @Ctx() ctx: Context
   ): Promise<Chat> {
-    const { _id: authUserId, username: authUsername } = ctx.user!;
+    const { userId: authUserId, username: authUsername } = ctx.payload;
 
     const chat = await ChatModel.findOne({
       _id: chatId,
@@ -554,7 +554,7 @@ export class GroupChatResolver {
     @Arg("chatId") chatId: ObjectId,
     @Ctx() ctx: Context
   ): Promise<Chat> {
-    const { _id: authUserId, username: authUsername } = ctx.user!;
+    const { userId: authUserId, username: authUsername } = ctx.payload;
 
     const chat = await ChatModel.findOne({
       _id: chatId,
@@ -605,7 +605,7 @@ export class GroupChatResolver {
     @Arg("changeGroupNameArgs") { chatId, newName }: ChangeGroupNameArgs,
     @Ctx() ctx: Context
   ): Promise<Chat> {
-    const { _id: authUserId, username: authUsername } = ctx.user!;
+    const { userId: authUserId, username: authUsername } = ctx.payload;
 
     const chat = await ChatModel.findOne({
       _id: chatId,

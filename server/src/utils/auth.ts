@@ -1,14 +1,27 @@
+import { Response } from "express";
 import { sign, verify } from "jsonwebtoken";
 
-import { UserModel } from "../schemas/user";
 import { JwtPayload } from "../types";
 
-export const issueAuthToken = (jwtPayload: JwtPayload) => {
-  let token = sign(jwtPayload, process.env.JWT_SECRET as string, {
-    expiresIn: 3600 * 24,
+export const createAccessToken = (jwtPayload: JwtPayload) => {
+  return sign(jwtPayload, process.env.ACCESS_TOKEN_SECRET as string, {
+    expiresIn: "15m",
   });
+};
 
-  return `Bearer ${token}`;
+export const createRefreshToken = (jwtPayload: JwtPayload) => {
+  return sign(jwtPayload, process.env.REFRESH_TOKEN_SECRET as string, {
+    expiresIn: "7d",
+  });
+};
+
+export const sendRefreshToken = (res: Response, token: string) => {
+  res.cookie("jid", token, {
+    httpOnly: true,
+    path: "/refresh-token",
+    sameSite: "none",
+    secure: true,
+  });
 };
 
 export const extractBearerToken = (bearerToken: string) => {
@@ -19,16 +32,34 @@ export const extractBearerToken = (bearerToken: string) => {
   return extractedToken;
 };
 
-export const getDecodedToken: (t: string) => JwtPayload | null = (
+export const getAccessToken: (t: string) => JwtPayload | null = (
   token: string
+) => {
+  const accessToken = getDecodedToken(
+    token,
+    process.env.ACCESS_TOKEN_SECRET as string
+  );
+  return accessToken;
+};
+
+export const getRefreshToken: (t: string) => JwtPayload | null = (
+  token: string
+) => {
+  const refreshToken = getDecodedToken(
+    token,
+    process.env.REFRESH_TOKEN_SECRET as string
+  );
+  return refreshToken;
+};
+
+const getDecodedToken: (t: string, s: string) => JwtPayload | null = (
+  token,
+  secret
 ) => {
   let decodedToken;
 
   try {
-    decodedToken = verify(
-      token,
-      process.env.JWT_SECRET as string
-    ) as JwtPayload;
+    decodedToken = verify(token, secret) as JwtPayload;
   } catch (error) {
     decodedToken = null;
   }
@@ -38,17 +69,14 @@ export const getDecodedToken: (t: string) => JwtPayload | null = (
 
 // TODO: check this function
 // The token looks like "Bearer <user_token>"
-export const getUserIdWithToken = async (userToken: any) => {
+export const getUserIdWithToken = (userToken: any) => {
   if (!userToken || typeof userToken !== "string") return null;
 
   const extractedToken = extractBearerToken(userToken);
   if (!extractedToken) return null;
 
-  let decodedToken = getDecodedToken(extractedToken);
-  if (!decodedToken) return null;
+  let accessToken = getAccessToken(extractedToken);
+  if (!accessToken) return null;
 
-  let authUser = await UserModel.findById(decodedToken._id, { _id: 1 });
-  if (!authUser) return null;
-
-  return authUser._id;
+  return accessToken.userId;
 };

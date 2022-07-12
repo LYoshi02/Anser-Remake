@@ -15,6 +15,7 @@ import {
 import { FormControl } from "@/components/UI";
 import { useCreateUserMutation } from "@/graphql/generated";
 import { useToast } from "@/hooks/useToast";
+import { useRouter } from "next/router";
 
 const SignupPage: NextPage = () => {
   const [signupUser, { loading: reqLoading }] = useCreateUserMutation();
@@ -25,6 +26,7 @@ const SignupPage: NextPage = () => {
   } = useForm<SignupFormValues>({
     resolver: yupResolver(signupFormSchema),
   });
+  const router = useRouter();
   const toast = useToast();
 
   const submitHandler = async (values: SignupFormValues) => {
@@ -47,6 +49,7 @@ const SignupPage: NextPage = () => {
           description: "User signed up successfully",
           duration: 3000,
         });
+        router.push("/login");
       }
     } catch (e) {}
   };

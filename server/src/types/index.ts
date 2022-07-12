@@ -1,20 +1,15 @@
-import { Request } from "express";
+import { Request, Response } from "express";
 import { ObjectId } from "mongodb";
 
-import { User } from "../schemas/user";
-
-export interface CustomRequest extends Request {
-  user?: User;
-  isAuth: boolean;
-}
-
 export type Context = {
-  user?: User;
-  isAuth: boolean;
+  req: Request;
+  res: Response;
+  payload: JwtPayload;
 };
 
 export type JwtPayload = {
-  _id: ObjectId;
+  userId: ObjectId;
+  username: string;
 };
 
 export type Ref<T> = T | ObjectId;

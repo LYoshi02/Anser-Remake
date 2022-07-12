@@ -14,11 +14,16 @@ import {
   PasswordInput,
 } from "@/features/auth";
 import { FormControl } from "@/components/UI";
-import { useLoginUserLazyQuery } from "@/graphql/generated";
+import {
+  GetAuthUserDocument,
+  GetAuthUserQuery,
+  useLoginUserMutation,
+} from "@/graphql/generated";
 import { useToast } from "@/hooks/useToast";
+import { setAccessToken } from "@/helpers/accessToken";
 
 const LoginPage: NextPage = () => {
-  const [loginUser, { loading, error }] = useLoginUserLazyQuery();
+  const [loginUser, { loading, error }] = useLoginUserMutation();
   const toast = useToast();
   const {
     register,
@@ -33,16 +38,24 @@ const LoginPage: NextPage = () => {
     try {
       const res = await loginUser({
         variables: { email: values.email, password: values.password },
+        update: (store, { data }) => {
+          if (!data) return null;
+
+          store.writeQuery<GetAuthUserQuery>({
+            query: GetAuthUserDocument,
+            data: {
+              getAuthUser: {
+                isAuth: true,
+                user: data.loginUser.user,
+              },
+            },
+          });
+        },
       });
 
-      if (res.data && res.data.loginUser.token) {
-        toast({
-          status: "success",
-          title: "Success",
-          description: "User logged in successfully",
-          duration: 3000,
-        });
-      } else {
+      const generatedToken = res.data?.loginUser.token;
+
+      if (!generatedToken) {
         const errorMessage = "Couldn't generate an authentication token";
         toast({
           status: "error",
@@ -52,8 +65,15 @@ const LoginPage: NextPage = () => {
         throw new Error(errorMessage);
       }
 
-      localStorage.setItem("token", res.data.loginUser.token);
-      router.push("/chats");
+      toast({
+        status: "success",
+        title: "Success",
+        description: "User logged in successfully",
+        duration: 3000,
+      });
+      setAccessToken(generatedToken);
+      await router.push("/chats");
+      toast.closeAll();
     } catch (e) {}
   };
 

@@ -1,14 +1,24 @@
-import { ApolloClient, InMemoryCache, split } from "@apollo/client";
-import { setContext } from "@apollo/client/link/context";
+import {
+  ApolloClient,
+  ApolloLink,
+  InMemoryCache,
+  split,
+  Observable,
+} from "@apollo/client";
 import { onError } from "@apollo/client/link/error";
 import { getMainDefinition } from "@apollo/client/utilities";
 import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
 import { createClient } from "graphql-ws";
 import { createUploadLink } from "apollo-upload-client";
 import { createStandaloneToast } from "@chakra-ui/react";
+import { TokenRefreshLink } from "apollo-link-token-refresh";
+import jwtDecode from "jwt-decode";
+import Router from "next/router";
 
 import theme from "@/styles/theme";
+import { getAccessToken, setAccessToken } from "@/helpers/accessToken";
 
+const toastId = "error-toast";
 const toast = createStandaloneToast({
   theme,
   defaultOptions: {
@@ -21,21 +31,47 @@ const toast = createStandaloneToast({
   },
 });
 
-const uploadLink = createUploadLink({
-  uri: process.env.NEXT_PUBLIC_SERVER_URL,
-});
+const showErrorMessage = (msg: string) => {
+  if (!toast.isActive(toastId)) {
+    toast({
+      id: toastId,
+      description: msg,
+    });
+  }
+};
 
-const authLink = setContext((_, { headers }) => {
-  // get the authentication token from local storage if it exists
-  const token = localStorage.getItem("token");
+const tokenRefreshLink = new TokenRefreshLink({
+  accessTokenField: "accessToken",
+  isTokenValidOrUndefined: () => {
+    const token = getAccessToken();
 
-  // return the headers to the context so httpLink can read them
-  return {
-    headers: {
-      ...headers,
-      authorization: token ? token : "",
-    },
-  };
+    if (!token) {
+      return true;
+    }
+
+    try {
+      // TODO: change the <any> generic
+      const { exp } = jwtDecode<any>(token);
+      const isTokenValid = Date.now() < exp * 1000;
+
+      return isTokenValid;
+    } catch {
+      return false;
+    }
+  },
+  fetchAccessToken: () => {
+    return fetch("http://localhost:4000/refresh-token", {
+      method: "POST",
+      credentials: "include",
+    });
+  },
+  handleFetch: (newAccessToken) => {
+    setAccessToken(newAccessToken);
+  },
+  handleError: (err) => {
+    Router.replace("/login");
+    showErrorMessage("Invalid session, try to relogin");
+  },
 });
 
 const errorLink = onError(({ graphQLErrors, networkError }) => {
@@ -46,13 +82,10 @@ const errorLink = onError(({ graphQLErrors, networkError }) => {
       );
 
       if (err.extensions.code === "UNAUTHENTICATED") {
-        // TODO: implement logic to handle this case
-        console.log("Err: User not authenticated");
+        Router.replace("/login");
       }
 
-      toast({
-        description: err.message,
-      });
+      showErrorMessage(err.message);
     });
   if (networkError) {
     toast({
@@ -61,40 +94,81 @@ const errorLink = onError(({ graphQLErrors, networkError }) => {
   }
 });
 
-const wsLink =
-  typeof window !== "undefined"
-    ? new GraphQLWsLink(
-        createClient({
-          url: "ws://localhost:4000/graphql",
-          connectionParams: () => ({
-            authToken: localStorage.getItem("token"),
-          }),
+// Using this link to set the token into the context
+const requestLink = new ApolloLink(
+  (operation, forward) =>
+    new Observable((observer) => {
+      let handle: any;
+      Promise.resolve(operation)
+        .then((operation) => {
+          const token = getAccessToken();
+          if (token) {
+            operation.setContext({
+              headers: {
+                authorization: `Bearer ${token}`,
+              },
+            });
+          }
         })
-      )
-    : null;
+        .then(() => {
+          handle = forward(operation).subscribe({
+            next: observer.next.bind(observer),
+            error: observer.error.bind(observer),
+            complete: observer.complete.bind(observer),
+          });
+        })
+        .catch(observer.error.bind(observer));
 
-const splitLink =
-  typeof window !== "undefined"
-    ? split(
-        ({ query }) => {
-          const definition = getMainDefinition(query);
+      return () => {
+        if (handle) handle.unsubscribe();
+      };
+    })
+);
 
-          return (
-            definition.kind === "OperationDefinition" &&
-            definition.operation === "subscription"
-          );
-        },
-        wsLink!,
-        errorLink.concat(authLink.concat(uploadLink))
-      )
-    : uploadLink;
+const uploadLink = createUploadLink({
+  uri: process.env.NEXT_PUBLIC_SERVER_URL,
+  credentials: "include",
+});
+
+let wsLink: GraphQLWsLink,
+  splitLink: ApolloLink = uploadLink;
+if (typeof window !== "undefined") {
+  wsLink = new GraphQLWsLink(
+    createClient({
+      url: "ws://localhost:4000/graphql",
+      connectionParams: () => {
+        const token = getAccessToken();
+        return {
+          authToken: `Bearer ${token}`,
+        };
+      },
+    })
+  );
+
+  splitLink = split(
+    ({ query }) => {
+      const definition = getMainDefinition(query);
+
+      return (
+        definition.kind === "OperationDefinition" &&
+        definition.operation === "subscription"
+      );
+    },
+    wsLink,
+    uploadLink
+  );
+}
 
 export const client = new ApolloClient({
-  link: splitLink,
+  link: ApolloLink.from([tokenRefreshLink, errorLink, requestLink, splitLink]),
+  credentials: "include",
   cache: new InMemoryCache({
     typePolicies: {
       Query: {
         fields: {
+          getAuthUser: {
+            keyArgs: ["user"],
+          },
           // Necessary to use pagination
           getUsers: {
             keyArgs: ["searchOptions", ["searchText", "excludedUsers"]],
