@@ -19,6 +19,7 @@ import {
   NewChatInput,
   NewMessage,
   NewMessagePayload,
+  SingleChat,
 } from "./types";
 import { Chat, ChatModel } from "../../schemas/chat";
 import { Message } from "../../schemas/message";
@@ -84,20 +85,17 @@ export class ChatResolver {
     return populatedChats;
   }
 
-  @Query((returns) => Chat)
+  @Query((returns) => SingleChat)
   @UseMiddleware(IsAuthenticated)
-  async getChat(
+  async getSingleChat(
     @Arg("recipientUsername") recipientUsername: string,
     @Ctx() ctx: Context
-  ): Promise<Chat> {
+  ): Promise<SingleChat> {
     const authUserId = ctx.payload!.userId;
-    const recipient = await UserModel.findOne(
-      { username: recipientUsername },
-      { _id: 1 }
-    );
+    const recipient = await UserModel.findOne({ username: recipientUsername });
 
     if (!recipient) {
-      throw new ValidationError("Chat not found");
+      throw new ValidationError("User not found");
     }
 
     const chat = await ChatModel.findOne({
@@ -107,11 +105,7 @@ export class ChatResolver {
       .populate("messages.sender")
       .exec();
 
-    if (!chat) {
-      throw new ValidationError("Chat not found");
-    }
-
-    return chat;
+    return { chat, recipient };
   }
 
   @Mutation((returns) => Chat)

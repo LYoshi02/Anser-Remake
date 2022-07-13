@@ -6,27 +6,24 @@ import { ChatBody, ChatInfo, MessageInput } from "@/features/chat";
 import { AppLayout } from "@/components/Layout";
 import { BackNav } from "@/components/UI";
 import {
-  useGetChatLazyQuery,
   useAddMessageMutation,
-  useGetUserLazyQuery,
   useCreateNewChatMutation,
   OnNewMessageAddedDocument,
   OnNewMessageAddedSubscription,
+  useGetSingleChatLazyQuery,
 } from "@/graphql/generated";
 import { useAuthUser } from "@/hooks/useAuthUser";
 
 const UserChatPage: NextPage = () => {
   const [
-    getChat,
+    getSingleChat,
     {
       data: chatData,
       subscribeToMore,
-      refetch: refetchChat,
+      refetch: refetchSingleChat,
       loading: chatReqLoading,
     },
-  ] = useGetChatLazyQuery();
-  const [getRecipient, { data: recipientData, loading: userReqLoading }] =
-    useGetUserLazyQuery();
+  ] = useGetSingleChatLazyQuery();
   const [createNewChat] = useCreateNewChatMutation();
   const [addMessage] = useAddMessageMutation();
   const { authUser } = useAuthUser({ redirectTo: "/login" });
@@ -38,54 +35,51 @@ const UserChatPage: NextPage = () => {
     if (recipientUsername) {
       const getChatData = async () => {
         try {
-          await getChat({
+          await getSingleChat({
             variables: { recipientUsername },
           });
-
-          await getRecipient({ variables: { username: recipientUsername } });
         } catch (e) {}
       };
 
       getChatData();
     }
-  }, [recipientUsername, getChat, getRecipient]);
+  }, [recipientUsername, getSingleChat]);
 
   /*
     To update the query when receiving a message from a user if you are in his 
     chat, and the chat doesn´t exist yet.
   */
   useEffect(() => {
-    if (recipientUsername) {
-      subscribeToMore<OnNewMessageAddedSubscription>({
-        document: OnNewMessageAddedDocument,
-        updateQuery: (prev, { subscriptionData }) => {
-          if (!subscriptionData.data) return prev;
+    if (!recipientUsername) return;
 
-          const { newMessage } = subscriptionData.data;
-          const recipientExists = newMessage.users?.some(
-            (u) => u.username === recipientUsername
-          );
+    const unsubscribe = subscribeToMore<OnNewMessageAddedSubscription>({
+      document: OnNewMessageAddedDocument,
+      updateQuery: (prev, { subscriptionData }) => {
+        if (!subscriptionData.data) return prev;
 
-          if (
-            recipientExists &&
-            Object.keys(prev).length === 0 &&
-            !newMessage.group
-          ) {
-            console.log("Refetching chat...");
-            refetchChat({ recipientUsername });
-          }
+        const { newMessage } = subscriptionData.data;
+        const recipientExists = newMessage.users?.some(
+          (u) => u.username === recipientUsername
+        );
 
-          return prev;
-        },
-      });
-    }
-  }, [subscribeToMore, recipientUsername, refetchChat]);
+        if (recipientExists && !prev.getSingleChat.chat && !newMessage.group) {
+          refetchSingleChat({ recipientUsername });
+        }
+
+        return prev;
+      },
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [subscribeToMore, recipientUsername, refetchSingleChat]);
 
   const sendMessageHandler = async (text: string) => {
-    if (!chatData && !recipientData) return;
+    if (!chatData) return;
 
     try {
-      const chatId = chatData!.getChat._id;
+      const chatId = chatData!.getSingleChat.chat?._id;
 
       if (chatId) {
         await addMessage({
@@ -100,7 +94,7 @@ const UserChatPage: NextPage = () => {
         await createNewChat({
           variables: {
             chatData: {
-              recipients: [recipientData!.getUser._id],
+              recipients: [chatData!.getSingleChat.recipient._id],
               text,
             },
           },
@@ -110,7 +104,7 @@ const UserChatPage: NextPage = () => {
   };
 
   let messageInput;
-  if (!chatReqLoading && !userReqLoading) {
+  if (!chatReqLoading && chatData) {
     messageInput = <MessageInput onSendMessage={sendMessageHandler} />;
   }
 
@@ -118,12 +112,12 @@ const UserChatPage: NextPage = () => {
     <AppLayout>
       <BackNav>
         <ChatInfo
-          name={recipientData?.getUser.fullname || ""}
-          imageUrl={recipientData?.getUser.profileImg?.url}
+          name={chatData?.getSingleChat.recipient.fullname || ""}
+          imageUrl={chatData?.getSingleChat.recipient.profileImg?.url}
         />
       </BackNav>
       <ChatBody
-        messages={chatData?.getChat.messages}
+        messages={chatData?.getSingleChat.chat?.messages}
         authUserId={authUser?._id}
         messageInput={messageInput}
       />

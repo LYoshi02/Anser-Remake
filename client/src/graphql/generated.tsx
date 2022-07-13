@@ -222,6 +222,7 @@ export type Query = {
   getChats: Array<Chat>;
   getGroupChat: Chat;
   getGroupData: Chat;
+  getSingleChat: SingleChat;
   getUser: User;
   getUsers: Array<User>;
 };
@@ -242,6 +243,11 @@ export type QueryGetGroupDataArgs = {
 };
 
 
+export type QueryGetSingleChatArgs = {
+  recipientUsername: Scalars['String'];
+};
+
+
 export type QueryGetUserArgs = {
   username: Scalars['String'];
 };
@@ -249,6 +255,12 @@ export type QueryGetUserArgs = {
 
 export type QueryGetUsersArgs = {
   searchOptions: GetUsersInput;
+};
+
+export type SingleChat = {
+  __typename?: 'SingleChat';
+  chat?: Maybe<Chat>;
+  recipient: User;
 };
 
 export type Subscription = {
@@ -307,13 +319,6 @@ export type CreateNewChatMutationVariables = Exact<{
 
 export type CreateNewChatMutation = { __typename?: 'Mutation', createNewChat: { __typename?: 'Chat', _id: any } };
 
-export type GetChatQueryVariables = Exact<{
-  recipientUsername: Scalars['String'];
-}>;
-
-
-export type GetChatQuery = { __typename?: 'Query', getChat: { __typename?: 'Chat', _id: any, users: Array<{ __typename?: 'User', _id: any }>, messages: Array<{ __typename?: 'Message', _id: any, text: string, sender?: { __typename?: 'User', _id: any, fullname: string, profileImg?: { __typename?: 'Image', url: string } | null } | null }> } };
-
 export type GetChatsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -332,6 +337,13 @@ export type GetGroupChatQueryVariables = Exact<{
 
 
 export type GetGroupChatQuery = { __typename?: 'Query', getGroupChat: { __typename?: 'Chat', _id: any, users: Array<{ __typename?: 'User', _id: any }>, messages: Array<{ __typename?: 'Message', _id: any, text: string, sender?: { __typename?: 'User', _id: any, fullname: string, profileImg?: { __typename?: 'Image', url: string } | null } | null }>, group?: { __typename?: 'Group', name: string, image?: { __typename?: 'Image', url: string } | null } | null } };
+
+export type GetSingleChatQueryVariables = Exact<{
+  recipientUsername: Scalars['String'];
+}>;
+
+
+export type GetSingleChatQuery = { __typename?: 'Query', getSingleChat: { __typename?: 'SingleChat', chat?: { __typename?: 'Chat', _id: any, users: Array<{ __typename?: 'User', _id: any }>, messages: Array<{ __typename?: 'Message', _id: any, text: string, sender?: { __typename?: 'User', _id: any, fullname: string, profileImg?: { __typename?: 'Image', url: string } | null } | null }> } | null, recipient: { __typename?: 'User', _id: any, fullname: string, profileImg?: { __typename?: 'Image', url: string } | null } } };
 
 export type GetUserQueryVariables = Exact<{
   username: Scalars['String'];
@@ -666,55 +678,6 @@ export function useCreateNewChatMutation(baseOptions?: Apollo.MutationHookOption
 export type CreateNewChatMutationHookResult = ReturnType<typeof useCreateNewChatMutation>;
 export type CreateNewChatMutationResult = Apollo.MutationResult<CreateNewChatMutation>;
 export type CreateNewChatMutationOptions = Apollo.BaseMutationOptions<CreateNewChatMutation, CreateNewChatMutationVariables>;
-export const GetChatDocument = gql`
-    query GetChat($recipientUsername: String!) {
-  getChat(recipientUsername: $recipientUsername) {
-    _id
-    users {
-      _id
-    }
-    messages {
-      _id
-      sender {
-        _id
-        fullname
-        profileImg {
-          url
-        }
-      }
-      text
-    }
-  }
-}
-    `;
-
-/**
- * __useGetChatQuery__
- *
- * To run a query within a React component, call `useGetChatQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetChatQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetChatQuery({
- *   variables: {
- *      recipientUsername: // value for 'recipientUsername'
- *   },
- * });
- */
-export function useGetChatQuery(baseOptions: Apollo.QueryHookOptions<GetChatQuery, GetChatQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetChatQuery, GetChatQueryVariables>(GetChatDocument, options);
-      }
-export function useGetChatLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetChatQuery, GetChatQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetChatQuery, GetChatQueryVariables>(GetChatDocument, options);
-        }
-export type GetChatQueryHookResult = ReturnType<typeof useGetChatQuery>;
-export type GetChatLazyQueryHookResult = ReturnType<typeof useGetChatLazyQuery>;
-export type GetChatQueryResult = Apollo.QueryResult<GetChatQuery, GetChatQueryVariables>;
 export const GetChatsDocument = gql`
     query GetChats {
   getChats {
@@ -869,6 +832,64 @@ export function useGetGroupChatLazyQuery(baseOptions?: Apollo.LazyQueryHookOptio
 export type GetGroupChatQueryHookResult = ReturnType<typeof useGetGroupChatQuery>;
 export type GetGroupChatLazyQueryHookResult = ReturnType<typeof useGetGroupChatLazyQuery>;
 export type GetGroupChatQueryResult = Apollo.QueryResult<GetGroupChatQuery, GetGroupChatQueryVariables>;
+export const GetSingleChatDocument = gql`
+    query GetSingleChat($recipientUsername: String!) {
+  getSingleChat(recipientUsername: $recipientUsername) {
+    chat {
+      _id
+      users {
+        _id
+      }
+      messages {
+        _id
+        sender {
+          _id
+          fullname
+          profileImg {
+            url
+          }
+        }
+        text
+      }
+    }
+    recipient {
+      _id
+      fullname
+      profileImg {
+        url
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetSingleChatQuery__
+ *
+ * To run a query within a React component, call `useGetSingleChatQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSingleChatQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSingleChatQuery({
+ *   variables: {
+ *      recipientUsername: // value for 'recipientUsername'
+ *   },
+ * });
+ */
+export function useGetSingleChatQuery(baseOptions: Apollo.QueryHookOptions<GetSingleChatQuery, GetSingleChatQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetSingleChatQuery, GetSingleChatQueryVariables>(GetSingleChatDocument, options);
+      }
+export function useGetSingleChatLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetSingleChatQuery, GetSingleChatQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetSingleChatQuery, GetSingleChatQueryVariables>(GetSingleChatDocument, options);
+        }
+export type GetSingleChatQueryHookResult = ReturnType<typeof useGetSingleChatQuery>;
+export type GetSingleChatLazyQueryHookResult = ReturnType<typeof useGetSingleChatLazyQuery>;
+export type GetSingleChatQueryResult = Apollo.QueryResult<GetSingleChatQuery, GetSingleChatQueryVariables>;
 export const GetUserDocument = gql`
     query GetUser($username: String!) {
   getUser(username: $username) {

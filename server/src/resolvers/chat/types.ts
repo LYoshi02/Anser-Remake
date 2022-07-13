@@ -7,6 +7,7 @@ import { User } from "../../schemas/user";
 import { Message } from "../../schemas/message";
 import { Group } from "../../schemas/group";
 import { ArrayNotEmpty, IsNotEmpty, MinLength } from "class-validator";
+import { Chat } from "../../schemas/chat";
 
 @InputType()
 export class AddMessageInput {
@@ -83,6 +84,15 @@ export class NewMessage {
 
   @Field((type) => Group, { nullable: true })
   group?: Group;
+}
+
+@ObjectType()
+export class SingleChat {
+  @Field((type) => Chat, { nullable: true })
+  chat: Chat | null;
+
+  @Field((type) => User)
+  recipient: User;
 }
 
 export interface NewMessagePayload {
