@@ -14,7 +14,7 @@ import { useAuthUser } from "@/hooks/useAuthUser";
 
 const GroupChatPage: NextPage = () => {
   const router = useRouter();
-  const authUser = useAuthUser({ redirectTo: "/login" });
+  const { authUser } = useAuthUser({ redirectTo: "/login" });
   const [getGroupChat, { data: chatData, loading: reqLoading }] =
     useGetGroupChatLazyQuery();
   const [addMessage] = useAddMessageMutation();

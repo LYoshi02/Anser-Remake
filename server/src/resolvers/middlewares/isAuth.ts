@@ -12,13 +12,13 @@ export const IsAuthenticated: MiddlewareFn<Context> = async (
   const ctx = context as Context;
 
   // Extract Authorization Header
-  const authHeader = ctx.req.header("authorization");
-  if (!authHeader) {
+  const bearerToken = ctx.req.header("authorization");
+  if (!bearerToken) {
     throw new AuthenticationError("User is not authenticated");
   }
 
   // Extract the token from the header
-  const token = extractBearerToken(authHeader);
+  const token = extractBearerToken(bearerToken);
   if (!token) {
     throw new AuthenticationError("User is not authenticated");
   }
@@ -33,5 +33,6 @@ export const IsAuthenticated: MiddlewareFn<Context> = async (
     ...accessToken,
     userId: new ObjectId(accessToken.userId),
   };
+
   return next();
 };

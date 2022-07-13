@@ -3,15 +3,21 @@ import { useRouter } from "next/router";
 
 import { useGetAuthUserQuery } from "@/graphql/generated";
 
+// This params should only be set when using the hook on a page
 type Params = {
-  redirectTo?: string;
+  redirectTo: string;
   redirectIfFound?: boolean;
 };
 
+const defaultParams: Params = {
+  redirectTo: "",
+  redirectIfFound: false,
+};
+
 export const useAuthUser = ({
-  redirectTo = "",
+  redirectTo,
   redirectIfFound = false,
-}: Params) => {
+}: Params = defaultParams) => {
   const { data: userData, loading, error } = useGetAuthUserQuery();
   const router = useRouter();
 
@@ -19,12 +25,16 @@ export const useAuthUser = ({
     if (!redirectTo || !userData) return;
 
     if (
-      (redirectTo && !redirectIfFound && !userData?.getAuthUser.isAuth) ||
-      (redirectIfFound && userData?.getAuthUser.isAuth)
+      (redirectTo && !redirectIfFound && !userData.getAuthUser.isAuth) ||
+      (redirectIfFound && userData.getAuthUser.isAuth)
     ) {
-      router.push(redirectTo);
+      router.replace(redirectTo);
     }
   }, [redirectIfFound, redirectTo, router, userData]);
 
-  return userData?.getAuthUser.user;
+  return {
+    authUser: userData?.getAuthUser.user,
+    loading,
+    error,
+  };
 };

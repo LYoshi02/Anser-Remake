@@ -21,8 +21,10 @@ import {
 } from "@/graphql/generated";
 import { useToast } from "@/hooks/useToast";
 import { setAccessToken } from "@/helpers/accessToken";
+import { useAuthUser } from "@/hooks/useAuthUser";
 
 const LoginPage: NextPage = () => {
+  const {} = useAuthUser({ redirectTo: "/chats", redirectIfFound: true });
   const [loginUser, { loading, error }] = useLoginUserMutation();
   const toast = useToast();
   const {

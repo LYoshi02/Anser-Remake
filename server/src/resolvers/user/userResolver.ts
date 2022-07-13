@@ -33,6 +33,7 @@ import {
   createRefreshToken,
   createAccessToken,
   sendRefreshToken,
+  getUserIdWithToken,
 } from "../../utils/auth";
 import { deleteFromCloudinary, uploadToCloudinary } from "../../utils/upload";
 import { IsAuthenticated } from "../middlewares/isAuth";
@@ -46,7 +47,7 @@ export class UserResolver {
     @Arg("searchOptions")
     { searchText, limit, offset, excludedUsers }: GetUsersInput
   ): Promise<User[]> {
-    const authUserId = ctx.payload.userId;
+    const authUserId = ctx.payload!.userId;
 
     let filterQuery: FilterQuery<User> = {
       _id: { $not: { $eq: authUserId } },
@@ -114,13 +115,20 @@ export class UserResolver {
   }
 
   @Query((returns) => AuthUser)
-  @UseMiddleware(IsAuthenticated)
   async getAuthUser(@Ctx() ctx: Context): Promise<AuthUser> {
-    const authUserId = ctx.payload.userId;
+    const bearerToken = ctx.req.header("authorization");
+    if (!bearerToken) {
+      return { isAuth: false, user: null };
+    }
+
+    const authUserId = getUserIdWithToken(bearerToken);
+    if (!authUserId) {
+      return { isAuth: false, user: null };
+    }
 
     const authUser = await UserModel.findById(authUserId);
     if (!authUser) {
-      throw new ValidationError("User not found");
+      return { isAuth: false, user: null };
     }
 
     return { isAuth: true, user: authUser };
@@ -221,7 +229,7 @@ export class UserResolver {
     @Ctx() ctx: Context,
     @Args() { fullname, description }: UpdateUserArgs
   ): Promise<User> {
-    const authUserId = ctx.payload.userId;
+    const authUserId = ctx.payload!.userId;
 
     const updatedUser = await UserModel.findByIdAndUpdate(
       authUserId,
@@ -245,7 +253,7 @@ export class UserResolver {
     @Arg("file", () => GraphQLUpload)
     file: FileUpload
   ): Promise<User> {
-    const authUserId = ctx.payload.userId;
+    const authUserId = ctx.payload!.userId;
 
     const authUser = await UserModel.findById(authUserId);
     if (!authUser) {
@@ -278,7 +286,7 @@ export class UserResolver {
   @Mutation((returns) => User)
   @UseMiddleware(IsAuthenticated)
   async deleteProfileImage(@Ctx() ctx: Context): Promise<User> {
-    const authUserId = ctx.payload.userId;
+    const authUserId = ctx.payload!.userId;
     const user = await UserModel.findById(authUserId);
 
     if (!user || !user.profileImg) {

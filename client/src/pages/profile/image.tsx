@@ -12,7 +12,7 @@ import { useAuthUser } from "@/hooks/useAuthUser";
 import { useToast } from "@/hooks/useToast";
 
 const ProfileImagePage: NextPage = () => {
-  const user = useAuthUser({ redirectTo: "/login" });
+  const { authUser } = useAuthUser({ redirectTo: "/login" });
   const toast = useToast({ status: "success", title: "Success" });
   const router = useRouter();
   const [uploadProfileImage, { loading: uploadReqLoading }] =
@@ -43,12 +43,12 @@ const ProfileImagePage: NextPage = () => {
   };
 
   let content = <Spinner text="Loading profile..." />;
-  if (user) {
+  if (authUser) {
     content = (
       <ImageUploader
         onDelete={deleteImageHandler}
         onUpload={uploadImageHandler}
-        currentImage={user.profileImg?.url}
+        currentImage={authUser.profileImg?.url}
         isReqLoading={uploadReqLoading || deleteReqLoading}
       />
     );

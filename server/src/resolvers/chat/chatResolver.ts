@@ -31,7 +31,7 @@ export class ChatResolver {
   @Query((returns) => [Chat])
   @UseMiddleware(IsAuthenticated)
   async getChats(@Ctx() ctx: Context): Promise<Chat[]> {
-    const authUserId = ctx.payload.userId;
+    const authUserId = ctx.payload!.userId;
 
     /*
       GOALS: 
@@ -90,7 +90,7 @@ export class ChatResolver {
     @Arg("recipientUsername") recipientUsername: string,
     @Ctx() ctx: Context
   ): Promise<Chat> {
-    const authUserId = ctx.payload.userId;
+    const authUserId = ctx.payload!.userId;
     const recipient = await UserModel.findOne(
       { username: recipientUsername },
       { _id: 1 }
@@ -121,7 +121,7 @@ export class ChatResolver {
     @Arg("chatData") { recipients, text }: NewChatInput,
     @Ctx() ctx: Context
   ): Promise<Chat> {
-    const authUserId = ctx.payload.userId;
+    const authUserId = ctx.payload!.userId;
     const chatUsers = generateChatUsersArr(recipients, authUserId);
 
     const existingChat = await ChatModel.findOne({
@@ -166,7 +166,7 @@ export class ChatResolver {
     @Arg("chatData") { text, chatId }: AddMessageInput,
     @Ctx() ctx: Context
   ): Promise<Chat> {
-    const authUserId = ctx.payload.userId;
+    const authUserId = ctx.payload!.userId;
 
     const chat = await ChatModel.findOne({
       _id: chatId,

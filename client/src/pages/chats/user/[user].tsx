@@ -29,7 +29,7 @@ const UserChatPage: NextPage = () => {
     useGetUserLazyQuery();
   const [createNewChat] = useCreateNewChatMutation();
   const [addMessage] = useAddMessageMutation();
-  const authUser = useAuthUser({ redirectTo: "/login" });
+  const { authUser } = useAuthUser({ redirectTo: "/login" });
   const router = useRouter();
 
   const recipientUsername = router.query.user as string;

@@ -28,7 +28,7 @@ export const useGroupContext = () => {
 export const GroupProvider = (props: GroupProviderProps) => {
   const [getData, { data: groupData, loading: reqLoading }] =
     useGetGroupDataLazyQuery();
-  const authUser = useAuthUser({ redirectTo: "/login" });
+  const { authUser } = useAuthUser();
   const router = useRouter();
 
   const chatId = router.query.chatId as string;

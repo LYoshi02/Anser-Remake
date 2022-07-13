@@ -13,8 +13,10 @@ import {
 
 import { Link } from "@/components/UI";
 import { logoImg } from "@/features/auth";
+import { useAuthUser } from "@/hooks/useAuthUser";
 
 const HomePage: NextPage = () => {
+  const {} = useAuthUser({ redirectTo: "/chats", redirectIfFound: true });
   const router = useRouter();
   const bgColor = useColorModeValue("gray.50", "gray.900");
 
@@ -33,7 +35,7 @@ const HomePage: NextPage = () => {
         display="flex"
         justifyContent="center"
         alignItems="center"
-        flexGrow="1"
+        flexGrow={1}
       >
         <Box height="80" width="80">
           <Image src={logoImg} alt="Anser Logo" priority />

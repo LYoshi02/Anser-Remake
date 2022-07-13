@@ -168,6 +168,9 @@ export const client = new ApolloClient({
         fields: {
           getAuthUser: {
             keyArgs: ["user"],
+            merge(existing, incoming) {
+              return incoming;
+            },
           },
           // Necessary to use pagination
           getUsers: {
@@ -199,6 +202,11 @@ export const client = new ApolloClient({
       },
       Chat: {
         fields: {
+          messages: {
+            merge(existing: any[] = [], incoming: any[]) {
+              return existing.length > incoming.length ? existing : incoming;
+            },
+          },
           users: {
             merge(existing, incoming) {
               return incoming;

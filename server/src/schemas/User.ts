@@ -51,7 +51,7 @@ export class AuthUser {
   isAuth: boolean;
 
   @Field((type) => User, { nullable: true })
-  user?: User;
+  user?: User | null;
 }
 
 export const UserModel = getModelForClass(User, {

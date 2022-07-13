@@ -6,8 +6,10 @@ import { AppLayout } from "@/components/Layout";
 import { Alert, BackNav, Container, Link, Spinner } from "@/components/UI";
 import { useGetFullUserLazyQuery } from "@/graphql/generated";
 import { useEffect } from "react";
+import { useAuthUser } from "@/hooks/useAuthUser";
 
 const UserPage: NextPage = () => {
+  const {} = useAuthUser({ redirectTo: "/login" });
   const router = useRouter();
   const [getUser, { loading: reqLoading, data: userData }] =
     useGetFullUserLazyQuery();

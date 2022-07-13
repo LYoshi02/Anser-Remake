@@ -4,8 +4,10 @@ import { Box, Flex, Text, useColorModeValue } from "@chakra-ui/react";
 
 import { AppLayout } from "@/components/Layout";
 import { welcomeImg } from "@/features/chat";
+import { useAuthUser } from "@/hooks/useAuthUser";
 
 const ChatsPage: NextPage = () => {
+  const {} = useAuthUser({ redirectTo: "/login" });
   const backgroundColor = useColorModeValue("gray.50", "");
 
   return (

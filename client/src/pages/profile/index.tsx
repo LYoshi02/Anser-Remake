@@ -7,18 +7,21 @@ import { useAuthUser } from "@/hooks/useAuthUser";
 import { Spinner } from "@/components/UI";
 
 const ProfilePage: NextPage = () => {
-  const user = useAuthUser({ redirectTo: "/login" });
+  const { authUser } = useAuthUser({ redirectTo: "/login" });
 
   let content = <Spinner text="Loading profile..." />;
-  if (user) {
+  if (authUser) {
     content = (
       <>
         <ProfilePreview
-          fullname={user.fullname}
-          username={user.username}
-          profileImageUrl={user.profileImg?.url}
+          fullname={authUser.fullname}
+          username={authUser.username}
+          profileImageUrl={authUser.profileImg?.url}
         />
-        <ProfileForm fullname={user.fullname} description={user.description} />
+        <ProfileForm
+          fullname={authUser.fullname}
+          description={authUser.description}
+        />
       </>
     );
   }

@@ -13,8 +13,10 @@ import {
 } from "@/features/group";
 import { useCreateNewGroupMutation } from "@/graphql/generated";
 import { useToast } from "@/hooks/useToast";
+import { useAuthUser } from "@/hooks/useAuthUser";
 
 const NewGroupPage: NextPage = () => {
+  const {} = useAuthUser({ redirectTo: "/login" });
   const {
     isOpen: isModalOpen,
     onOpen: onOpenModal,

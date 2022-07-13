@@ -22,6 +22,10 @@ function MyApp({ Component, pageProps }: AppProps) {
         console.log(data);
         setAccessToken(data.accessToken);
         setLoading(false);
+      })
+      .catch((err) => {
+        console.log(err);
+        setLoading(false);
       });
   }, []);
 

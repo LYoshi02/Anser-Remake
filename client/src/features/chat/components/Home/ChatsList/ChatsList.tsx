@@ -12,7 +12,7 @@ import { ListSkeleton } from "@/components/UI";
 
 // TODO: add an alert when there are messages that haven't been read
 const ChatsList = () => {
-  const user = useAuthUser({ redirectTo: "/login" });
+  const { authUser } = useAuthUser();
   const { data: chatsData, loading, subscribeToMore } = useGetChatsQuery();
 
   useEffect(() => {
@@ -60,7 +60,7 @@ const ChatsList = () => {
     });
   }, [subscribeToMore]);
 
-  if (loading || !user) {
+  if (loading || !authUser) {
     return <ListSkeleton itemsNumber={10} />;
   }
 
@@ -71,7 +71,7 @@ const ChatsList = () => {
   return (
     <Box>
       {chatsData.getChats.map((chat) => (
-        <ChatItem key={chat._id} chat={chat} userId={user._id} />
+        <ChatItem key={chat._id} chat={chat} userId={authUser._id} />
       ))}
     </Box>
   );

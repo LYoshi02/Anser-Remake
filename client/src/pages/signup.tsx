@@ -16,8 +16,10 @@ import { FormControl } from "@/components/UI";
 import { useCreateUserMutation } from "@/graphql/generated";
 import { useToast } from "@/hooks/useToast";
 import { useRouter } from "next/router";
+import { useAuthUser } from "@/hooks/useAuthUser";
 
 const SignupPage: NextPage = () => {
+  const {} = useAuthUser({ redirectTo: "/chats", redirectIfFound: true });
   const [signupUser, { loading: reqLoading }] = useCreateUserMutation();
   const {
     register,

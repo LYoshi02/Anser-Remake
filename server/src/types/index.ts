@@ -4,7 +4,7 @@ import { ObjectId } from "mongodb";
 export type Context = {
   req: Request;
   res: Response;
-  payload: JwtPayload;
+  payload?: JwtPayload;
 };
 
 export type JwtPayload = {
