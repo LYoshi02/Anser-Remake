@@ -46,7 +46,9 @@ export type Chat = {
   __typename?: 'Chat';
   _id: Scalars['ObjectId'];
   group?: Maybe<Group>;
+  lastConnections: Array<LastConnection>;
   messages: Array<Message>;
+  unreadMessages?: Maybe<Scalars['Float']>;
   users: Array<User>;
 };
 
@@ -81,6 +83,12 @@ export type Image = {
   _id: Scalars['ObjectId'];
   publicId: Scalars['String'];
   url: Scalars['String'];
+};
+
+export type LastConnection = {
+  __typename?: 'LastConnection';
+  date: Scalars['DateTime'];
+  user: User;
 };
 
 export type LoggedInUser = {
@@ -218,18 +226,12 @@ export type NewMessage = {
 export type Query = {
   __typename?: 'Query';
   getAuthUser: AuthUser;
-  getChat: Chat;
   getChats: Array<Chat>;
   getGroupChat: Chat;
   getGroupData: Chat;
   getSingleChat: SingleChat;
   getUser: User;
   getUsers: Array<User>;
-};
-
-
-export type QueryGetChatArgs = {
-  recipientUsername: Scalars['String'];
 };
 
 
@@ -322,7 +324,7 @@ export type CreateNewChatMutation = { __typename?: 'Mutation', createNewChat: { 
 export type GetChatsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetChatsQuery = { __typename?: 'Query', getChats: Array<{ __typename?: 'Chat', _id: any, users: Array<{ __typename?: 'User', _id: any, username: string, fullname: string, profileImg?: { __typename?: 'Image', url: string } | null }>, messages: Array<{ __typename?: 'Message', _id: any, text: string, sender?: { __typename?: 'User', _id: any } | null }>, group?: { __typename?: 'Group', name: string, admins: Array<{ __typename?: 'User', _id: any }>, image?: { __typename?: 'Image', url: string } | null } | null }> };
+export type GetChatsQuery = { __typename?: 'Query', getChats: Array<{ __typename?: 'Chat', _id: any, unreadMessages?: number | null, users: Array<{ __typename?: 'User', _id: any, username: string, fullname: string, profileImg?: { __typename?: 'Image', url: string } | null }>, messages: Array<{ __typename?: 'Message', _id: any, text: string, sender?: { __typename?: 'User', _id: any } | null }>, group?: { __typename?: 'Group', name: string, admins: Array<{ __typename?: 'User', _id: any }>, image?: { __typename?: 'Image', url: string } | null } | null }> };
 
 export type GetFullUserQueryVariables = Exact<{
   username: Scalars['String'];
@@ -706,6 +708,7 @@ export const GetChatsDocument = gql`
         url
       }
     }
+    unreadMessages
   }
 }
     `;

@@ -1,4 +1,11 @@
-import { AvatarProps, Icon, useColorModeValue } from "@chakra-ui/react";
+import {
+  AvatarProps,
+  Box,
+  Flex,
+  Icon,
+  Text,
+  useColorModeValue,
+} from "@chakra-ui/react";
 import { HiUserGroup } from "react-icons/hi";
 
 import { Link, ListItem } from "@/components/UI";
@@ -22,7 +29,7 @@ type Chat = {
     name: string;
     image?: { url: string } | null;
   } | null;
-  newMessage?: boolean;
+  unreadMessages?: number | null;
 };
 
 type Props = {
@@ -67,6 +74,24 @@ const ChatItem = ({ chat, userId }: Props) => {
     chatUrl = `/chats/user/${receiver?.username}`;
   }
 
+  let unreadMessages;
+  if (chat.unreadMessages && chat.unreadMessages > 0) {
+    unreadMessages = (
+      <Flex
+        w="5"
+        h="5"
+        alignItems="center"
+        justifyContent="center"
+        bgColor="purple.600"
+        rounded="full"
+        lineHeight="1"
+        fontWeight="bold"
+      >
+        {chat.unreadMessages}
+      </Flex>
+    );
+  }
+
   return (
     <Link href={chatUrl}>
       <ListItem
@@ -74,6 +99,7 @@ const ChatItem = ({ chat, userId }: Props) => {
         title={chatName}
         description={lastMessageText}
         descriptionProps={{ noOfLines: 1 }}
+        detail={unreadMessages}
       />
     </Link>
   );

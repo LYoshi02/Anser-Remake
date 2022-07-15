@@ -40,13 +40,18 @@ const ChatsList = () => {
             messages: [newMessage],
             users: messageUsers!,
             group,
+            unreadMessages: 1,
           });
         } else {
+          const previousUnreadMessagesNum =
+            prev.getChats[changedChatIndex].unreadMessages || 0;
+          const updatedUnreadMessagesNum = previousUnreadMessagesNum + 1;
           const updatedChat = {
             ...prev.getChats[changedChatIndex],
             messages: [...prev.getChats[changedChatIndex].messages, newMessage],
             users: messageUsers || prev.getChats[changedChatIndex].users,
             group: group || prev.getChats[changedChatIndex].group,
+            unreadMessages: updatedUnreadMessagesNum,
           };
 
           updatedChats.splice(changedChatIndex, 1);

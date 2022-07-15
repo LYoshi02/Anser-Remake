@@ -36,6 +36,7 @@ export class User {
   isNewUser?: boolean;
 }
 
+// TODO: move this 2 classes to another file
 @ObjectType()
 export class LoggedInUser {
   @Field((type) => User)

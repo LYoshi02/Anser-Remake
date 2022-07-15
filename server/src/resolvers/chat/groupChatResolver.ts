@@ -70,7 +70,26 @@ export class GroupChatResolver {
       throw new ValidationError("Chat not found");
     }
 
-    return populatedChat[0];
+    const groupChat = populatedChat[0];
+    
+    // TODO: refactor this (duplicated in chatResolver)
+    const userLastConnectionIndex = groupChat.lastConnections.findIndex(
+      (c) => c.user.toString() === authUserId.toString()
+    );
+    const updatedConnectionDate = new Date();
+    if (userLastConnectionIndex >= 0) {
+      groupChat.lastConnections[userLastConnectionIndex].date =
+        updatedConnectionDate;
+    } else {
+      groupChat.lastConnections.push({
+        user: authUserId,
+        date: updatedConnectionDate,
+      });
+    }
+
+    await groupChat.save();
+
+    return groupChat;
   }
 
   @Query((returns) => Chat)

@@ -64,6 +64,36 @@ export class ChatResolver {
       },
       {
         $addFields: {
+          userLastConnection: {
+            $first: {
+              $filter: {
+                input: "$lastConnections",
+                as: "lastConection",
+                cond: {
+                  $eq: [authUserId, "$$lastConection.user"],
+                },
+              },
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          unreadMessages: {
+            $size: {
+              $filter: {
+                input: "$messages",
+                as: "message",
+                cond: {
+                  $gt: ["$$message.createdAt", "$userLastConnection.date"],
+                },
+              },
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
           messages: [
             {
               $last: "$messages",
@@ -77,6 +107,8 @@ export class ChatResolver {
         },
       },
     ]);
+
+    console.log(chats);
 
     const populatedChats = await ChatModel.populate(chats, {
       path: "users",
@@ -104,6 +136,26 @@ export class ChatResolver {
     })
       .populate("messages.sender")
       .exec();
+
+    if (chat) {
+      // TODO: refactor this (duplicated in groupChatResolver)
+      const userLastConnectionIndex = chat.lastConnections.findIndex(
+        (c) => c.user.toString() === authUserId.toString()
+      );
+
+      const updatedConnectionDate = new Date();
+      if (userLastConnectionIndex >= 0) {
+        chat.lastConnections[userLastConnectionIndex].date =
+          updatedConnectionDate;
+      } else {
+        chat.lastConnections.push({
+          user: authUserId,
+          date: updatedConnectionDate,
+        });
+      }
+
+      await chat.save();
+    }
 
     return { chat, recipient };
   }
@@ -140,6 +192,12 @@ export class ChatResolver {
     const newChat = new ChatModel({
       users: chatUsers,
       messages: [newMessage],
+      lastConnections: [
+        {
+          user: authUserId,
+          date: new Date(),
+        },
+      ],
     });
     await newChat.populate("users");
     await newChat.save();

@@ -22,6 +22,7 @@ const UserChatPage: NextPage = () => {
       subscribeToMore,
       refetch: refetchSingleChat,
       loading: chatReqLoading,
+      client,
     },
   ] = useGetSingleChatLazyQuery();
   const [createNewChat] = useCreateNewChatMutation();

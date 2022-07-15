@@ -8,12 +8,23 @@ import { Ref } from "../types";
 import { Group } from "./group";
 
 @ObjectType()
+export class LastConnection {
+  @Field((type) => User)
+  @Property({ ref: () => User, required: true })
+  user: Ref<User>;
+
+  @Field()
+  @Property({ required: true })
+  date: Date;
+}
+
+@ObjectType()
 export class Chat {
   @Field()
   readonly _id: ObjectId;
 
   @Field((type) => [User])
-  @Property({ ref: User, required: true })
+  @Property({ ref: () => User, required: true })
   users: Ref<User>[];
 
   @Field((type) => [Message])
@@ -23,6 +34,13 @@ export class Chat {
   @Field((type) => Group, { nullable: true })
   @Property({ type: () => Group })
   group?: Group;
+
+  @Field((type) => [LastConnection])
+  @Property({ default: [], type: () => LastConnection })
+  lastConnections: LastConnection[];
+
+  @Field({ nullable: true })
+  unreadMessages?: number;
 }
 
 export const ChatModel = getModelForClass(Chat, {

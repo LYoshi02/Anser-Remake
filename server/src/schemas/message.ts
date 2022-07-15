@@ -1,4 +1,5 @@
 import { prop as Property } from "@typegoose/typegoose";
+import { TimeStamps } from "@typegoose/typegoose/lib/defaultClasses";
 import { ObjectId } from "mongodb";
 import { Field, ObjectType } from "type-graphql";
 
@@ -23,6 +24,6 @@ export class Message {
   text: string;
 
   @Field()
-  @Property({ default: Date.now() })
+  @Property({ default: new Date() })
   createdAt?: Date;
 }
