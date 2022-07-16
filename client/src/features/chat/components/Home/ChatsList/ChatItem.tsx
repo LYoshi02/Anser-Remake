@@ -1,14 +1,8 @@
-import {
-  AvatarProps,
-  Box,
-  Flex,
-  Icon,
-  Text,
-  useColorModeValue,
-} from "@chakra-ui/react";
+import { AvatarProps, Icon, useColorModeValue } from "@chakra-ui/react";
 import { HiUserGroup } from "react-icons/hi";
 
 import { Link, ListItem } from "@/components/UI";
+import { UnreadMessages } from "./UnreadMessages";
 
 type Chat = {
   _id: string;
@@ -76,20 +70,7 @@ const ChatItem = ({ chat, userId }: Props) => {
 
   let unreadMessages;
   if (chat.unreadMessages && chat.unreadMessages > 0) {
-    unreadMessages = (
-      <Flex
-        w="5"
-        h="5"
-        alignItems="center"
-        justifyContent="center"
-        bgColor="purple.600"
-        rounded="full"
-        lineHeight="1"
-        fontWeight="bold"
-      >
-        {chat.unreadMessages}
-      </Flex>
-    );
+    unreadMessages = <UnreadMessages count={chat.unreadMessages} />;
   }
 
   return (

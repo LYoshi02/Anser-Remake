@@ -24,7 +24,21 @@ const UserChatPage: NextPage = () => {
       loading: chatReqLoading,
       client,
     },
-  ] = useGetSingleChatLazyQuery();
+  ] = useGetSingleChatLazyQuery({
+    onCompleted: (data) => {
+      const chatData = data.getSingleChat.chat;
+      if (chatData) {
+        client.cache.modify({
+          id: client.cache.identify(chatData),
+          fields: {
+            unreadMessages() {
+              return 0;
+            },
+          },
+        });
+      }
+    },
+  });
   const [createNewChat] = useCreateNewChatMutation();
   const [addMessage] = useAddMessageMutation();
   const { authUser } = useAuthUser({ redirectTo: "/login" });

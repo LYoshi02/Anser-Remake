@@ -85,7 +85,13 @@ export class ChatResolver {
                 input: "$messages",
                 as: "message",
                 cond: {
-                  $gt: ["$$message.createdAt", "$userLastConnection.date"],
+                  $and: [
+                    {
+                      $gt: ["$$message.createdAt", "$userLastConnection.date"],
+                    },
+                    { $ne: [null, "$$message.sender"] },
+                    { $ne: [authUserId, "$$message.sender"] },
+                  ],
                 },
               },
             },
@@ -107,8 +113,6 @@ export class ChatResolver {
         },
       },
     ]);
-
-    console.log(chats);
 
     const populatedChats = await ChatModel.populate(chats, {
       path: "users",

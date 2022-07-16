@@ -100,7 +100,6 @@ export type LoggedInUser = {
 export type Message = {
   __typename?: 'Message';
   _id: Scalars['ObjectId'];
-  createdAt: Scalars['DateTime'];
   sender?: Maybe<User>;
   text: Scalars['String'];
   users: Array<User>;
@@ -236,7 +235,7 @@ export type Query = {
 
 
 export type QueryGetGroupChatArgs = {
-  chatId: Scalars['String'];
+  chatId: Scalars['ObjectId'];
 };
 
 
@@ -334,7 +333,7 @@ export type GetFullUserQueryVariables = Exact<{
 export type GetFullUserQuery = { __typename?: 'Query', getUser: { __typename?: 'User', _id: any, username: string, fullname: string, description: string, profileImg?: { __typename?: 'Image', url: string } | null } };
 
 export type GetGroupChatQueryVariables = Exact<{
-  chatId: Scalars['String'];
+  chatId: Scalars['ObjectId'];
 }>;
 
 
@@ -781,7 +780,7 @@ export type GetFullUserQueryHookResult = ReturnType<typeof useGetFullUserQuery>;
 export type GetFullUserLazyQueryHookResult = ReturnType<typeof useGetFullUserLazyQuery>;
 export type GetFullUserQueryResult = Apollo.QueryResult<GetFullUserQuery, GetFullUserQueryVariables>;
 export const GetGroupChatDocument = gql`
-    query GetGroupChat($chatId: String!) {
+    query GetGroupChat($chatId: ObjectId!) {
   getGroupChat(chatId: $chatId) {
     _id
     users {

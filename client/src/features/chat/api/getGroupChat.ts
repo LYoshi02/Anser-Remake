@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client";
 
 export const GET_GROUP_CHAT = gql`
-  query GetGroupChat($chatId: String!) {
+  query GetGroupChat($chatId: ObjectId!) {
     getGroupChat(chatId: $chatId) {
       _id
       users {

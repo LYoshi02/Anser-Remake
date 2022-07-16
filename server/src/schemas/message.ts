@@ -7,7 +7,7 @@ import { Ref } from "../types";
 import { User } from "./user";
 
 @ObjectType()
-export class Message {
+export class Message extends TimeStamps {
   @Field()
   readonly _id: ObjectId;
 
@@ -23,7 +23,7 @@ export class Message {
   @Property({ required: true, minLength: 1, trim: true })
   text: string;
 
-  @Field()
-  @Property({ default: new Date() })
-  createdAt?: Date;
+  // @Field()
+  // @Property({ default: new Date() })
+  // createdAt?: Date;
 }

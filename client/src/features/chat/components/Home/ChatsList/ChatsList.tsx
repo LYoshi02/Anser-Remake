@@ -16,7 +16,7 @@ const ChatsList = () => {
   const { data: chatsData, loading, subscribeToMore } = useGetChatsQuery();
 
   useEffect(() => {
-    subscribeToMore<OnNewMessageAddedSubscription>({
+    const unsubscribe = subscribeToMore<OnNewMessageAddedSubscription>({
       document: OnNewMessageAddedDocument,
       updateQuery: (prev, { subscriptionData }) => {
         if (!subscriptionData.data) return prev;
@@ -33,6 +33,14 @@ const ChatsList = () => {
 
         const updatedChats = [...prev.getChats];
 
+        let unreadMessagesAdd = 0;
+        if (
+          newMessage.sender != null &&
+          newMessage.sender._id !== authUser?._id
+        ) {
+          unreadMessagesAdd = 1;
+        }
+
         if (changedChatIndex === -1) {
           updatedChats.unshift({
             __typename: "Chat",
@@ -40,12 +48,14 @@ const ChatsList = () => {
             messages: [newMessage],
             users: messageUsers!,
             group,
-            unreadMessages: 1,
+            unreadMessages: unreadMessagesAdd,
           });
         } else {
           const previousUnreadMessagesNum =
             prev.getChats[changedChatIndex].unreadMessages || 0;
-          const updatedUnreadMessagesNum = previousUnreadMessagesNum + 1;
+          let updatedUnreadMessagesNum =
+            previousUnreadMessagesNum + unreadMessagesAdd;
+
           const updatedChat = {
             ...prev.getChats[changedChatIndex],
             messages: [...prev.getChats[changedChatIndex].messages, newMessage],
@@ -63,7 +73,11 @@ const ChatsList = () => {
         });
       },
     });
-  }, [subscribeToMore]);
+
+    return () => {
+      unsubscribe();
+    };
+  }, [subscribeToMore, authUser]);
 
   if (loading || !authUser) {
     return <ListSkeleton itemsNumber={10} />;

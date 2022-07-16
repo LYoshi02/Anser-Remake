@@ -15,12 +15,39 @@ import { useAuthUser } from "@/hooks/useAuthUser";
 const GroupChatPage: NextPage = () => {
   const router = useRouter();
   const { authUser } = useAuthUser({ redirectTo: "/login" });
-  const [getGroupChat, { data: chatData, loading: reqLoading }] =
-    useGetGroupChatLazyQuery();
+  const [getGroupChat, { data: chatData, loading: reqLoading, client }] =
+    useGetGroupChatLazyQuery({
+      onCompleted: (data) => {
+        const chatData = data.getGroupChat;
+        if (chatData) {
+          client.cache.modify({
+            id: client.cache.identify(chatData),
+            fields: {
+              unreadMessages() {
+                return 0;
+              },
+            },
+          });
+        }
+      },
+    });
   const [addMessage] = useAddMessageMutation();
   const [leaveGroup] = useLeaveGroupMutation();
 
   const chatId = router.query.chatId as string;
+
+  // * Trying a solution to update the last connection of the user when it leaves the chat
+  // useEffect(() => {
+  //   router.events.on("routeChangeStart", () => {
+  //     console.log("Changing router");
+  //   });
+
+  //   return () => {
+  //     router.events.off("routeChangeStart", () => {
+  //       console.log("Disconnecting");
+  //     });
+  //   };
+  // }, [router]);
 
   useEffect(() => {
     if (chatId) {

@@ -46,7 +46,6 @@ async function startApp() {
     app.use(graphqlUploadExpress({ maxFileSize: 10000000 }));
 
     app.post("/refresh-token", async (req, res) => {
-      console.log("Refreshing token");
       const token = req.cookies.jid;
       if (!token) {
         return res.send({ ok: false, accessToken: "" });
@@ -110,8 +109,6 @@ async function startApp() {
           if (!accessToken) {
             return false;
           }
-
-          console.log("connected");
         },
         context: (ctx, msg, args) => {
           const userId = getUserIdWithToken(ctx.connectionParams?.authToken);

@@ -30,25 +30,28 @@ import { UserModel } from "../../schemas/user";
 import { generateChatUsersArr, generateUniqueValuesArr } from "./utils";
 import { deleteFromCloudinary, uploadToCloudinary } from "../../utils/upload";
 import { IsAuthenticated } from "../middlewares/isAuth";
+import { ObjectIdScalar } from "../../utils/objectId.scalar";
 
 @Resolver((of) => Chat)
 export class GroupChatResolver {
   @Query((returns) => Chat)
   @UseMiddleware(IsAuthenticated)
   async getGroupChat(
-    @Arg("chatId") chatId: string,
+    @Arg("chatId", (type) => ObjectIdScalar) chatId: ObjectId,
     @Ctx() ctx: Context
   ): Promise<Chat> {
     const authUserId = ctx.payload!.userId;
+
+    console.log(chatId);
 
     /*
         GOAL: the property "messages" of the chat must contain only the messages the 
         authenticated user received.
     */
     const chat = await ChatModel.aggregate([
-      { $match: { _id: new ObjectId(chatId) } },
+      { $match: { _id: chatId } },
       {
-        $project: {
+        $addFields: {
           messages: {
             $filter: {
               input: "$messages",
@@ -56,38 +59,42 @@ export class GroupChatResolver {
               cond: { $in: [authUserId, "$$message.users"] },
             },
           },
-          users: 1,
-          group: 1,
         },
       },
     ]);
+
+    if (chat.length === 0) {
+      throw new ValidationError("Chat not found");
+    }
 
     const populatedChat = await ChatModel.populate(chat, {
       path: "messages.sender",
     });
 
-    if (populatedChat.length === 0) {
-      throw new ValidationError("Chat not found");
-    }
-
     const groupChat = populatedChat[0];
-    
-    // TODO: refactor this (duplicated in chatResolver)
+
+    const updatedLastConnections = [...groupChat.lastConnections];
+    const updatedLastConnection = {
+      user: authUserId,
+      date: new Date(),
+    };
     const userLastConnectionIndex = groupChat.lastConnections.findIndex(
       (c) => c.user.toString() === authUserId.toString()
     );
-    const updatedConnectionDate = new Date();
+
     if (userLastConnectionIndex >= 0) {
-      groupChat.lastConnections[userLastConnectionIndex].date =
-        updatedConnectionDate;
+      updatedLastConnections.splice(
+        userLastConnectionIndex,
+        1,
+        updatedLastConnection
+      );
     } else {
-      groupChat.lastConnections.push({
-        user: authUserId,
-        date: updatedConnectionDate,
-      });
+      updatedLastConnections.push(updatedLastConnection);
     }
 
-    await groupChat.save();
+    await ChatModel.findByIdAndUpdate(chatId, {
+      lastConnections: updatedLastConnections,
+    });
 
     return groupChat;
   }
