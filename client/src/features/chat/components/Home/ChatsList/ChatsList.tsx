@@ -10,7 +10,6 @@ import {
 } from "@/graphql/generated";
 import { ListSkeleton } from "@/components/UI";
 
-// TODO: add an alert when there are messages that haven't been read
 const ChatsList = () => {
   const { authUser } = useAuthUser();
   const { data: chatsData, loading, subscribeToMore } = useGetChatsQuery();

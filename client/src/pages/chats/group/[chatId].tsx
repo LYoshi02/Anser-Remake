@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import type { NextPage } from "next";
 import { useRouter } from "next/router";
 
-import { ChatBody, ChatInfo, GroupMenu, MessageInput } from "@/features/chat";
+import { ChatBody, ChatInfo, GroupMenu, MessageInput, useUpdateLastSeenOnExit } from "@/features/chat";
 import { AppLayout } from "@/components/Layout";
 import { BackNav } from "@/components/UI";
 import {
@@ -11,43 +11,23 @@ import {
   useLeaveGroupMutation,
 } from "@/graphql/generated";
 import { useAuthUser } from "@/hooks/useAuthUser";
+import { clearUnreadMessages } from "@/features/chat/utils/chat";
 
 const GroupChatPage: NextPage = () => {
   const router = useRouter();
   const { authUser } = useAuthUser({ redirectTo: "/login" });
   const [getGroupChat, { data: chatData, loading: reqLoading, client }] =
     useGetGroupChatLazyQuery({
-      onCompleted: (data) => {
+      onCompleted: async (data) => {
         const chatData = data.getGroupChat;
-        if (chatData) {
-          client.cache.modify({
-            id: client.cache.identify(chatData),
-            fields: {
-              unreadMessages() {
-                return 0;
-              },
-            },
-          });
-        }
+        clearUnreadMessages(client, chatData);
       },
     });
   const [addMessage] = useAddMessageMutation();
   const [leaveGroup] = useLeaveGroupMutation();
 
   const chatId = router.query.chatId as string;
-
-  // * Trying a solution to update the last connection of the user when it leaves the chat
-  // useEffect(() => {
-  //   router.events.on("routeChangeStart", () => {
-  //     console.log("Changing router");
-  //   });
-
-  //   return () => {
-  //     router.events.off("routeChangeStart", () => {
-  //       console.log("Disconnecting");
-  //     });
-  //   };
-  // }, [router]);
+  useUpdateLastSeenOnExit(chatId);
 
   useEffect(() => {
     if (chatId) {

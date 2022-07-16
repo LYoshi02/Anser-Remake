@@ -27,7 +27,11 @@ import {
 import { Chat, ChatModel } from "../../schemas/chat";
 import { Message } from "../../schemas/message";
 import { UserModel } from "../../schemas/user";
-import { generateChatUsersArr, generateUniqueValuesArr } from "./utils";
+import {
+  generateChatUsersArr,
+  generateUniqueValuesArr,
+  getUpdatedLastSeenArr,
+} from "./utils";
 import { deleteFromCloudinary, uploadToCloudinary } from "../../utils/upload";
 import { IsAuthenticated } from "../middlewares/isAuth";
 import { ObjectIdScalar } from "../../utils/objectId.scalar";
@@ -41,8 +45,6 @@ export class GroupChatResolver {
     @Ctx() ctx: Context
   ): Promise<Chat> {
     const authUserId = ctx.payload!.userId;
-
-    console.log(chatId);
 
     /*
         GOAL: the property "messages" of the chat must contain only the messages the 
@@ -73,27 +75,12 @@ export class GroupChatResolver {
 
     const groupChat = populatedChat[0];
 
-    const updatedLastConnections = [...groupChat.lastConnections];
-    const updatedLastConnection = {
-      user: authUserId,
-      date: new Date(),
-    };
-    const userLastConnectionIndex = groupChat.lastConnections.findIndex(
-      (c) => c.user.toString() === authUserId.toString()
+    const updatedLastSeenArr = getUpdatedLastSeenArr(
+      groupChat.lastSeen,
+      authUserId
     );
-
-    if (userLastConnectionIndex >= 0) {
-      updatedLastConnections.splice(
-        userLastConnectionIndex,
-        1,
-        updatedLastConnection
-      );
-    } else {
-      updatedLastConnections.push(updatedLastConnection);
-    }
-
     await ChatModel.findByIdAndUpdate(chatId, {
-      lastConnections: updatedLastConnections,
+      lastSeen: updatedLastSeenArr,
     });
 
     return groupChat;

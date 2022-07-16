@@ -7,6 +7,7 @@ export { default as MessageInput } from "./components/Chat/MessageInput";
 export { default as GroupMenu } from "./components/Chat/GroupMenu";
 
 export * from "./hooks/useScrollToBottom";
+export * from "./hooks/useUpdateLastSeenOnExit";
 
 export * from "./utils/formSchemas";
 

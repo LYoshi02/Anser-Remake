@@ -218,7 +218,7 @@ export class UserResolver {
   }
 
   @Mutation((returns) => Boolean)
-  logout(@Ctx() ctx: Context): Boolean {
+  logout(@Ctx() ctx: Context) {
     sendRefreshToken(ctx.res, "");
     return true;
   }

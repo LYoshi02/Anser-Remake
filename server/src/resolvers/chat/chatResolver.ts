@@ -24,8 +24,9 @@ import {
 import { Chat, ChatModel } from "../../schemas/chat";
 import { Message } from "../../schemas/message";
 import { UserModel } from "../../schemas/user";
-import { generateChatUsersArr } from "./utils";
+import { generateChatUsersArr, getUpdatedLastSeenArr } from "./utils";
 import { IsAuthenticated } from "../middlewares/isAuth";
+import { ObjectIdScalar } from "../../utils/objectId.scalar";
 
 @Resolver((of) => Chat)
 export class ChatResolver {
@@ -35,12 +36,16 @@ export class ChatResolver {
     const authUserId = ctx.payload!.userId;
 
     /*
-      GOALS: 
+      STEPS: 
       1. Filter user’s chats including those whose “users” property contains the id 
       of the authenticated user or those that contain a message sent by him.
-      2. The property "messages" of each chat must contain the last message the 
-      authenticated user received in that chat (important for the group chats).
-      3. The chats must be sorted from the most recent to the oldest
+      2. The messages are filtered so the field only contains those sent by the user.
+      (important for the group chats)
+      3. Get the chat's last seen of the user 
+      4. Count unread messages based on the chat's last seen date and messages' sender.
+      5. The property "messages" of each chat contains just the last message for 
+      preview reasons.
+      6. The chats are sorted based on the creation date of the last message
     */
     const chats = await ChatModel.aggregate([
       {
@@ -64,13 +69,13 @@ export class ChatResolver {
       },
       {
         $addFields: {
-          userLastConnection: {
+          userLastSeen: {
             $first: {
               $filter: {
-                input: "$lastConnections",
-                as: "lastConection",
+                input: "$lastSeen",
+                as: "lastSeenElement",
                 cond: {
-                  $eq: [authUserId, "$$lastConection.user"],
+                  $eq: [authUserId, "$$lastSeenElement.user"],
                 },
               },
             },
@@ -87,7 +92,7 @@ export class ChatResolver {
                 cond: {
                   $and: [
                     {
-                      $gt: ["$$message.createdAt", "$userLastConnection.date"],
+                      $gt: ["$$message.createdAt", "$userLastSeen.date"],
                     },
                     { $ne: [null, "$$message.sender"] },
                     { $ne: [authUserId, "$$message.sender"] },
@@ -109,7 +114,7 @@ export class ChatResolver {
       },
       {
         $sort: {
-          updatedAt: -1,
+          "messages.createdAt": -1,
         },
       },
     ]);
@@ -142,26 +147,39 @@ export class ChatResolver {
       .exec();
 
     if (chat) {
-      // TODO: refactor this (duplicated in groupChatResolver)
-      const userLastConnectionIndex = chat.lastConnections.findIndex(
-        (c) => c.user.toString() === authUserId.toString()
+      const updatedLastSeenArr = getUpdatedLastSeenArr(
+        chat.lastSeen,
+        authUserId
       );
-
-      const updatedConnectionDate = new Date();
-      if (userLastConnectionIndex >= 0) {
-        chat.lastConnections[userLastConnectionIndex].date =
-          updatedConnectionDate;
-      } else {
-        chat.lastConnections.push({
-          user: authUserId,
-          date: updatedConnectionDate,
-        });
-      }
-
+      chat.lastSeen = updatedLastSeenArr;
       await chat.save();
     }
 
     return { chat, recipient };
+  }
+
+  @Mutation((returns) => Boolean)
+  @UseMiddleware(IsAuthenticated)
+  async updateChatLastSeen(
+    @Arg("chatId", (type) => ObjectIdScalar) chatId: ObjectId,
+    @Ctx() ctx: Context
+  ) {
+    const authUserId = ctx.payload!.userId;
+
+    const chat = await ChatModel.findOne({
+      _id: chatId,
+      users: { $in: [authUserId] },
+    });
+
+    if (!chat) {
+      throw new AuthenticationError("Chat not found");
+    }
+
+    const updatedLastSeenArr = getUpdatedLastSeenArr(chat.lastSeen, authUserId);
+    chat.lastSeen = updatedLastSeenArr;
+    await chat.save();
+
+    return true;
   }
 
   @Mutation((returns) => Chat)

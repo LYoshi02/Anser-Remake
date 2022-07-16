@@ -46,7 +46,7 @@ export type Chat = {
   __typename?: 'Chat';
   _id: Scalars['ObjectId'];
   group?: Maybe<Group>;
-  lastConnections: Array<LastConnection>;
+  lastSeen: Array<UserLastSeen>;
   messages: Array<Message>;
   unreadMessages?: Maybe<Scalars['Float']>;
   users: Array<User>;
@@ -85,12 +85,6 @@ export type Image = {
   url: Scalars['String'];
 };
 
-export type LastConnection = {
-  __typename?: 'LastConnection';
-  date: Scalars['DateTime'];
-  user: User;
-};
-
 export type LoggedInUser = {
   __typename?: 'LoggedInUser';
   token: Scalars['String'];
@@ -122,6 +116,7 @@ export type Mutation = {
   removeAdmin: Chat;
   removeFromGroup: Chat;
   setGroupImage: Chat;
+  updateChatLastSeen: Scalars['Boolean'];
   updateUser: User;
   uploadProfileImage: User;
 };
@@ -191,6 +186,11 @@ export type MutationRemoveFromGroupArgs = {
 export type MutationSetGroupImageArgs = {
   chatId: Scalars['ObjectId'];
   file: Scalars['Upload'];
+};
+
+
+export type MutationUpdateChatLastSeenArgs = {
+  chatId: Scalars['ObjectId'];
 };
 
 
@@ -281,6 +281,12 @@ export type User = {
   username: Scalars['String'];
 };
 
+export type UserLastSeen = {
+  __typename?: 'UserLastSeen';
+  date: Scalars['DateTime'];
+  user: User;
+};
+
 export type GetAuthUserQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -369,6 +375,13 @@ export type OnNewUserAddedSubscriptionVariables = Exact<{ [key: string]: never; 
 
 
 export type OnNewUserAddedSubscription = { __typename?: 'Subscription', newUser: { __typename?: 'User', _id: any, fullname: string, username: string, isNewUser?: boolean | null, profileImg?: { __typename?: 'Image', url: string } | null } };
+
+export type UpdateChatLastSeenMutationVariables = Exact<{
+  chatId: Scalars['ObjectId'];
+}>;
+
+
+export type UpdateChatLastSeenMutation = { __typename?: 'Mutation', updateChatLastSeen: boolean };
 
 export type AddUsersToGroupMutationVariables = Exact<{
   addUsersArgs: AddUsersToGroupInput;
@@ -1060,6 +1073,37 @@ export function useOnNewUserAddedSubscription(baseOptions?: Apollo.SubscriptionH
       }
 export type OnNewUserAddedSubscriptionHookResult = ReturnType<typeof useOnNewUserAddedSubscription>;
 export type OnNewUserAddedSubscriptionResult = Apollo.SubscriptionResult<OnNewUserAddedSubscription>;
+export const UpdateChatLastSeenDocument = gql`
+    mutation UpdateChatLastSeen($chatId: ObjectId!) {
+  updateChatLastSeen(chatId: $chatId)
+}
+    `;
+export type UpdateChatLastSeenMutationFn = Apollo.MutationFunction<UpdateChatLastSeenMutation, UpdateChatLastSeenMutationVariables>;
+
+/**
+ * __useUpdateChatLastSeenMutation__
+ *
+ * To run a mutation, you first call `useUpdateChatLastSeenMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateChatLastSeenMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateChatLastSeenMutation, { data, loading, error }] = useUpdateChatLastSeenMutation({
+ *   variables: {
+ *      chatId: // value for 'chatId'
+ *   },
+ * });
+ */
+export function useUpdateChatLastSeenMutation(baseOptions?: Apollo.MutationHookOptions<UpdateChatLastSeenMutation, UpdateChatLastSeenMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateChatLastSeenMutation, UpdateChatLastSeenMutationVariables>(UpdateChatLastSeenDocument, options);
+      }
+export type UpdateChatLastSeenMutationHookResult = ReturnType<typeof useUpdateChatLastSeenMutation>;
+export type UpdateChatLastSeenMutationResult = Apollo.MutationResult<UpdateChatLastSeenMutation>;
+export type UpdateChatLastSeenMutationOptions = Apollo.BaseMutationOptions<UpdateChatLastSeenMutation, UpdateChatLastSeenMutationVariables>;
 export const AddUsersToGroupDocument = gql`
     mutation AddUsersToGroup($addUsersArgs: AddUsersToGroupInput!) {
   addUsersToGroup(addUsersArgs: $addUsersArgs) {

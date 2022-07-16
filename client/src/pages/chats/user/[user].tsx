@@ -2,7 +2,12 @@ import { useEffect } from "react";
 import type { NextPage } from "next";
 import { useRouter } from "next/router";
 
-import { ChatBody, ChatInfo, MessageInput } from "@/features/chat";
+import {
+  ChatBody,
+  ChatInfo,
+  MessageInput,
+  useUpdateLastSeenOnExit,
+} from "@/features/chat";
 import { AppLayout } from "@/components/Layout";
 import { BackNav } from "@/components/UI";
 import {
@@ -13,6 +18,7 @@ import {
   useGetSingleChatLazyQuery,
 } from "@/graphql/generated";
 import { useAuthUser } from "@/hooks/useAuthUser";
+import { clearUnreadMessages } from "@/features/chat/utils/chat";
 
 const UserChatPage: NextPage = () => {
   const [
@@ -25,17 +31,10 @@ const UserChatPage: NextPage = () => {
       client,
     },
   ] = useGetSingleChatLazyQuery({
-    onCompleted: (data) => {
+    onCompleted: async (data) => {
       const chatData = data.getSingleChat.chat;
       if (chatData) {
-        client.cache.modify({
-          id: client.cache.identify(chatData),
-          fields: {
-            unreadMessages() {
-              return 0;
-            },
-          },
-        });
+        clearUnreadMessages(client, chatData);
       }
     },
   });
@@ -43,6 +42,9 @@ const UserChatPage: NextPage = () => {
   const [addMessage] = useAddMessageMutation();
   const { authUser } = useAuthUser({ redirectTo: "/login" });
   const router = useRouter();
+
+  const chatId = chatData?.getSingleChat.chat?._id;
+  useUpdateLastSeenOnExit(chatId);
 
   const recipientUsername = router.query.user as string;
 
@@ -94,8 +96,6 @@ const UserChatPage: NextPage = () => {
     if (!chatData) return;
 
     try {
-      const chatId = chatData!.getSingleChat.chat?._id;
-
       if (chatId) {
         await addMessage({
           variables: {

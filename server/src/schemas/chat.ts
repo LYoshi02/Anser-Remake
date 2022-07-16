@@ -8,7 +8,7 @@ import { Ref } from "../types";
 import { Group } from "./group";
 
 @ObjectType()
-export class LastConnection {
+export class UserLastSeen {
   @Field((type) => User)
   @Property({ ref: () => User, required: true })
   user: Ref<User>;
@@ -35,9 +35,9 @@ export class Chat {
   @Property({ type: () => Group })
   group?: Group;
 
-  @Field((type) => [LastConnection])
-  @Property({ default: [], type: () => LastConnection })
-  lastConnections: LastConnection[];
+  @Field((type) => [UserLastSeen])
+  @Property({ default: [], type: () => UserLastSeen })
+  lastSeen: UserLastSeen[];
 
   @Field({ nullable: true })
   unreadMessages?: number;
