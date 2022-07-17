@@ -1,14 +1,20 @@
 import type { NextPage } from "next";
 import Image from "next/image";
 import { Box, Flex, Text, useColorModeValue } from "@chakra-ui/react";
+import Push from "push.js";
 
 import { AppLayout } from "@/components/Layout";
 import { welcomeImg } from "@/features/chat";
 import { useAuthUser } from "@/hooks/useAuthUser";
+import { useEffect } from "react";
 
 const ChatsPage: NextPage = () => {
   const {} = useAuthUser({ redirectTo: "/login" });
   const backgroundColor = useColorModeValue("gray.50", "");
+
+  useEffect(() => {
+    Push.Permission.request();
+  }, []);
 
   return (
     <AppLayout keepChatsVisible>

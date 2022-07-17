@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 import { Box } from "@chakra-ui/react";
+import Push from "push.js";
+import Router from "next/router";
 
 import ChatItem from "./ChatItem";
 import { useAuthUser } from "@/hooks/useAuthUser";
@@ -19,13 +21,44 @@ const ChatsList = () => {
       document: OnNewMessageAddedDocument,
       updateQuery: (prev, { subscriptionData }) => {
         if (!subscriptionData.data) return prev;
-
         const {
           chatId,
           message: newMessage,
           users: messageUsers,
           group,
         } = subscriptionData.data.newMessage;
+
+        let messageTitle, messageIcon, messageLink: string;
+        if (group) {
+          messageTitle = group.name;
+          messageIcon = group.image?.url;
+          messageLink = `/chats/group/${chatId}`;
+        } else {
+          const senderData = messageUsers?.find(
+            (u) => u._id === newMessage.sender?._id
+          );
+          messageTitle = senderData?.fullname || "Anser";
+          messageIcon = senderData?.profileImg?.url;
+          messageLink = senderData
+            ? `/chats/user/${senderData.username}`
+            : "/chats";
+        }
+
+        console.log(Router.asPath);
+        if (Router.asPath !== messageLink || !document.hasFocus()) {
+          Push.create(messageTitle, {
+            body: newMessage.text,
+            icon: messageIcon,
+            timeout: 8000,
+            tag: "new-message",
+            onClick: async () => {
+              await Router.push(messageLink);
+              window.focus();
+              Push.close("new-message");
+            },
+          });
+        }
+
         const changedChatIndex = prev.getChats.findIndex(
           (c) => c._id === chatId
         );
