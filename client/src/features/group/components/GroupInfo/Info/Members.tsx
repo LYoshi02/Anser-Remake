@@ -1,4 +1,5 @@
 import { Box, Button, Flex, Text } from "@chakra-ui/react";
+import { useMemo } from "react";
 
 import { useGroupContext } from "../../../stores/GroupContext";
 import Member from "./Member";
@@ -13,10 +14,18 @@ const Members = (props: Props) => {
     authUserId,
   } = useGroupContext();
 
-  const groupUsers = getGroupData.users;
+  const groupUsers = useMemo(() => {
+    return [...getGroupData.users].sort((u1, u2) => {
+      if (u1.fullname > u2.fullname) {
+        return 1;
+      }
+      if (u1.fullname < u2.fullname) {
+        return -1;
+      }
+      return 0;
+    });
+  }, [getGroupData.users]);
   const isAdmin = getGroupData.group!.admins.some((a) => a._id === authUserId);
-
-  console.log(groupUsers);
 
   return (
     <Box>

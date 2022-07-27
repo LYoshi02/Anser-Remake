@@ -260,8 +260,8 @@ export class ChatResolver {
       users: [...chat.users],
     };
     chat.messages.push(newMessage);
-    await chat.save();
     await chat.populate("users");
+    await chat.save();
 
     await publishNewMessage({
       chatId: chat._id,

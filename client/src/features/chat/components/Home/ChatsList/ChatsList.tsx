@@ -44,17 +44,20 @@ const ChatsList = () => {
             : "/chats";
         }
 
-        console.log(Router.asPath);
-        if (Router.asPath !== messageLink || !document.hasFocus()) {
+        const showNotification =
+          newMessage.sender &&
+          newMessage.sender._id !== authUser?._id &&
+          (Router.asPath !== messageLink || !document.hasFocus());
+        if (showNotification) {
           Push.create(messageTitle, {
             body: newMessage.text,
             icon: messageIcon,
             timeout: 8000,
-            tag: "new-message",
+            tag: chatId,
             onClick: async () => {
               await Router.push(messageLink);
               window.focus();
-              Push.close("new-message");
+              Push.clear();
             },
           });
         }

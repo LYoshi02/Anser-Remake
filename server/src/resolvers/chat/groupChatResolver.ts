@@ -540,7 +540,7 @@ export class GroupChatResolver {
       _id: new ObjectId(),
       sender: null,
       users: chat.users,
-      text: `${authUsername} changed the group's image`,
+      text: `@${authUsername} changed the group's image`,
     };
 
     chat.group!.image = newImage;
@@ -595,7 +595,7 @@ export class GroupChatResolver {
       _id: new ObjectId(),
       sender: null,
       users: chat.users,
-      text: `${authUsername} deleted the group's image`,
+      text: `@${authUsername} deleted the group's image`,
     };
 
     chat.group!.image = undefined;
