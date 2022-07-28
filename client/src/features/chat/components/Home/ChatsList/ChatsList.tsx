@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Box } from "@chakra-ui/react";
+import { Box, useToast } from "@chakra-ui/react";
 import Push from "push.js";
 import Router from "next/router";
 
@@ -11,10 +11,13 @@ import {
   useGetChatsQuery,
 } from "@/graphql/generated";
 import { ListSkeleton } from "@/components/UI";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 const ChatsList = () => {
   const { authUser } = useAuthUser();
   const { data: chatsData, loading, subscribeToMore } = useGetChatsQuery();
+  const isMobile = useIsMobile();
+  const toast = useToast();
 
   useEffect(() => {
     const unsubscribe = subscribeToMore<OnNewMessageAddedSubscription>({
@@ -48,11 +51,22 @@ const ChatsList = () => {
           newMessage.sender &&
           newMessage.sender._id !== authUser?._id &&
           (Router.asPath !== messageLink || !document.hasFocus());
+
+        toast({
+          title: "Show notification",
+          description: showNotification ? "true" : "false",
+        });
+
+        toast({
+          title: "Is mobile",
+          description: isMobile ? "true" : "false",
+        });
+
         if (showNotification) {
           Push.create(messageTitle, {
             body: newMessage.text,
             icon: messageIcon,
-            timeout: 8000,
+            timeout: isMobile ? undefined : 8000,
             tag: chatId,
             onClick: async () => {
               await Router.push(messageLink);
@@ -112,7 +126,7 @@ const ChatsList = () => {
     return () => {
       unsubscribe();
     };
-  }, [subscribeToMore, authUser]);
+  }, [subscribeToMore, authUser, isMobile]);
 
   if (loading || !authUser) {
     return <ListSkeleton itemsNumber={10} />;

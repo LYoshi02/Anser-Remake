@@ -138,7 +138,6 @@ const uploadLink = createUploadLink({
 let wsLink: GraphQLWsLink,
   splitLink: ApolloLink = uploadLink;
 if (typeof window !== "undefined") {
-  console.log(process.env.NEXT_PUBLIC_SERVER_SOCKET_URL);
   wsLink = new GraphQLWsLink(
     createClient({
       url: process.env.NEXT_PUBLIC_SERVER_SOCKET_URL!,
