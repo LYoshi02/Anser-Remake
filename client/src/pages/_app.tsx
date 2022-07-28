@@ -6,7 +6,7 @@ import { DefaultSeo } from "next-seo";
 
 import { client } from "@/lib/apolloClient";
 import theme from "@/styles/theme";
-import { setAccessToken } from "@/helpers/accessToken";
+import { refreshTokenUrl, setAccessToken } from "@/helpers/accessToken";
 import { defaultSEOConfig } from "@/helpers/seo";
 
 function MyApp({ Component, pageProps }: AppProps) {
@@ -14,7 +14,7 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   useEffect(() => {
     setLoading(true);
-    fetch("http://localhost:4000/refresh-token", {
+    fetch(refreshTokenUrl, {
       method: "POST",
       credentials: "include",
     })

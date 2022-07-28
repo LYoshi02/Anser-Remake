@@ -16,7 +16,11 @@ import jwtDecode from "jwt-decode";
 import Router from "next/router";
 
 import theme from "@/styles/theme";
-import { getAccessToken, setAccessToken } from "@/helpers/accessToken";
+import {
+  getAccessToken,
+  refreshTokenUrl,
+  setAccessToken,
+} from "@/helpers/accessToken";
 
 const toastId = "error-toast";
 const toast = createStandaloneToast({
@@ -59,7 +63,7 @@ const tokenRefreshLink = new TokenRefreshLink({
     }
   },
   fetchAccessToken: () => {
-    return fetch("http://localhost:4000/refresh-token", {
+    return fetch(refreshTokenUrl, {
       method: "POST",
       credentials: "include",
     });
@@ -126,7 +130,7 @@ const requestLink = new ApolloLink(
 );
 
 const uploadLink = createUploadLink({
-  uri: process.env.NEXT_PUBLIC_SERVER_URL,
+  uri: `${process.env.NEXT_PUBLIC_SERVER_URL}/graphql`,
   credentials: "include",
 });
 
@@ -135,7 +139,7 @@ let wsLink: GraphQLWsLink,
 if (typeof window !== "undefined") {
   wsLink = new GraphQLWsLink(
     createClient({
-      url: "ws://localhost:4000/graphql",
+      url: `ws://${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/graphql`,
       connectionParams: () => {
         const token = getAccessToken();
         return {

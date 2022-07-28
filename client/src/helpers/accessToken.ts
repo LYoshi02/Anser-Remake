@@ -7,3 +7,5 @@ export function getAccessToken() {
 export function setAccessToken(newToken: string) {
   accessToken = newToken;
 }
+
+export const refreshTokenUrl = `${process.env.NEXT_PUBLIC_SERVER_URL}/refresh-token`;
