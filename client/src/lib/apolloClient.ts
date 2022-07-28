@@ -140,7 +140,7 @@ let wsLink: GraphQLWsLink,
 if (typeof window !== "undefined") {
   wsLink = new GraphQLWsLink(
     createClient({
-      url: `ws://${process.env.NEXT_PUBLIC_SERVER_DOMAIN}/graphql`,
+      url: process.env.NEXT_PUBLIC_SERVER_SOCKET_URL!,
       connectionParams: () => {
         const token = getAccessToken();
         return {

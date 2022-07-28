@@ -74,3 +74,10 @@ const HomePage: NextPage = () => {
 };
 
 export default HomePage;
+
+// Empty for SEO purposes
+export async function getStaticProps() {
+  return {
+    props: {},
+  };
+}
