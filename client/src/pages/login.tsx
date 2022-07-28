@@ -94,6 +94,7 @@ const LoginPage: NextPage = () => {
                 <Input
                   placeholder="user@email.com"
                   type="email"
+                  autoComplete="on"
                   {...register("email")}
                 />
               }

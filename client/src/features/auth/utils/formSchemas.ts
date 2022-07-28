@@ -27,11 +27,8 @@ export const signupFormSchema = yup.object({
     .trim()
     .required("The username is required")
     .min(3, "The username must be at least 3 characters long")
-    .max(20, "The username must be at most 20 characters long")
-    .matches(
-      /^(?!.*\.\.)(?!.*\.$)[^\W][\w.]{0,29}$/gim,
-      "The username is not valid"
-    ),
+    .max(30, "The username must be at most 30 characters long")
+    .matches(/^[\w](?!.*?\.{2})[\w.]{1,28}[\w]/, "The username is not valid"),
   password: yup
     .string()
     .required("The password is required")

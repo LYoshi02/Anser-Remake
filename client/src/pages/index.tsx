@@ -27,7 +27,8 @@ const HomePage: NextPage = () => {
       <Flex w="100%" minH="100vh" bg={bgColor} direction="column">
         <Flex p="2" justify="flex-end" align="center">
           <Link
-            href="https://github.com/LYoshi02/Anser"
+            href="https://github.com/LYoshi02/Anser-Remake"
+            aria-label="Project's GitHub repository"
             linkProps={{ isExternal: true }}
           >
             <Icon as={DiGithubBadge} h="12" w="12" />

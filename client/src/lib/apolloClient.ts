@@ -84,6 +84,7 @@ const errorLink = onError(({ graphQLErrors, networkError }) => {
       console.log(
         `[GraphQL error]: Message: ${err.message}, Location: ${err.locations}, Path: ${err.path}`
       );
+      console.log(err);
 
       if (err.extensions.code === "UNAUTHENTICATED") {
         Router.replace("/login");

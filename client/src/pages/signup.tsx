@@ -96,7 +96,7 @@ const SignupPage: NextPage = () => {
               input={
                 <Input
                   type="text"
-                  placeholder="your_user_name"
+                  placeholder="your_username"
                   {...register("username")}
                 />
               }

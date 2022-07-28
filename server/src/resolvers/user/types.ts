@@ -13,8 +13,8 @@ export class CreateUserInput implements Partial<User> {
 
   @Field()
   @MinLength(3, { message: "The username must be at least 3 characters long" })
-  @MaxLength(30, { message: "The username must be at most 20 characters long" })
-  @Matches(/^(?!.*\.\.)(?!.*\.$)[^\W][\w.]{0,29}$/gim, {
+  @MaxLength(30, { message: "The username must be at most 30 characters long" })
+  @Matches(/^[\w](?!.*?\.{2})[\w.]{1,28}[\w]/, {
     message: "The username is not valid",
   })
   username: string;
