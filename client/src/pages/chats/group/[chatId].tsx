@@ -2,7 +2,13 @@ import { useEffect } from "react";
 import type { NextPage } from "next";
 import { useRouter } from "next/router";
 
-import { ChatBody, ChatInfo, GroupMenu, MessageInput, useUpdateLastSeenOnExit } from "@/features/chat";
+import {
+  ChatBody,
+  ChatInfo,
+  GroupMenu,
+  MessageInput,
+  useUpdateLastSeenOnExit,
+} from "@/features/chat";
 import { AppLayout } from "@/components/Layout";
 import { BackNav } from "@/components/UI";
 import {

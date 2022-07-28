@@ -9,7 +9,9 @@ export const useUpdateLastSeenOnExit = (chatId?: string) => {
   useEffect(() => {
     const routeChangeStart = async (newUrl: any) => {
       if (Router.asPath !== newUrl && chatId) {
-        await updateLastSeen({ variables: { chatId } });
+        try {
+          await updateLastSeen({ variables: { chatId } });
+        } catch (e) {}
       }
     };
 

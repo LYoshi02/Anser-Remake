@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { Box, Button, Text, useColorModeValue } from "@chakra-ui/react";
 
-import { ListSkeleton, Spinner, SearchInput } from "../UI";
+import { ListSkeleton, SearchInput } from "../UI";
 
 type Props = {
   isLoading: boolean;

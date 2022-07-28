@@ -12,9 +12,19 @@ export const uploadToCloudinary: (
   return new Promise((resolve, reject) => {
     const { createReadStream } = file;
 
+    let uploadFolder = process.env.CLOUDINARY_ROOT_FOLDER!;
+    if (options?.folder) {
+      uploadFolder = uploadFolder.concat("/", options.folder);
+    }
+
+    const uploadOptions: UploadApiOptions = {
+      ...options,
+      folder: uploadFolder,
+    };
+
     const fileStream = createReadStream();
     const cloudinaryStream = cloudinary.uploader.upload_stream(
-      options,
+      uploadOptions,
       (err, res) => {
         if (err) {
           reject(err);

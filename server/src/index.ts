@@ -36,14 +36,14 @@ const environment = process.env.NODE_ENV || "development";
 
 async function startApp() {
   try {
+    const isDevEnv = environment === "development";
     const app = express();
     app.use(
       cors({
         credentials: true,
-        origin:
-          environment === "development"
-            ? ["http://localhost:3000", "https://studio.apollographql.com"]
-            : process.env.CLIENT_URL,
+        origin: isDevEnv
+          ? ["http://localhost:3000", "https://studio.apollographql.com"]
+          : process.env.CLIENT_URL,
       })
     );
     app.use(cookieParser());

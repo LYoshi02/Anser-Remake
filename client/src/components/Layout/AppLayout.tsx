@@ -1,8 +1,7 @@
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode } from "react";
 import { Box, Flex, useColorModeValue } from "@chakra-ui/react";
 import { NextSeo } from "next-seo";
 
-import { setAccessToken } from "@/helpers/accessToken";
 import Home from "../../features/chat/components/Home/Home";
 
 type Props = {
@@ -11,25 +10,8 @@ type Props = {
 };
 
 const AppLayout = ({ children, keepChatsVisible }: Props) => {
-  const [loading, setLoading] = useState(true);
   const borderColor = useColorModeValue("gray.300", "gray.700");
   const bgColor = useColorModeValue("white", "gray.800");
-
-  useEffect(() => {
-    setLoading(true);
-    fetch("http://localhost:4000/refresh-token", {
-      method: "POST",
-      credentials: "include",
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setAccessToken(data.accessToken);
-        setLoading(false);
-      })
-      .catch((e) => {
-        setLoading(false);
-      });
-  }, []);
 
   return (
     <>
