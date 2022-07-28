@@ -25,7 +25,7 @@ export class CreateUserInput implements Partial<User> {
   fullname: string;
 
   @Field()
-  @Min(8, { message: "The password must be at least 8 characters long" })
+  @MinLength(8, { message: "The password must be at least 8 characters long" })
   password: string;
 }
 
