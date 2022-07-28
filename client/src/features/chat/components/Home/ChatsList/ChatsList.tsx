@@ -52,16 +52,6 @@ const ChatsList = () => {
           newMessage.sender._id !== authUser?._id &&
           (Router.asPath !== messageLink || !document.hasFocus());
 
-        toast({
-          title: "Show notification",
-          description: showNotification ? "true" : "false",
-        });
-
-        toast({
-          title: "Is mobile",
-          description: isMobile ? "true" : "false",
-        });
-
         if (showNotification) {
           Push.create(messageTitle, {
             body: newMessage.text,
@@ -73,6 +63,11 @@ const ChatsList = () => {
               window.focus();
               Push.clear();
             },
+          }).catch((e) => {
+            toast({
+              title: "error",
+              description: e,
+            });
           });
         }
 
