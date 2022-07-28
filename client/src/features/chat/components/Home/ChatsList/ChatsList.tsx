@@ -53,6 +53,9 @@ const ChatsList = () => {
           (Router.asPath !== messageLink || !document.hasFocus());
 
         if (showNotification) {
+          toast({
+            title: "Showing notification",
+          });
           Push.create(messageTitle, {
             body: newMessage.text,
             icon: messageIcon,
@@ -63,11 +66,6 @@ const ChatsList = () => {
               window.focus();
               Push.clear();
             },
-          }).catch((e) => {
-            toast({
-              title: "error",
-              description: e,
-            });
           });
         }
 
