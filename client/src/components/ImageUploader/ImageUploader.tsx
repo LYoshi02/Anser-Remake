@@ -22,7 +22,6 @@ const ImageUploader = (props: Props) => {
   const [isCropping, setIsCropping] = useState(false);
 
   const selectImageHandler = (img: string) => {
-    console.log(img);
     setImage(img);
     setIsCropping(true);
   };

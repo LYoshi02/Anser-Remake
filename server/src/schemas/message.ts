@@ -22,8 +22,4 @@ export class Message extends TimeStamps {
   @Field()
   @Property({ required: true, minLength: 1, trim: true })
   text: string;
-
-  // @Field()
-  // @Property({ default: new Date() })
-  // createdAt?: Date;
 }

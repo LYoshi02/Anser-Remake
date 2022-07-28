@@ -64,8 +64,6 @@ export const useGetUsers = ({ excludedUsers, fetchLimit = 20 }: Params) => {
   const fetchMoreUsersHandler = async () => {
     if (!usersData || !keepFetching) return;
 
-    console.log("Fetching more users: ", lastSearch);
-
     try {
       setIsFetchingMore(true);
       const res = await fetchMore({
@@ -90,10 +88,7 @@ export const useGetUsers = ({ excludedUsers, fetchLimit = 20 }: Params) => {
   };
 
   const searchUserHandler = async (searchText: string) => {
-    if (lastSearch === searchText) {
-      console.log("Invalid search");
-      return;
-    }
+    if (lastSearch === searchText) return;
 
     setLastSearch(searchText);
     setIsSearching(true);

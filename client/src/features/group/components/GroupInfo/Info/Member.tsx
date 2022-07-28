@@ -45,9 +45,7 @@ const Member = ({ user, isAdmin }: Props) => {
           },
         },
       });
-    } catch (error) {
-      console.log(error);
-    }
+    } catch (e) {}
   };
 
   const addAdminHandler = async (userId: string) => {
@@ -60,9 +58,7 @@ const Member = ({ user, isAdmin }: Props) => {
           },
         },
       });
-    } catch (error) {
-      console.log(error);
-    }
+    } catch (e) {}
   };
 
   const removeMemberHandler = async (userId: string) => {
@@ -75,9 +71,7 @@ const Member = ({ user, isAdmin }: Props) => {
           },
         },
       });
-    } catch (error) {
-      console.log(error);
-    }
+    } catch (e) {}
   };
 
   let adminMenu = null;
@@ -124,9 +118,6 @@ const Member = ({ user, isAdmin }: Props) => {
         avatar={{ name: user.fullname, src: user.profileImg?.url }}
         title={user.fullname}
         description={`@${user.username}`}
-        clicked={() => {
-          console.log("clicked");
-        }}
         detail={
           <Flex align="center">
             {adminBadge}

@@ -1,6 +1,6 @@
 import { IsEmail, Matches, MaxLength, Min, MinLength } from "class-validator";
 import { ObjectId } from "mongodb";
-import { ArgsType, Field, InputType, Int } from "type-graphql";
+import { ArgsType, Field, InputType, Int, ObjectType } from "type-graphql";
 
 import { User } from "../../schemas/user";
 import { ObjectIdScalar } from "../../utils/objectId.scalar";
@@ -68,4 +68,22 @@ export class GetUsersInput {
 
   @Field((type) => [ObjectIdScalar], { nullable: true })
   excludedUsers?: ObjectId[];
+}
+
+@ObjectType()
+export class LoggedInUser {
+  @Field((type) => User)
+  user: User;
+
+  @Field()
+  token: string;
+}
+
+@ObjectType()
+export class AuthUser {
+  @Field()
+  isAuth: boolean;
+
+  @Field((type) => User, { nullable: true })
+  user?: User | null;
 }

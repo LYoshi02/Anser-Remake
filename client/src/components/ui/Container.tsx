@@ -8,7 +8,7 @@ type Props = {
 
 const Container = (props: Props) => {
   return (
-    <ChakraContainer my="10" flexGrow="1" {...props.styleProps}>
+    <ChakraContainer my="10" flexGrow={1} {...props.styleProps}>
       {props.children}
     </ChakraContainer>
   );

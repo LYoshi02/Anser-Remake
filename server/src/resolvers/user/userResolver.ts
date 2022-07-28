@@ -21,10 +21,12 @@ import {
 import { hash as hashPassword, compare as comparePasswords } from "bcryptjs";
 import { FileUpload, GraphQLUpload } from "graphql-upload";
 
-import { UserModel, User, LoggedInUser, AuthUser } from "../../schemas/user";
+import { UserModel, User } from "../../schemas/user";
 import {
+  AuthUser,
   CreateUserInput,
   GetUsersInput,
+  LoggedInUser,
   LoginUserArgs,
   UpdateUserArgs,
 } from "./types";

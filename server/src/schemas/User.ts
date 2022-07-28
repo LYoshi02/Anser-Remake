@@ -36,25 +36,6 @@ export class User {
   isNewUser?: boolean;
 }
 
-// TODO: move this 2 classes to another file
-@ObjectType()
-export class LoggedInUser {
-  @Field((type) => User)
-  user: User;
-
-  @Field()
-  token: string;
-}
-
-@ObjectType()
-export class AuthUser {
-  @Field()
-  isAuth: boolean;
-
-  @Field((type) => User, { nullable: true })
-  user?: User | null;
-}
-
 export const UserModel = getModelForClass(User, {
   schemaOptions: { timestamps: true },
 });

@@ -18,7 +18,7 @@ const AuthContainer = (props: Props) => {
   return (
     <Flex minH="100vh" direction="column">
       <Navigation />
-      <Flex grow="1" py="4" px="2" bg={flexBgColor}>
+      <Flex grow={1} py="4" px="2" bg={flexBgColor}>
         <ChakraContainer
           py="12"
           px="6"

@@ -210,7 +210,6 @@ export class GroupChatResolver {
     await chat.populate("users");
 
     const newMessagesPromises = newMessages.map(async (newMessage) => {
-      console.log(newMessage);
       return await publishNewMessage({
         chatId: chat._id,
         message: newMessage,

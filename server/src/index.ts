@@ -32,6 +32,7 @@ import { UserModel } from "./schemas/user";
 import { JwtPayload } from "./types";
 
 const port = process.env.PORT || 4000;
+const environment = process.env.NODE_ENV || "development";
 
 async function startApp() {
   try {
@@ -39,7 +40,10 @@ async function startApp() {
     app.use(
       cors({
         credentials: true,
-        origin: ["http://localhost:3000", "https://studio.apollographql.com"],
+        origin:
+          environment === "development"
+            ? ["http://localhost:3000", "https://studio.apollographql.com"]
+            : process.env.CLIENT_URL,
       })
     );
     app.use(cookieParser());

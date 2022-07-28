@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Input } from "@chakra-ui/react";
+import { NextSeo } from "next-seo";
 
 import {
   Container,
@@ -80,47 +81,50 @@ const LoginPage: NextPage = () => {
   };
 
   return (
-    <Container>
-      <form onSubmit={handleSubmit(submitHandler)}>
-        <FormHeading>Log In</FormHeading>
-        <FormBody>
-          <FormControl
-            id="email"
-            label="Email"
-            input={
-              <Input
-                placeholder="user@email.com"
-                type="email"
-                {...register("email")}
-              />
-            }
-            error={errors.email?.message}
-          />
+    <>
+      <NextSeo title="Log In" />
+      <Container>
+        <form onSubmit={handleSubmit(submitHandler)}>
+          <FormHeading>Log In</FormHeading>
+          <FormBody>
+            <FormControl
+              id="email"
+              label="Email"
+              input={
+                <Input
+                  placeholder="user@email.com"
+                  type="email"
+                  {...register("email")}
+                />
+              }
+              error={errors.email?.message}
+            />
 
-          <FormControl
-            id="password"
-            label="Password"
-            input={
-              <PasswordInput
-                placeholder="At least 8 characters"
-                hookForm={register("password")}
-              />
-            }
-            error={errors.password?.message}
-          />
-        </FormBody>
+            <FormControl
+              id="password"
+              label="Password"
+              input={
+                <PasswordInput
+                  placeholder="At least 8 characters"
+                  hookForm={register("password")}
+                />
+              }
+              error={errors.password?.message}
+            />
+          </FormBody>
 
-        <FormFooter
-          btnText="Log In"
-          isLoading={loading}
-          secondaryAction={{
-            text: "Don't have an account?",
-            linkText: "Sign up now!",
-            linkUrl: "/signup",
-          }}
-        />
-      </form>
-    </Container>
+          <FormFooter
+            btnText="Log In"
+            isLoading={loading}
+            secondaryAction={{
+              text: "Don't have an account?",
+              linkText: "Sign up now!",
+              linkUrl: "/signup",
+            }}
+          />
+        </form>
+      </Container>
+    </>
   );
 };
 

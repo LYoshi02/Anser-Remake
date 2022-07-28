@@ -50,8 +50,7 @@ const tokenRefreshLink = new TokenRefreshLink({
     }
 
     try {
-      // TODO: change the <any> generic
-      const { exp } = jwtDecode<any>(token);
+      const { exp } = jwtDecode<{ exp: number }>(token);
       const isTokenValid = Date.now() < exp * 1000;
 
       return isTokenValid;
@@ -77,6 +76,7 @@ const tokenRefreshLink = new TokenRefreshLink({
 const errorLink = onError(({ graphQLErrors, networkError }) => {
   if (graphQLErrors)
     graphQLErrors.forEach((err) => {
+      // TODO: delete when deploying to production
       console.log(
         `[GraphQL error]: Message: ${err.message}, Location: ${err.locations}, Path: ${err.path}`
       );
@@ -176,7 +176,6 @@ export const client = new ApolloClient({
           getUsers: {
             keyArgs: ["searchOptions", ["searchText", "excludedUsers"]],
             merge(existing, incoming, { args }) {
-              console.log(existing, incoming, args);
               const merged = existing ? existing.slice(0) : [];
 
               if (incoming) {
