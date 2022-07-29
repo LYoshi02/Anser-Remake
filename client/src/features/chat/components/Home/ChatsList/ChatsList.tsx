@@ -53,9 +53,6 @@ const ChatsList = () => {
           (Router.asPath !== messageLink || !document.hasFocus());
 
         if (showNotification) {
-          toast({
-            title: "Showing notification",
-          });
           Push.create(messageTitle, {
             body: newMessage.text,
             icon: messageIcon,
