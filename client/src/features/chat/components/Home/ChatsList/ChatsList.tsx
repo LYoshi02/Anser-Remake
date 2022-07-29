@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Box, useToast } from "@chakra-ui/react";
+import { Box } from "@chakra-ui/react";
 import Push from "push.js";
 import Router from "next/router";
 
@@ -17,7 +17,6 @@ const ChatsList = () => {
   const { authUser } = useAuthUser();
   const { data: chatsData, loading, subscribeToMore } = useGetChatsQuery();
   const isMobile = useIsMobile();
-  const toast = useToast();
 
   useEffect(() => {
     const unsubscribe = subscribeToMore<OnNewMessageAddedSubscription>({
@@ -54,14 +53,15 @@ const ChatsList = () => {
 
         if (showNotification) {
           Push.create(messageTitle, {
+            link: Router.asPath,
             body: newMessage.text,
             icon: messageIcon,
             timeout: isMobile ? undefined : 8000,
             tag: chatId,
             onClick: async () => {
-              await Router.push(messageLink);
-              window.focus();
               Push.clear();
+              window.focus();
+              Router.push(messageLink);
             },
           });
         }

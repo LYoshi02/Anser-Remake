@@ -28,8 +28,10 @@ const HomePage: NextPage = () => {
         <Flex p="2" justify="flex-end" align="center">
           <Link
             href="https://github.com/LYoshi02/Anser-Remake"
-            aria-label="Project's GitHub repository"
-            linkProps={{ isExternal: true }}
+            linkProps={{
+              isExternal: true,
+              "aria-label": "Project's GitHub repository",
+            }}
           >
             <Icon as={DiGithubBadge} h="12" w="12" />
           </Link>
@@ -41,8 +43,16 @@ const HomePage: NextPage = () => {
           alignItems="center"
           flexGrow={1}
         >
-          <Box height="80" width="80">
-            <Image src={logoImg} alt="Anser Logo" priority />
+          <Box
+            height={{ base: "60", sm: "80" }}
+            width={{ base: "60", sm: "80" }}
+          >
+            <Image
+              src={logoImg}
+              alt="Anser Logo"
+              priority
+              layout="responsive"
+            />
           </Box>
           <Stack
             spacing="2"

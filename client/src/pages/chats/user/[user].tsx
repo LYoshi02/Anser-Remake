@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import type { NextPage } from "next";
 import { useRouter } from "next/router";
+import Push from "push.js";
 
 import {
   ChatBody,
@@ -34,6 +35,7 @@ const UserChatPage: NextPage = () => {
     onCompleted: async (data) => {
       const chatData = data.getSingleChat.chat;
       if (chatData) {
+        Push.close(chatData._id);
         clearUnreadMessages(client, chatData);
       }
     },
