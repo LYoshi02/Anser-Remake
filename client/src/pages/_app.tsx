@@ -23,8 +23,8 @@ const defaultSEOConfig: DefaultSeoProps = {
     images: [
       {
         url: "https://anser.vercel.app/images/site.png",
-        width: 1920,
-        height: 1080,
+        width: 1280,
+        height: 640,
         alt: "Anser Site Thumbnail",
       },
     ],
@@ -36,24 +36,24 @@ const defaultSEOConfig: DefaultSeoProps = {
     {
       rel: "apple-touch-icon",
       sizes: "180x180",
-      href: "/favicon/apple-touch-icon.png",
+      href: "/apple-touch-icon.png",
     },
     {
       rel: "icon",
       type: "image/png",
       sizes: "32x32",
-      href: "/favicon/favicon-32x32.png",
+      href: "/favicon-32x32.png",
     },
     {
       rel: "icon",
       type: "image/png",
       sizes: "16x16",
-      href: "/favicon/favicon-16x16.png",
+      href: "/favicon-16x16.png",
     },
-    { rel: "manifest", href: "/favicon/site.webmanifest" },
+    { rel: "manifest", href: "/site.webmanifest" },
     {
       rel: "mask-icon",
-      href: "/favicon/safari-pinned-tab.svg",
+      href: "/safari-pinned-tab.svg",
       color: "#5bbad5",
     },
   ],
