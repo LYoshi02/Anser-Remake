@@ -8,8 +8,7 @@ Demostración del sitio en funcionamiento en [anser.vercel.app](https://anser.ve
 
 ## Sobre el Proyecto
 Anser es una aplicación web de mensajería, que utiliza la tecnología WebSocket junto a las suscripciones 
-de GraphQL para ofrecer a sus usuarios comunicación en tiempo real. Este es un remake de mi [antiguo proyecto]
-(https://github.com/LYoshi02/Anser).
+de GraphQL para ofrecer a sus usuarios comunicación en tiempo real. Este es un remake de mi [antiguo proyecto](https://github.com/LYoshi02/Anser).
 
 Esta nueva versión se centra en un fuerte tipado utilizando TypeScript, tanto en el cliente como en el servidor, 
 así como en el uso de una API hecha con GraphQL en reemplazo de la anterior REST API.
